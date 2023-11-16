@@ -1,9 +1,11 @@
 from hyperon import *
 from hyperon.ext import register_atoms
-import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 import os
 import json
-openai.api_key = os.environ["OPENAI_API_KEY"]
+
 
 def to_nested_expr(xs):
     if isinstance(xs, list):
@@ -124,28 +126,26 @@ def llm(metta: MeTTa, *args):
     #print(messages)
     #return []
     if functions==[]:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0613",
-            messages=messages,
-            temperature=0,
-            timeout = 15)
+        response = client.chat.completions.create(model="gpt-3.5-turbo-0613",
+        messages=messages,
+        temperature=0,
+        timeout = 15)
     else:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0613",
-            messages=messages,
-            functions=functions,
-            function_call="auto",
-            temperature=0,
-            timeout = 15)
-    response_message = response["choices"][0]["message"]
+        response = client.chat.completions.create(model="gpt-3.5-turbo-0613",
+        messages=messages,
+        functions=functions,
+        function_call="auto",
+        temperature=0,
+        timeout = 15)
+    response_message = response.choices[0].message
     #print(response_message)
     #messages.append(response_message)
-    if response_message.get("function_call"):
-        fs = S(response_message["function_call"]["name"])
-        args = response_message["function_call"]["arguments"]
+    if response_message.function_call is not None:
+        fs = S(response_message.function_call.name)
+        args = response_message.function_call.arguments
         args = json.loads(args)
         return [E(fs, to_nested_expr(list(args.values())), msgs_atom)]
-    return [ValueAtom(response_message['content'])]
+    return [ValueAtom(response_message.content)]
 
 @register_atoms(pass_metta=True)
 def llmgate_atoms(metta):
