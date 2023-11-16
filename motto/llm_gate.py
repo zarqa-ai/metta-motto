@@ -1,9 +1,9 @@
 from hyperon import *
 from hyperon.ext import register_atoms
 import openai
-import os
 import json
-openai.api_key = os.environ["OPENAI_API_KEY"]
+
+__default_agent = None
 
 def to_nested_expr(xs):
     if isinstance(xs, list):
@@ -28,11 +28,14 @@ def atom2msg(atom):
     return repr(atom)
 
 def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
+    agent = __default_agent
     messages = []
     functions = []
     msg_atoms = []
-    def __msg_update(m, f, a):
-        nonlocal messages, functions, msg_atoms
+    def __msg_update(ag, m, f, a):
+        nonlocal agent, messages, functions, msg_atoms
+        if ag is not None:
+            agent = ag
         messages += m
         functions += f
         msg_atoms += [a]
@@ -101,6 +104,8 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                                 "properties": properties
                             }
                         }]
+                elif name == 'Agent':
+                    agent = ch[1].get_object().value
                 elif name == '=':
                     # We ignore equalities here: if a space is used to store messages,
                     # it can contain equalities as well (another approach would be to
@@ -116,47 +121,69 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
             raise RuntimeError("Unrecognized argument: " + repr(arg))
     # Do not wrap a single message into Message (necessary to avoid double
     # wrapping of single Message argument)
-    return messages, functions, \
+    return agent, messages, functions, \
         msg_atoms[0] if len(msg_atoms) == 1 else E(S('Messages'), *msg_atoms)
 
+
+class ChatGPTAgent:
+
+    def __init__(self, model="gpt-3.5-turbo-0613"):
+        self._model = model
+
+    def __call__(self, messages, functions, msgs_atom):
+        if functions==[]:
+            response = openai.ChatCompletion.create(
+                model=self._model,
+                messages=messages,
+                temperature=0,
+                timeout = 15)
+        else:
+            response = openai.ChatCompletion.create(
+                model=self._model,
+                messages=messages,
+                functions=functions,
+                function_call="auto",
+                temperature=0,
+                timeout = 15)
+        response_message = response["choices"][0]["message"]
+        #print(response_message)
+        #messages.append(response_message)
+        if response_message.get("function_call"):
+            fs = S(response_message["function_call"]["name"])
+            args = response_message["function_call"]["arguments"]
+            args = json.loads(args)
+            return [E(fs, to_nested_expr(list(args.values())), msgs_atom)]
+        return [ValueAtom(response_message['content'])]
+
+class EchoAgent:
+    def __call__(self, messages, functions, msgs_atom):
+        return [msgs_atom]
+
+
 def llm(metta: MeTTa, *args):
-    messages, functions, msgs_atom = get_llm_args(metta, None, *args)
+    agent, messages, functions, msgs_atom = get_llm_args(metta, None, *args)
     #print(messages)
     #return []
-    if functions==[]:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0613",
-            messages=messages,
-            temperature=0,
-            timeout = 15)
-    else:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0613",
-            messages=messages,
-            functions=functions,
-            function_call="auto",
-            temperature=0,
-            timeout = 15)
-    response_message = response["choices"][0]["message"]
-    #print(response_message)
-    #messages.append(response_message)
-    if response_message.get("function_call"):
-        fs = S(response_message["function_call"]["name"])
-        args = response_message["function_call"]["arguments"]
-        args = json.loads(args)
-        return [E(fs, to_nested_expr(list(args.values())), msgs_atom)]
-    return [ValueAtom(response_message['content'])]
+    return agent(messages, functions, msgs_atom)
+
 
 @register_atoms(pass_metta=True)
 def llmgate_atoms(metta):
+    global __default_agent
+    __default_agent = ChatGPTAgent()
     llmAtom = OperationAtom('llm', lambda *args: llm(metta, *args), unwrap=False)
     # Just a helper function if one needs to print from a metta-script
     # the message converted from expression to text
     msgAtom = OperationAtom('atom2msg',
                  lambda atom: [ValueAtom(atom2msg(atom))], unwrap=False)
+    chatGPTAtom = OperationAtom('chat-gpt',
+                     lambda model: ChatGPTAgent(model))
+    echoAgentAtom = OperationAtom('echo-agent', EchoAgent)
     return {
         r"llm": llmAtom,
-        r"atom2msg": msgAtom
+        r"atom2msg": msgAtom,
+        r"chat-gpt": chatGPTAtom,
+        r"echo-agent": echoAgentAtom,
     }
 
 
