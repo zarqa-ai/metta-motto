@@ -28,7 +28,7 @@ def atom2msg(atom):
     return repr(atom)
 
 def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
-    agent = __default_agent
+    agent = None
     messages = []
     functions = []
     msg_atoms = []
@@ -162,6 +162,8 @@ class EchoAgent:
 
 def llm(metta: MeTTa, *args):
     agent, messages, functions, msgs_atom = get_llm_args(metta, None, *args)
+    if agent is None:
+        agent = __default_agent
     #print(messages)
     #return []
     return agent(messages, functions, msgs_atom)
@@ -170,7 +172,7 @@ def llm(metta: MeTTa, *args):
 @register_atoms(pass_metta=True)
 def llmgate_atoms(metta):
     global __default_agent
-    __default_agent = ChatGPTAgent()
+    #__default_agent = ChatGPTAgent()
     llmAtom = OperationAtom('llm', lambda *args: llm(metta, *args), unwrap=False)
     # Just a helper function if one needs to print from a metta-script
     # the message converted from expression to text
