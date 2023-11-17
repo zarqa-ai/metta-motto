@@ -2,6 +2,11 @@ from openai import OpenAI
 
 client = OpenAI()
 
+class FunctionCall:
+    def __init__(self, name, arguments):
+        self.name = name
+        self.arguments = arguments
+
 class Response:
     def __init__(self, content, function_call):
         self.content = content
@@ -10,7 +15,20 @@ class Response:
 class EchoAgent:
     def __call__(self, messages, functions):
         msg = list(map(lambda m: m['role'] + ' ' + m['content'], messages))
-        return Response('\n'.join(msg), None)
+        msg = '\n'.join(msg)
+        fcall = None
+        # A mock function call processing for testing purposes
+        for f in functions:
+            vcall = None
+            if f['description'] in msg:
+                prop = f['parameters']['properties']
+                for k in prop:
+                    if 'enum' in prop[k]:
+                        for v in prop[k]['enum']:
+                            if prop[k]['description'] + v in msg:
+                                vcall = {k: v}
+                fcall = FunctionCall(f['name'], vcall)
+        return Response(msg, fcall)
 
 
 class ChatGPTAgent:
