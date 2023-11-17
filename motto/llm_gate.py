@@ -135,12 +135,12 @@ def llm(metta: MeTTa, *args):
     if agent is None:
         agent = __default_agent
     response = agent(messages, functions)
-    if response.get("function_call"):
-        fs = S(response["function_call"]["name"])
-        args = response["function_call"]["arguments"]
+    if response.function_call is not None:
+        fs = S(response.function_call.name)
+        args = response.function_call.arguments
         args = json.loads(args)
         return [E(fs, to_nested_expr(list(args.values())), msgs_atom)]
-    return [ValueAtom(response['content'])]
+    return [ValueAtom(response.content)]
 
 
 @register_atoms(pass_metta=True)
