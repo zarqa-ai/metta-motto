@@ -94,7 +94,8 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                                 p[0].get_name(): {
                                     "type": "string",
                                     "description": p[1].get_object().value,
-                                    "enum": list(map(lambda x: x.get_object().value, p[2].get_children()))
+                                    # FIXME? atom2msg or repr or ...?
+                                    "enum": list(map(lambda x: atom2msg(x), p[2].get_children()))
                                 }
                             })
                         functions += [{
@@ -138,7 +139,8 @@ def llm(metta: MeTTa, *args):
     if response.function_call is not None:
         fs = S(response.function_call.name)
         args = response.function_call.arguments
-        args = json.loads(args)
+        args = {} if args is None else \
+            json.loads(args) if isinstance(args, str) else args
         return [E(fs, to_nested_expr(list(args.values())), msgs_atom)]
     return [ValueAtom(response.content)]
 

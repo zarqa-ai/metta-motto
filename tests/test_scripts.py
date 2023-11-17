@@ -8,4 +8,5 @@ def process_exceptions(results):
 
 def test_scripts():
     process_exceptions(MeTTa().import_file(f"{pwd}/basic_direct_call.metta"))
+    process_exceptions(MeTTa().import_file(f"{pwd}/basic_function_call.metta"))
     process_exceptions(MeTTa().import_file(f"{pwd}/basic_script_call.metta"))
