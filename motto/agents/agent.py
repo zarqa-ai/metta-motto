@@ -2,7 +2,7 @@ from openai import OpenAI
 
 client = OpenAI()
 
-class EchoResponse:
+class Response:
     def __init__(self, content, function_call):
         self.content = content
         self.function_call = function_call
@@ -10,7 +10,7 @@ class EchoResponse:
 class EchoAgent:
     def __call__(self, messages, functions):
         msg = list(map(lambda m: m['role'] + ' ' + m['content'], messages))
-        return EchoResponse('\n'.join(msg), None)
+        return Response('\n'.join(msg), None)
 
 
 class ChatGPTAgent:
