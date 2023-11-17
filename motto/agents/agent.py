@@ -1,10 +1,16 @@
-import openai
+from openai import OpenAI
 
+client = OpenAI()
+
+class EchoResponse:
+    def __init__(self, content, function_call):
+        self.content = content
+        self.function_call = function_call
 
 class EchoAgent:
     def __call__(self, messages, functions):
         msg = list(map(lambda m: m['role'] + ' ' + m['content'], messages))
-        return {'content': '\n'.join(msg)}
+        return EchoResponse('\n'.join(msg), None)
 
 
 class ChatGPTAgent:
@@ -14,19 +20,17 @@ class ChatGPTAgent:
 
     def __call__(self, messages, functions):
         if functions==[]:
-            response = openai.ChatCompletion.create(
-                model=self._model,
-                messages=messages,
-                temperature=0,
-                timeout = 15)
+            response = client.chat.completions.create(model=self._model,
+            messages=messages,
+            temperature=0,
+            timeout = 15)
         else:
-            response = openai.ChatCompletion.create(
-                model=self._model,
-                messages=messages,
-                functions=functions,
-                function_call="auto",
-                temperature=0,
-                timeout = 15)
+            response = client.chat.completions.create(model=self._model,
+            messages=messages,
+            functions=functions,
+            function_call="auto",
+            temperature=0,
+            timeout = 15)
         # FIXME? Only one result is supposed now. API can be changed later if it turns out to be needed.
-        return response["choices"][0]["message"]
+        return response.choices[0].message
 
