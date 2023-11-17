@@ -7,7 +7,7 @@
       (arg "argument=" (A B C D))
      ))
 )
-; This is another limitation: LLM output should somehow be transormed to MeTTa expressions
+
 (= (func_test ("A") $msgs)
    "SUCCESS")
 
