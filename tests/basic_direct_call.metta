@@ -1,16 +1,29 @@
 !(extend-py! motto)
 
-!(assertEqual
-   (llm
-     (Agent (echo-agent))
-     (Messages (user "Test")))
-   ; Single message is unwrapped
-   (user "Test")
-)
+; Testing parsing of arguments of `llm` using EchoAgent,
+; which is passed explicitly as one of the arguments
 
+; Messages can be wrapped into `Messages` constructor
 !(assertEqual
    (llm
-     (Agent (echo-agent))
-     (Messages (system "Ping") (user "Pong")))
-   (Messages (system "Ping") (user "Pong"))
-)
+     (Agent EchoAgent)
+     (Messages (user "Test")))
+"user Test")
+
+; Messages can be recognized by their roles without `Messages` constructor
+!(assertEqual
+   (llm
+     (Agent EchoAgent)
+     (system "Ping") (user "Pong"))
+"system Ping
+user Pong")
+
+; Messages can be wrapped recursively
+!(assertEqual
+   (llm
+     (Agent EchoAgent)
+     (Messages (system "Ping")
+               (Messages (user "Pong") (assistant "Catch"))))
+"system Ping
+user Pong
+assistant Catch")

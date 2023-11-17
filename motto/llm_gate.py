@@ -1,6 +1,6 @@
 from hyperon import *
 from hyperon.ext import register_atoms
-import openai
+from .agents import *
 import json
 
 __default_agent = None
@@ -29,6 +29,7 @@ def atom2msg(atom):
 
 def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
     agent = None
+    print(metta.space().query(E(S('Agent'), V('x'))))
     messages = []
     functions = []
     msg_atoms = []
@@ -105,7 +106,11 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                             }
                         }]
                 elif name == 'Agent':
-                    agent = ch[1].get_object().value
+                    # We have to interpret it, because if it is (chat-gpt model) in a
+                    # script space, it is not yet evaluated
+                    agent = interpret(metta.space(), ch[1])[0]
+                    # TODO: check
+                    agent = agent.get_object().value
                 elif name == '=':
                     # We ignore equalities here: if a space is used to store messages,
                     # it can contain equalities as well (another approach would be to
@@ -125,54 +130,23 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
         msg_atoms[0] if len(msg_atoms) == 1 else E(S('Messages'), *msg_atoms)
 
 
-class ChatGPTAgent:
-
-    def __init__(self, model="gpt-3.5-turbo-0613"):
-        self._model = model
-
-    def __call__(self, messages, functions, msgs_atom):
-        if functions==[]:
-            response = openai.ChatCompletion.create(
-                model=self._model,
-                messages=messages,
-                temperature=0,
-                timeout = 15)
-        else:
-            response = openai.ChatCompletion.create(
-                model=self._model,
-                messages=messages,
-                functions=functions,
-                function_call="auto",
-                temperature=0,
-                timeout = 15)
-        response_message = response["choices"][0]["message"]
-        #print(response_message)
-        #messages.append(response_message)
-        if response_message.get("function_call"):
-            fs = S(response_message["function_call"]["name"])
-            args = response_message["function_call"]["arguments"]
-            args = json.loads(args)
-            return [E(fs, to_nested_expr(list(args.values())), msgs_atom)]
-        return [ValueAtom(response_message['content'])]
-
-class EchoAgent:
-    def __call__(self, messages, functions, msgs_atom):
-        return [msgs_atom]
-
-
 def llm(metta: MeTTa, *args):
     agent, messages, functions, msgs_atom = get_llm_args(metta, None, *args)
     if agent is None:
         agent = __default_agent
-    #print(messages)
-    #return []
-    return agent(messages, functions, msgs_atom)
+    response = agent(messages, functions)
+    if response.get("function_call"):
+        fs = S(response["function_call"]["name"])
+        args = response["function_call"]["arguments"]
+        args = json.loads(args)
+        return [E(fs, to_nested_expr(list(args.values())), msgs_atom)]
+    return [ValueAtom(response['content'])]
 
 
 @register_atoms(pass_metta=True)
 def llmgate_atoms(metta):
     global __default_agent
-    #__default_agent = ChatGPTAgent()
+    __default_agent = ChatGPTAgent()
     llmAtom = OperationAtom('llm', lambda *args: llm(metta, *args), unwrap=False)
     # Just a helper function if one needs to print from a metta-script
     # the message converted from expression to text
@@ -180,12 +154,12 @@ def llmgate_atoms(metta):
                  lambda atom: [ValueAtom(atom2msg(atom))], unwrap=False)
     chatGPTAtom = OperationAtom('chat-gpt',
                      lambda model: ChatGPTAgent(model))
-    echoAgentAtom = OperationAtom('echo-agent', EchoAgent)
+    echoAgentAtom = ValueAtom(EchoAgent())
     return {
         r"llm": llmAtom,
         r"atom2msg": msgAtom,
         r"chat-gpt": chatGPTAtom,
-        r"echo-agent": echoAgentAtom,
+        r"EchoAgent": echoAgentAtom,
     }
 
 
