@@ -8,6 +8,8 @@ __default_agent = None
 def to_nested_expr(xs):
     if isinstance(xs, list):
         return E(*list(map(to_nested_expr, xs)))
+    if isinstance(xs, dict):
+        return E(*[E(to_nested_expr(k), to_nested_expr(v)) for k, v in xs.items()])
     return ValueAtom(xs)
 
 def atom2msg(atom):
@@ -110,8 +112,13 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                     # We have to interpret it, because if it is (chat-gpt model) in a
                     # script space, it is not yet evaluated
                     agent = interpret(metta.space(), ch[1])[0]
-                    # TODO: check
-                    agent = agent.get_object().value
+                    # The agent can be a Python object or a string (filename)
+                    if isinstance(agent, GroundedAtom):
+                        agent = agent.get_object().value
+                    elif isinstance(agent, SymbolAtom):
+                        agent = agent.get_name()
+                    else:
+                        raise TypeError(f"Agent {agent} is not identified")
                 elif name == '=':
                     # We ignore equalities here: if a space is used to store messages,
                     # it can contain equalities as well (another approach would be to
@@ -135,7 +142,12 @@ def llm(metta: MeTTa, *args):
     agent, messages, functions, msgs_atom = get_llm_args(metta, None, *args)
     if agent is None:
         agent = __default_agent
-    response = agent(messages, functions)
+    if isinstance(agent, str):
+        agent = MettaAgent(metta, agent)
+    if not isinstance(agent, Agent):
+        raise TypeError(f"Agent {agent} should be of Agent type. Got {type(agent)}")
+    response = agent(msgs_atom if isinstance(agent, MettaAgent) else messages,
+                     functions)
     if response.function_call is not None:
         fs = S(response.function_call.name)
         args = response.function_call.arguments
