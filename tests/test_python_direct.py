@@ -1,5 +1,5 @@
 from hyperon import MeTTa, ValueAtom, E, S
-from motto import llm
+from motto.llm_gate import llm
 from motto.agents import MettaAgent
 
 def test_python_metta_direct():
