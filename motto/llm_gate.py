@@ -31,7 +31,6 @@ def atom2msg(atom):
 
 def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
     agent = None
-    print(metta.space().query(E(S('Agent'), V('x'))))
     messages = []
     functions = []
     msg_atoms = []
