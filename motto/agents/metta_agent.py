@@ -3,9 +3,12 @@ from hyperon import MeTTa, ExpressionAtom, E, S
 
 class MettaAgent(Agent):
 
-    def __init__(self, metta, path):
+    def __init__(self, metta: MeTTa, path = None, code = None):
         self._metta = metta
-        self._script = path
+        self._path = path
+        self._code = code
+        if path is None and code is None:
+            raise RuntimeError("MettaAgent requires either path or code")
 
     def __call__(self, msgs_atom, functions):
         # FIXME: we cannot use top-level self._metta here, because its space
@@ -18,7 +21,10 @@ class MettaAgent(Agent):
         metta = MeTTa()
         metta.run("!(extend-py! motto)")
         metta.space().add_atom(E(S('='), E(S('messages')), msgs_atom))
-        response = metta.import_file(self._script)
+        if self._path is not None:
+            response = metta.import_file(self._path)
+        if self._code is not None:
+            response = metta.run(self._code)
         # TODO: multiple alternatives for responses
         for rs in response:
             for r in rs:
