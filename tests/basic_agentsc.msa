@@ -1,0 +1,8 @@
+; verifying that the agent works correctly with the prompt template script
+
+!(import! &script basic_script.mps)
+
+; Extract the user message (in a dumb way) for the basic_script
+(= (user-query) (let (user $x) (messages) $x))
+
+!(Response (llm &script))
