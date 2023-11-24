@@ -21,4 +21,5 @@ def test_python_metta_agent():
     # we can also call llm directly, but the main purpose of llm is to unwrap atoms
     # for the agent call, so it usually makes more sense to call the agent directly
     # but we do this here for the testing purpose
-    assert llm(m, msgs_atom, E(S('Agent'), ValueAtom(a))) == "assistant Pong"
+    assert llm(m, msgs_atom, E(S('Agent'), ValueAtom(a))) == \
+        [ValueAtom("assistant Pong")]
