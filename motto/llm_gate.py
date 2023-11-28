@@ -142,7 +142,8 @@ def llm(metta: MeTTa, *args):
     if agent is None:
         agent = __default_agent
     if isinstance(agent, str):
-        agent = MettaAgent(metta, agent)
+        # NOTE: We could pass metta here, but it is of now use atm
+        agent = MettaAgent(agent)
     if not isinstance(agent, Agent):
         raise TypeError(f"Agent {agent} should be of Agent type. Got {type(agent)}")
     response = agent(msgs_atom if isinstance(agent, MettaAgent) else messages,
@@ -164,15 +165,18 @@ def llmgate_atoms(metta):
     # Just a helper function if one needs to print from a metta-script
     # the message converted from expression to text
     msgAtom = OperationAtom('atom2msg',
-                 lambda atom: [ValueAtom(atom2msg(atom))], unwrap=False)
+                    lambda atom: [ValueAtom(atom2msg(atom))], unwrap=False)
     chatGPTAtom = OperationAtom('chat-gpt',
-                     lambda model: ChatGPTAgent(model))
+                    lambda model: ChatGPTAgent(model))
     echoAgentAtom = ValueAtom(EchoAgent())
+    mettaChatAtom = OperationAtom('metta-chat',
+                    lambda path: [ValueAtom(DialogAgent(path=path))], unwrap=False)
     return {
         r"llm": llmAtom,
         r"atom2msg": msgAtom,
         r"chat-gpt": chatGPTAtom,
         r"EchoAgent": echoAgentAtom,
+        r"metta-chat": mettaChatAtom,
     }
 
 

@@ -22,7 +22,7 @@ class Agent:
 
 class EchoAgent(Agent):
 
-    def __call__(self, messages, functions):
+    def __call__(self, messages, functions=[]):
         msg = list(map(lambda m: m['role'] + ' ' + m['content'], messages))
         msg = '\n'.join(msg)
         fcall = None
