@@ -1,6 +1,6 @@
 from hyperon import MeTTa, ValueAtom, E, S
 from motto.llm_gate import llm
-from motto.agents import EchoAgent, MettaAgent
+from motto.agents import EchoAgent, MettaAgent, DialogAgent
 
 def test_python_metta_direct():
     m = MeTTa()
@@ -28,3 +28,12 @@ def test_python_metta_agent():
     msgs_atom = m.parse_single('(user "Ping")')
     assert llm(m, msgs_atom, E(S('Agent'), ValueAtom(a))) == \
         [ValueAtom("assistant Pong")]
+
+def test_python_metta_dialog():
+    a = DialogAgent(code = '''
+    (= (proc-messages (user "Recall")) (history))
+    (= (proc-messages (user "Echo")) (messages))
+    !(Response (llm (Agent EchoAgent) (proc-messages (messages))))
+    ''')
+    assert a('(user "Echo")').content == 'user Echo'
+    assert a('(user "Recall")').content == 'user Echo\nassistant user Echo'

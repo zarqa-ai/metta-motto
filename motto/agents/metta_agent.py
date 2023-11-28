@@ -15,10 +15,6 @@ class MettaAgent(Agent):
             raise RuntimeError(f"{self.__class__.__name__} requires either path or code")
 
     def _prepare(self, metta, msgs_atom):
-        metta.run("!(extend-py! motto)")
-        # TODO: support {'role': , 'content': } dict input
-        if isinstance(msgs_atom, str):
-            msgs_atom = metta.parse_single(msgs_atom)
         metta.space().add_atom(E(S('='), E(S('messages')), msgs_atom))
 
     def _postproc(self, response):
@@ -43,6 +39,10 @@ class MettaAgent(Agent):
         # but there is no function to do this without creating a new token
         # (which might be useful). The latter solution will work differently.
         metta = MeTTa()
+        metta.run("!(extend-py! motto)")
+        # TODO: support {'role': , 'content': } dict input
+        if isinstance(msgs_atom, str):
+            msgs_atom = metta.parse_single(msgs_atom)
         self._prepare(metta, msgs_atom)
         if self._path is not None:
             response = metta.import_file(self._path)
