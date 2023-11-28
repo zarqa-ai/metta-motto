@@ -142,7 +142,7 @@ def llm(metta: MeTTa, *args):
     if agent is None:
         agent = __default_agent
     if isinstance(agent, str):
-        # NOTE: We could pass metta here, but it is of now use atm
+        # NOTE: We could pass metta here, but it is of no use atm
         agent = MettaAgent(agent)
     if not isinstance(agent, Agent):
         raise TypeError(f"Agent {agent} should be of Agent type. Got {type(agent)}")
