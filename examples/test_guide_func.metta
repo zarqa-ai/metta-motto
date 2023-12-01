@@ -1,4 +1,4 @@
-!(extend-py! ../motto/llm_gate.py)
+!(extend-py! motto)
 
 !(import! &msgs test_guide_prompt.metta)
 

@@ -1,4 +1,4 @@
-!(extend-py! ../motto/llm_gate.py)
+!(extend-py! motto)
 
 ! (bind! &messages (new-space))
 

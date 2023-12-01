@@ -1,4 +1,4 @@
-!(extend-py! ../motto/llm_gate.py)
+!(extend-py! motto)
 
 (= (append-expr $xs $x)
    (collapse (superpose ((superpose $xs) $x))))
