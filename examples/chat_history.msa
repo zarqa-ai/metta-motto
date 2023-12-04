@@ -2,9 +2,9 @@
 
 (= (instruction) (system (
     "Look at interaction history. Depending on the history, do one of next options:
-    1. If user wants to know about snet daemon, respond with one word "DAEMON"
-    2. If user wants to know about agix , respond with one word "AGIX"
-    3. if none of the previous cases occurs, respond with one word "NONE"
+    1. If user wants to know about snet daemon, respond with one word 'DAEMON'
+    2. If user wants to know about agix , respond with one word 'AGIX'
+    3. if none of the previous cases occurs, respond with one word 'NONE'"
     ))
 )
 
