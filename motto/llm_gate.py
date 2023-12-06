@@ -41,7 +41,15 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
         messages += m
         functions += f
         msg_atoms += [a]
-    for arg in args:
+    for atom in args:
+        # We first interpret the atom argument in the context of the main metta space.
+        # If the prompt template is in a separate file and contains some external 
+        # symbols like (user-query) or (chat-gpt model), they will be resolved here.
+        # It is useful for messages, agents, as well as arbitrary code, which relies
+        # on information from the agent.
+        # TODO: we may want to do something special with equalities
+        arg = interpret(metta.space(), atom)
+        arg = atom if len(arg) == 0 else arg[0]
         if isinstance(arg, GroundedAtom) and \
            isinstance(arg.get_object(), SpaceRef):
             # FIXME? This will overwrites the current prompt_space if it is set.
@@ -58,11 +66,7 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                 if name == 'Messages':
                     __msg_update(*get_llm_args(metta, prompt_space, *ch[1:]))
                 elif name in ['system', 'user', 'assistant']:
-                    # We have to interpret the message in the main space context,
-                    # if the prompt template is in a separate file and contains
-                    # some external symbols like (user-query)
-                    msg = interpret(metta.space(), ch[1])[0]
-                    messages += [{'role': name, 'content': atom2msg(msg)}]
+                    messages += [{'role': name, 'content': atom2msg(ch[1])}]
                     msg_atoms += [arg]
                 elif name in ['Functions', 'function']:
                     for fn in ch[1:]:
@@ -108,9 +112,7 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                             }
                         }]
                 elif name == 'Agent':
-                    # We have to interpret it, because if it is (chat-gpt model) in a
-                    # script space, it is not yet evaluated
-                    agent = interpret(metta.space(), ch[1])[0]
+                    agent = ch[1]
                     # The agent can be a Python object or a string (filename)
                     if isinstance(agent, GroundedAtom):
                         agent = agent.get_object().value
