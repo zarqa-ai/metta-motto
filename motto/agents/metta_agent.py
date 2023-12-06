@@ -1,5 +1,5 @@
 from .agent import Agent, Response
-from hyperon import MeTTa, ExpressionAtom, E, S
+from hyperon import MeTTa, ExpressionAtom, GroundedAtom, E, S
 
 class MettaAgent(Agent):
 
@@ -26,6 +26,8 @@ class MettaAgent(Agent):
                     if len(ch) == 0:
                         continue
                     # TODO: do we always expect a string as a response?
+                    if len(ch) == 1 or not isinstance(ch[1], GroundedAtom):
+                        raise TypeError(f"Unexpected response format {ch}")
                     return Response(ch[1].get_object().value, None)
         return Response(None, None)
 
