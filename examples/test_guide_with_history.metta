@@ -1,5 +1,5 @@
 !(extend-py! motto)
-!(bind! &chat (metta-chat examples/chat_history.msa))
+!(bind! &chat (metta-chat chat_history.msa))
 !(llm (Agent &chat) (user "Hi"))
 ;!(llm (Agent &chat) (user "Yes"))
 !(llm (Agent &chat) (user "No"))

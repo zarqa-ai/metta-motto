@@ -1,0 +1,15 @@
+!(import! &script nested_dialog_script.mps)
+
+(= (respond $msg)
+   (case $msg
+     (("Hello" "Hello")
+      ("Who are you?" "I am a test bot")
+      ("History" (llm (Agent EchoAgent) (history))))
+   )
+)
+
+; We execute a sub-agent with an extended list of messages (a temporary system
+; message), but don't include this system message into the history
+!(Response
+  (respond
+    (llm (Agent nested_dialog_sub.msa) &script)))

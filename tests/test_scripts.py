@@ -13,3 +13,4 @@ def test_scripts():
     process_exceptions(MeTTa().import_file(f"{pwd}/call_agent.metta"))
     process_exceptions(MeTTa().import_file(f"{pwd}/metta_chat.metta"))
     process_exceptions(MeTTa().import_file(f"{pwd}/nested_script_direct.metta"))
+    process_exceptions(MeTTa().import_file(f"{pwd}/nested_dialog_call.metta"))
