@@ -1,7 +1,12 @@
 from openai import OpenAI
 from .agent import Agent
+import httpx
+import os
 
-client = OpenAI()
+# FIXME: A more flexible was to setup proxy?
+proxy=os.environ.get('OPENAI_PROXY')
+client = OpenAI() if proxy is None else \
+         OpenAI(http_client=httpx.Client(proxies=proxy))
 
 class ChatGPTAgent(Agent):
 
