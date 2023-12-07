@@ -1,6 +1,6 @@
 !(extend-py! motto)
 
-!(import! &msgs test_guide_prompt.metta)
+!(import! &msgs test_guide_prompt.mps)
 
 ; Function for calls still cannot be put into the prompt space, because
 ; they will not be evaluated, when the functional call is evoked here
