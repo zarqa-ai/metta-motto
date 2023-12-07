@@ -1,3 +1,5 @@
+import shutil
+
 import chromadb
 from data_retrivals.doc_processor import DocProcessor
 from embedings_getters import OpenAIEmbeddings
