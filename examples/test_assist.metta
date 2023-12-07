@@ -1,3 +1,7 @@
+; This is an old example, which doesn't use prompt templates and agents.
+; It also composes messages and llm execution in a functional way.
+; Thus, it is not a canonical (but still valid) way of using motto.
+
 !(extend-py! motto)
 
 (= (append-expr $xs $x)
