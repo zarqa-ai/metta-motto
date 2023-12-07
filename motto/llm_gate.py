@@ -10,7 +10,7 @@ def to_nested_expr(xs):
         return E(*list(map(to_nested_expr, xs)))
     if isinstance(xs, dict):
         return E(*[E(to_nested_expr(k), to_nested_expr(v)) for k, v in xs.items()])
-    return ValueAtom(xs)
+    return xs if isinstance(xs, Atom) else ValueAtom(xs)
 
 def atom2msg(atom):
     if isinstance(atom, ExpressionAtom):
@@ -28,6 +28,60 @@ def atom2msg(atom):
             if isinstance(v, str):
                 return v.replace("\\n", "\n")
     return repr(atom)
+
+def get_func_def(fn, metta, prompt_space):
+    doc = None
+    if prompt_space is not None:
+        # TODO: Querying for a function description in prompt_space works well,
+        # but it is useless, because this function cannot be called
+        # from the main script, so the functional call is not reduced.
+        # Fixing this requires in general better library management in MeTTa,
+        # although it can be managed here by interpreting the functional call expression.
+        # Another approach would be to have load-template, which will import all functions to &self
+        # (or just to declare function in separate files and load to self, since we may want them
+        # to be reusable between templates)
+        r = prompt_space.query(E(S('='), E(S('doc'), fn), V('r')))
+        if not r.is_empty():
+            doc = r[0]['r']
+    if doc is None:
+        # We use `match` here instead of direct `doc` evaluation
+        # to evoid non-reduced `doc`
+        doc = metta.run(f"! (match &self (= (doc {fn}) $r) $r)")
+        if len(doc) == 0 or len(doc[0]) == 0:
+            raise RuntimeError(f"No {fn} function description")
+        doc = doc[0][0]
+    # TODO: format is not checked
+    doc = doc.get_children()
+    properties = {}
+    for par in doc[2].get_children()[1:]:
+        p = par.get_children()
+        # NOTE: metta-type is passed to an LLM as well, which is tolerated atm
+        prop = {"type": "string",
+                "description": p[1].get_object().value,
+                "metta-type": 'String',
+               }
+        if isinstance(p[0], ExpressionAtom):
+            par_typ = p[0].get_children()
+            if repr(par_typ[0]) != ':':
+                raise TypeError(f"{p[0]} can only be a typing expression")
+            par_name = repr(par_typ[1])
+            prop["metta-type"] = repr(par_typ[2])
+        else:
+            par_name = p[0].get_name()
+        if len(p) > 2:
+            # FIXME? atom2msg or repr or ...?
+            prop["enum"] = list(map(lambda x: atom2msg(x), p[2].get_children()))
+        properties.update({par_name: prop})
+    # FIXME: This function call format is due to ChatGPT. It seems like an excessive
+    # wrapper here and might be reduced (and extended in the gpt-agent itself).
+    return {
+        "name": fn.get_name(),
+        "description": doc[1].get_children()[1].get_object().value,
+        "parameters": {
+            "type": "object",
+            "properties": properties
+        }
+    }
 
 def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
     agent = None
@@ -69,48 +123,8 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                     messages += [{'role': name, 'content': atom2msg(ch[1])}]
                     msg_atoms += [arg]
                 elif name in ['Functions', 'function']:
-                    for fn in ch[1:]:
-                        doc = None
-                        if prompt_space is not None:
-                            # TODO: Querying for a function description in prompt_space works well,
-                            # but it is useless, because this function cannot be called
-                            # from the main script, so the functional call is not reduced.
-                            # Fixing this requires in general better library management in MeTTa,
-                            # although it can be managed here by interpreting the functional call expression.
-                            # Another approach would be to have load-template, which will import all functions to &self
-                            # (or just to declare function in separate files and load to self, since we may want them
-                            # to be reusable between templates)
-                            r = prompt_space.query(E(S('='), E(S('doc'), fn), V('r')))
-                            if not r.is_empty():
-                                doc = r[0]['r']
-                        if doc is None:
-                            # We use `match` here instead of direct `doc` evaluation
-                            # to evoid non-reduced `doc`
-                            doc = metta.run(f"! (match &self (= (doc {fn}) $r) $r)")
-                            if len(doc) == 0 or len(doc[0]) == 0:
-                                raise RuntimeError(f"No {fn} function description")
-                            doc = doc[0][0]
-                        # TODO: format is not checked
-                        doc = doc.get_children()
-                        properties = {}
-                        for par in doc[2].get_children()[1:]:
-                            p = par.get_children()
-                            properties.update({
-                                p[0].get_name(): {
-                                    "type": "string",
-                                    "description": p[1].get_object().value,
-                                    # FIXME? atom2msg or repr or ...?
-                                    "enum": list(map(lambda x: atom2msg(x), p[2].get_children()))
-                                }
-                            })
-                        functions += [{
-                            "name": fn.get_name(),
-                            "description": doc[1].get_children()[1].get_object().value,
-                            "parameters": {
-                                "type": "object",
-                                "properties": properties
-                            }
-                        }]
+                    functions += [get_func_def(fn, metta, prompt_space)
+                                  for fn in ch[1:]]
                 elif name == 'Agent':
                     agent = ch[1]
                     # The agent can be a Python object or a string (filename)
@@ -151,10 +165,18 @@ def llm(metta: MeTTa, *args):
     response = agent(msgs_atom if isinstance(agent, MettaAgent) else messages,
                      functions)
     if response.function_call is not None:
-        fs = S(response.function_call.name)
+        fname = response.function_call.name
+        fs = S(fname)
         args = response.function_call.arguments
         args = {} if args is None else \
             json.loads(args) if isinstance(args, str) else args
+        # Here, we check if the arguments should be parsed to MeTTa
+        for func in functions:
+            if func["name"] != fname:
+                continue
+            for k, v in args.items():
+                if func["parameters"]["properties"][k]['metta-type'] == 'Atom':
+                    args[k] = metta.parse_single(v)
         return [E(fs, to_nested_expr(list(args.values())), msgs_atom)]
     return [ValueAtom(response.content)]
 
