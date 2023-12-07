@@ -1,10 +1,10 @@
 import chromadb
+from data_retrivals.doc_processor import DocProcessor
 from embedings_getters import OpenAIEmbeddings
 import os
 import pathlib
 import concurrent.futures
 
-from examples.motto.data_retrivals.doc_processor import DocProcessor
 
 
 class RetrievalAgent:
@@ -14,12 +14,12 @@ class RetrievalAgent:
         self.embeddings_getter = OpenAIEmbeddings()
         self.__original_docs_folder = files_folder
         # we will store database in folder with name "data" in root directory of lib
-        parent_dir = pathlib.Path(__file__).parent.resolve().parent
+        parent_dir = pathlib.Path(__file__).parent.resolve().parent.parent
         data_dir = os.path.join(parent_dir, "data")
         # the database is named as files directory
-        files_folder = os.path.dirname(files_folder)
-        db = os.path.join(data_dir, f"{files_folder}_embedings")
-        self.collection_name = f"{files_folder}_collection"
+        folder = os.path.basename(files_folder)
+        db = os.path.join(data_dir, f"{folder}_embedings")
+        self.collection_name = f"{folder}_collection"
         need_load_docs = not os.path.exists(db)
         self.chroma_client = chromadb.PersistentClient(db)
         self.collection = self.chroma_client.get_or_create_collection(name=self.collection_name,
@@ -28,7 +28,7 @@ class RetrievalAgent:
         if not need_load_docs:
             if self.collection.count() == 0:
                 need_load_docs = True
-                # shutil.rmtree(db)
+                shutil.rmtree(db)
 
         if need_load_docs:
             self.__load_docs()
@@ -48,7 +48,7 @@ class RetrievalAgent:
             futures = []
             for file in os.listdir(self.__original_docs_folder):
                 futures.append(
-                    executor.submit(self.__process_doc, file=file)
+                    executor.submit(self.__process_doc, file=os.path.join(self.__original_docs_folder, file))
                 )
             i = 0
             for future in concurrent.futures.as_completed(futures):
