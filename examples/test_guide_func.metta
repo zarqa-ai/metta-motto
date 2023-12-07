@@ -8,12 +8,12 @@
    (Doc
      (description "You should call this function with a mathematical expression in Scheme")
      (parameters
-      (expression "Mathematical expression in Scheme" ())
+      ((: expression Atom) "Mathematical expression in Scheme")
      ))
 )
-; This is another limitation: LLM output should somehow be transormed to MeTTa expressions
-(= (calc_math $expr $msgs)
-   ($expr is not evaluated, because it is a string atm))
+(: calc_math (-> Atom Expression Expression))
+(= (calc_math ($expr) (Messages $1 (user $msg)))
+   (As per user request $msg (quote $expr) = $expr))
 
 (= (user-query) "What is the result of 111102 + 18333?")
 
