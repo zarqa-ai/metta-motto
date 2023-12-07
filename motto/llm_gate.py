@@ -72,6 +72,8 @@ def get_func_def(fn, metta, prompt_space):
             # FIXME? atom2msg or repr or ...?
             prop["enum"] = list(map(lambda x: atom2msg(x), p[2].get_children()))
         properties.update({par_name: prop})
+    # FIXME: This function call format is due to ChatGPT. It seems like an excessive
+    # wrapper here and might be reduced (and extended in the gpt-agent itself).
     return {
         "name": fn.get_name(),
         "description": doc[1].get_children()[1].get_object().value,
