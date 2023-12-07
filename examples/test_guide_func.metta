@@ -13,7 +13,7 @@
 )
 (: calc_math (-> Atom Expression Expression))
 (= (calc_math ($expr) (Messages $1 (user $msg)))
-   ((quote $expr) = $expr))
+   (As per user request $msg (quote $expr) = $expr))
 
 (= (user-query) "What is the result of 111102 + 18333?")
 
