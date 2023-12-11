@@ -203,8 +203,8 @@ def llmgate_atoms(metta):
     mettaChatAtom = OperationAtom('metta-chat',
                     lambda path: [ValueAtom(DialogAgent(path=path))], unwrap=False)
     retrievalAgentAtom = OperationAtom('retrieval-agent',
-                                       lambda files_folder, chunk_token_size:  [ValueAtom(RetrievalAgent(files_folder,
-                                                                                chunk_token_size))], unwrap=False)
+                                       lambda files_folder, chunk_token_size, data_dir:  [ValueAtom(RetrievalAgent(files_folder,
+                                                                                chunk_token_size, data_dir))], unwrap=False)
     return {
         r"llm": llmAtom,
         r"atom2msg": msgAtom,
