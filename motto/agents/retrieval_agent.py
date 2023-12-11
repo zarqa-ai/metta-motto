@@ -13,8 +13,8 @@ from hyperon import *
 
 
 class RetrievalAgent(Agent):
-    max_length = 2250
-    def __init__(self, data_source):
+    max_length = 2270
+    def __init__(self, data_source, chunk_token_size):
 
         if isinstance(data_source, GroundedAtom):
             data_source = repr(data_source)
@@ -25,6 +25,10 @@ class RetrievalAgent(Agent):
 
         if not os.path.exists(data_source):
             return
+        if isinstance(chunk_token_size, GroundedAtom):
+            chunk_token_size = int(repr(chunk_token_size))
+
+        self.chunk_token_size = chunk_token_size
         self.embeddings_getter = OpenAIEmbeddings()
         # data source can be a single file or a folder with files
         self.data_source = data_source
@@ -51,7 +55,7 @@ class RetrievalAgent(Agent):
     def _process_doc(self, file):
         chunks = {}
         text = DocProcessor.clear_text(file)
-        chunks['texts'] = DocProcessor.get_text_chunks(text)
+        chunks['texts'] = DocProcessor.get_text_chunks(text, self.chunk_token_size)
         chunks['embeddings'] = self.embeddings_getter.get_chunks_embeddings(chunks['texts'])
         length = len(chunks['texts'])
         if length > 0:
@@ -92,15 +96,18 @@ class RetrievalAgent(Agent):
                 raise TypeError(f"Incorrect argument for retrieval-agent: {ex}")
         embeddings_values = self.embeddings_getter.get_embeddings(text)
         context = self.collection.query(query_embeddings=embeddings_values, n_results=docs_count)
-        docs = np.unique(context["documents"][0])
+        docs = context["documents"][0]
         res = ""
         prev = ""
         for doc in docs:
-            res += doc.replace('"',"'") + "\n"
-            if len(res) > self.max_length:
-                res = prev
-                break
-            prev = res
+            next = doc.replace('"',"'")
+            if next not in res:
+                res += next + "\n"
+                # metta truncates the results, the maximum length of result is 2276, so I do not add chunks if the final string becomes longer than 2276
+                if len(res) > self.max_length:
+                    res = prev
+                    break
+                prev = res
 
         return Response(f"\"{res}\"", None)
 
