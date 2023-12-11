@@ -6,9 +6,6 @@ import nltk
 CHUNK_SIZE = 200
 MIN_CHUNK_SIZE_CHARS = 350  # The minimum size of each text chunk in characters
 MIN_CHUNK_LENGTH_TO_EMBED = 5  # Discard chunks shorter than this
-MAX_NUM_CHUNKS = 300  # The maximum number of chunks to generate from a text
-ENDPAGE_NUM = 282  # the last page number
-
 
 class DocProcessor:
     encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
