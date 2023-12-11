@@ -106,11 +106,6 @@ class RetrievalAgent(Agent):
             next = doc.replace('"',"'")
             if next not in res:
                 res += next + "\n"
-                # metta truncates the results, the maximum length of result is 2276, so I do not add chunks if the final string becomes longer than 2276
-                if len(res) > self.max_length:
-                    res = prev
-                    break
-                prev = res
 
         return Response(f"\"{res}\"", None)
 
