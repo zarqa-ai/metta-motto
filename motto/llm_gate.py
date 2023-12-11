@@ -89,14 +89,16 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
     messages = []
     functions = []
     msg_atoms = []
-    def __msg_update(ag, m, f, a):
-        nonlocal agent, messages, functions, msg_atoms
+    docs_count = None
+    def __msg_update(ag, m, f, a, d):
+        nonlocal agent, messages, functions, msg_atoms, docs_count
         if ag is not None:
             agent = ag
         messages += m
         functions += f
         msg_atoms += [a]
-        docs_count = None
+        docs_count = d
+
     for atom in args:
         # We first interpret the atom argument in the context of the main metta space.
         # If the prompt template is in a separate file and contains some external 
