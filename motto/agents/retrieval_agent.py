@@ -16,9 +16,12 @@ def fix_string(value):
     if len(value) > 1 and value[0] == '"' and value[-1] == '"':
         return value[1:-1]
     return value
+
+
 class RetrievalAgent(Agent):
     max_length = 2270
-    def __init__(self, data_source, chunk_token_size, data_dir):
+
+    def __init__(self, data_source, chunk_token_size, docs_count, data_dir):
 
         if isinstance(data_source, GroundedAtom):
             data_source = fix_string(repr(data_source))
@@ -30,9 +33,10 @@ class RetrievalAgent(Agent):
         if isinstance(chunk_token_size, GroundedAtom):
             chunk_token_size = int(repr(chunk_token_size))
 
+        self.docs_count = int(repr(docs_count)) if isinstance(docs_count, GroundedAtom) else docs_count
+
         if isinstance(data_dir, GroundedAtom):
             data_dir = fix_string(repr(data_dir))
-
 
         self.chunk_token_size = chunk_token_size
         self.embeddings_getter = OpenAIEmbeddings()
@@ -72,7 +76,7 @@ class RetrievalAgent(Agent):
                 if os.path.isfile(self.data_source):
                     files = [self.data_source]
                 else:
-                    files = [os.path.join(self.data_source, file) for file in  os.listdir(self.data_source)]
+                    files = [os.path.join(self.data_source, file) for file in os.listdir(self.data_source)]
                 for file in files:
                     futures.append(executor.submit(self._process_doc, file=file))
                 i = 0
@@ -88,7 +92,7 @@ class RetrievalAgent(Agent):
                 shutil.rmtree(self.db)
             raise RuntimeError(f"RetrievalAgent.__load_docs error: {ex}")
 
-    def __call__(self, messages, docs_count=10):
+    def __call__(self, messages):
         if isinstance(messages, str):
             text = messages
         else:
@@ -98,14 +102,13 @@ class RetrievalAgent(Agent):
             except Exception as ex:
                 raise TypeError(f"Incorrect argument for retrieval-agent: {ex}")
         embeddings_values = self.embeddings_getter.get_embeddings(text)
-        context = self.collection.query(query_embeddings=embeddings_values, n_results=docs_count)
+        context = self.collection.query(query_embeddings=embeddings_values, n_results=self.docs_count)
         docs = context["documents"][0]
         res = ""
         prev = ""
         for doc in docs:
-            next = doc.replace('"',"'")
+            next = doc.replace('"', "'")
             if next not in res:
                 res += next + "\n"
 
         return Response(f"\"{res}\"", None)
-

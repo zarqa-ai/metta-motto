@@ -89,15 +89,13 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
     messages = []
     functions = []
     msg_atoms = []
-    docs_count = None
-    def __msg_update(ag, m, f, a, d):
-        nonlocal agent, messages, functions, msg_atoms, docs_count
+    def __msg_update(ag, m, f, a):
+        nonlocal agent, messages, functions, msg_atoms
         if ag is not None:
             agent = ag
         messages += m
         functions += f
         msg_atoms += [a]
-        docs_count = d
 
     for atom in args:
         # We first interpret the atom argument in the context of the main metta space.
@@ -143,8 +141,6 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                     # it can contain equalities as well (another approach would be to
                     # ignore everythins except valid roles)
                     continue
-                elif name == "docs_count":
-                    docs_count = atom2msg(ch[1])
                 else:
                     raise RuntimeError("Unrecognized argument: " + repr(arg))
             else:
@@ -156,11 +152,11 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
     # Do not wrap a single message into Message (necessary to avoid double
     # wrapping of single Message argument)
     return agent, messages, functions, \
-        msg_atoms[0] if len(msg_atoms) == 1 else E(S('Messages'), *msg_atoms), docs_count
+        msg_atoms[0] if len(msg_atoms) == 1 else E(S('Messages'), *msg_atoms)
 
 
 def llm(metta: MeTTa, *args):
-    agent, messages, functions, msgs_atom, doc_count = get_llm_args(metta, None, *args)
+    agent, messages, functions, msgs_atom = get_llm_args(metta, None, *args)
     if agent is None:
         agent = __default_agent
     if isinstance(agent, str):
@@ -169,7 +165,7 @@ def llm(metta: MeTTa, *args):
     if not isinstance(agent, Agent):
         raise TypeError(f"Agent {agent} should be of Agent type. Got {type(agent)}")
     if isinstance(agent, RetrievalAgent):
-        response = agent(messages) if doc_count is None else agent(messages, int(doc_count))
+        response = agent(messages)
     else:
         response = agent(msgs_atom if isinstance(agent, MettaAgent) else messages,
                          functions)
@@ -205,8 +201,8 @@ def llmgate_atoms(metta):
     mettaChatAtom = OperationAtom('metta-chat',
                     lambda path: [ValueAtom(DialogAgent(path=path))], unwrap=False)
     retrievalAgentAtom = OperationAtom('retrieval-agent',
-                                       lambda files_folder, chunk_token_size, data_dir:  [ValueAtom(RetrievalAgent(files_folder,
-                                                                                chunk_token_size, data_dir))], unwrap=False)
+                                       lambda files_folder, chunk_token_size, docs_count, data_dir:  [ValueAtom(RetrievalAgent(files_folder,
+                                                                                chunk_token_size, docs_count, data_dir))], unwrap=False)
     return {
         r"llm": llmAtom,
         r"atom2msg": msgAtom,
