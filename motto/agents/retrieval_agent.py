@@ -12,14 +12,16 @@ from agents.data_processors import OpenAIEmbeddings, DocProcessor
 from hyperon import *
 
 
+def fix_string(value):
+    if len(value) > 1 and value[0] == '"' and value[-1] == '"':
+        return value[1:-1]
+    return value
 class RetrievalAgent(Agent):
     max_length = 2270
-    def __init__(self, data_source, chunk_token_size):
+    def __init__(self, data_source, chunk_token_size, data_dir):
 
         if isinstance(data_source, GroundedAtom):
-            data_source = repr(data_source)
-            if data_source[0] == '"' and data_source[-1] == '"':
-                data_source = data_source[1:-1]
+            data_source = fix_string(repr(data_source))
         if not (os.path.isfile(data_source) or os.path.isdir(data_source)):
             raise AttributeError("data_source should be file or folder")
 
@@ -28,13 +30,14 @@ class RetrievalAgent(Agent):
         if isinstance(chunk_token_size, GroundedAtom):
             chunk_token_size = int(repr(chunk_token_size))
 
+        if isinstance(data_dir, GroundedAtom):
+            data_dir = fix_string(repr(data_dir))
+
+
         self.chunk_token_size = chunk_token_size
         self.embeddings_getter = OpenAIEmbeddings()
         # data source can be a single file or a folder with files
         self.data_source = data_source
-        # we will store database in folder with name "data" in root directory of lib
-        parent_dir = pathlib.Path(__file__).parent.resolve().parent.parent
-        data_dir = os.path.join(parent_dir, "data")
         # the database is named as data_source
         db_name = pathlib.Path(self.data_source).stem
         self.db = os.path.join(data_dir, f"{db_name}_embedings")
