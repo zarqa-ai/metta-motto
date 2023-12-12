@@ -164,11 +164,8 @@ def llm(metta: MeTTa, *args):
         agent = MettaAgent(agent)
     if not isinstance(agent, Agent):
         raise TypeError(f"Agent {agent} should be of Agent type. Got {type(agent)}")
-    if isinstance(agent, RetrievalAgent):
-        response = agent(messages)
-    else:
-        response = agent(msgs_atom if isinstance(agent, MettaAgent) else messages,
-                         functions)
+    response = agent(msgs_atom if isinstance(agent, MettaAgent) else messages,
+                     functions)
     if response.function_call is not None:
         fname = response.function_call.name
         fs = S(fname)

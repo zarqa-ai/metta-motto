@@ -92,7 +92,7 @@ class RetrievalAgent(Agent):
                 shutil.rmtree(self.db)
             raise RuntimeError(f"RetrievalAgent.__load_docs error: {ex}")
 
-    def __call__(self, messages):
+    def __call__(self, messages, functions=[]):
         if isinstance(messages, str):
             text = messages
         else:
