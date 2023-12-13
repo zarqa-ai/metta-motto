@@ -83,6 +83,7 @@ def get_func_def(fn, metta, prompt_space):
         }
     }
 
+
 def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
     agent = None
     messages = []
@@ -95,6 +96,7 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
         messages += m
         functions += f
         msg_atoms += [a]
+
     for atom in args:
         # We first interpret the atom argument in the context of the main metta space.
         # If the prompt template is in a separate file and contains some external 
@@ -195,12 +197,17 @@ def llmgate_atoms(metta):
     echoAgentAtom = ValueAtom(EchoAgent())
     mettaChatAtom = OperationAtom('metta-chat',
                     lambda path: [ValueAtom(DialogAgent(path=path))], unwrap=False)
+    retrievalAgentAtom = OperationAtom('retrieval-agent',
+                                       lambda files_folder, chunk_token_size, docs_count, data_dir:  [ValueAtom(RetrievalAgent(files_folder,
+                                                                                chunk_token_size, docs_count, data_dir))], unwrap=False)
     return {
         r"llm": llmAtom,
         r"atom2msg": msgAtom,
         r"chat-gpt": chatGPTAtom,
         r"EchoAgent": echoAgentAtom,
         r"metta-chat": mettaChatAtom,
+        r"retrieval-agent": retrievalAgentAtom
+
     }
 
 
