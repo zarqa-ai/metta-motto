@@ -1,6 +1,5 @@
 import shutil
 
-import chromadb
 import numpy as np
 import os
 import pathlib
@@ -9,7 +8,6 @@ import concurrent.futures
 from .agent import Agent
 from .agent import Response
 from .data_processors import OpenAIEmbeddings, DocProcessor
-from hyperon import *
 
 
 def fix_string(value):
@@ -24,21 +22,13 @@ class RetrievalAgent(Agent):
 
     def __init__(self, data_source, chunk_token_size, docs_count, data_dir):
 
-        if isinstance(data_source, GroundedAtom):
-            data_source = fix_string(repr(data_source))
         if not (os.path.isfile(data_source) or os.path.isdir(data_source)):
             raise AttributeError("data_source should be file or folder")
 
         if not os.path.exists(data_source):
             return
-        if isinstance(chunk_token_size, GroundedAtom):
-            chunk_token_size = int(repr(chunk_token_size))
 
-        self.docs_count = int(repr(docs_count)) if isinstance(docs_count, GroundedAtom) else docs_count
-
-        if isinstance(data_dir, GroundedAtom):
-            data_dir = fix_string(repr(data_dir))
-
+        self.docs_count = docs_count
         self.chunk_token_size = chunk_token_size
         self.embeddings_getter = OpenAIEmbeddings()
         # data source can be a single file or a folder with files
@@ -48,6 +38,7 @@ class RetrievalAgent(Agent):
         self.db = os.path.join(data_dir, f"{db_name}_embedings")
         self.collection_name = f"{db_name}_collection"
         need_load_docs = not os.path.exists(self.db)
+        import chromadb
         self.chroma_client = chromadb.PersistentClient(self.db)
         self.collection = self.chroma_client.get_or_create_collection(name=self.collection_name,
                                                                       metadata={"hnsw:space": "cosine"})
