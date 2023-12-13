@@ -13,6 +13,7 @@ from hyperon import *
 
 
 def fix_string(value):
+    value = value.strip()
     if len(value) > 1 and value[0] == '"' and value[-1] == '"':
         return value[1:-1]
     return value
