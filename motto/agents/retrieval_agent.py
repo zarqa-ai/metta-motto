@@ -6,16 +6,11 @@ import os
 import pathlib
 import concurrent.futures
 
-from agents import Agent
-from agents.agent import Response
-from agents.data_processors import OpenAIEmbeddings, DocProcessor
+from .agent import Agent
+from .agent import Response
+from .data_processors import OpenAIEmbeddings, DocProcessor
 from hyperon import *
-
-
-def fix_string(value):
-    if len(value) > 1 and value[0] == '"' and value[-1] == '"':
-        return value[1:-1]
-    return value
+from llm_gate import atom2msg
 
 
 class RetrievalAgent(Agent):
@@ -23,22 +18,18 @@ class RetrievalAgent(Agent):
 
     def __init__(self, data_source, chunk_token_size, docs_count, data_dir):
 
-        if isinstance(data_source, GroundedAtom):
-            data_source = fix_string(repr(data_source))
+        data_source = atom2msg(data_source).strip()
         if not (os.path.isfile(data_source) or os.path.isdir(data_source)):
             raise AttributeError("data_source should be file or folder")
 
         if not os.path.exists(data_source):
             return
-        if isinstance(chunk_token_size, GroundedAtom):
-            chunk_token_size = int(repr(chunk_token_size))
 
-        self.docs_count = int(repr(docs_count)) if isinstance(docs_count, GroundedAtom) else docs_count
+        self.docs_count = int(atom2msg(docs_count).strip())
 
-        if isinstance(data_dir, GroundedAtom):
-            data_dir = fix_string(repr(data_dir))
+        data_dir = atom2msg(data_dir).strip()
 
-        self.chunk_token_size = chunk_token_size
+        self.chunk_token_size = int(atom2msg(chunk_token_size))
         self.embeddings_getter = OpenAIEmbeddings()
         # data source can be a single file or a folder with files
         self.data_source = data_source
@@ -105,7 +96,6 @@ class RetrievalAgent(Agent):
         context = self.collection.query(query_embeddings=embeddings_values, n_results=self.docs_count)
         docs = context["documents"][0]
         res = ""
-        prev = ""
         for doc in docs:
             next = doc.replace('"', "'")
             if next not in res:
