@@ -16,7 +16,10 @@ class OpenAIEmbeddings(AbstractEmbeddings):
 
     def __init__(self, model="text-embedding-ada-002"):
         from openai import OpenAI
-        self.client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+        import httpx
+        proxy=os.environ.get('OPENAI_PROXY')
+        self.client = OpenAI() if proxy is None else \
+            OpenAI(http_client=httpx.Client(proxies=proxy))
         self.model = model
 
     def get_embeddings(self, text):

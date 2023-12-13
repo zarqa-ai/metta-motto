@@ -197,17 +197,14 @@ def llmgate_atoms(metta):
     echoAgentAtom = ValueAtom(EchoAgent())
     mettaChatAtom = OperationAtom('metta-chat',
                     lambda path: [ValueAtom(DialogAgent(path=path))], unwrap=False)
-    retrievalAgentAtom = OperationAtom('retrieval-agent',
-                                       lambda files_folder, chunk_token_size, docs_count, data_dir:  [ValueAtom(RetrievalAgent(files_folder,
-                                                                                chunk_token_size, docs_count, data_dir))], unwrap=False)
+    retrievalAgentAtom = OperationAtom('retrieval-agent', RetrievalAgent, unwrap=True)
     return {
         r"llm": llmAtom,
         r"atom2msg": msgAtom,
         r"chat-gpt": chatGPTAtom,
         r"EchoAgent": echoAgentAtom,
         r"metta-chat": mettaChatAtom,
-        r"retrieval-agent": retrievalAgentAtom
-
+        r"retrieval-agent": retrievalAgentAtom,
     }
 
 

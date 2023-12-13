@@ -1,7 +1,6 @@
 import markdown
 import tiktoken
 from bs4 import BeautifulSoup
-import nltk
 
 CHUNK_SIZE = 200
 MIN_CHUNK_SIZE_CHARS = 350  # The minimum size of each text chunk in characters
