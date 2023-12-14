@@ -171,7 +171,7 @@ def llm(metta: MeTTa, *args):
         raise TypeError(f"Agent {agent} should be of Agent type. Got {type(agent)}")
     if not isinstance(agent, MettaAgent):
         for p in params.keys():
-            if isinstance(params[p], GroundedAtom):
+            if not isinstance(params[p], GroundedAtom):
                 raise TypeError(f"GroundedAtom is expected as input to a non-MeTTa agent. Got type({params[p]})={type(params[p])}")
             params[p] = params[p].get_object().value
     response = agent(msgs_atom if isinstance(agent, MettaAgent) else messages,
