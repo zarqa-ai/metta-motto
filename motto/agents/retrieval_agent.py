@@ -1,6 +1,4 @@
 import shutil
-
-import numpy as np
 import os
 import pathlib
 import concurrent.futures
@@ -8,13 +6,6 @@ import concurrent.futures
 from .agent import Agent
 from .agent import Response
 from .data_processors import OpenAIEmbeddings, DocProcessor
-
-
-def fix_string(value):
-    value = value.strip()
-    if len(value) > 1 and value[0] == '"' and value[-1] == '"':
-        return value[1:-1]
-    return value
 
 
 class RetrievalAgent(Agent):
@@ -84,7 +75,7 @@ class RetrievalAgent(Agent):
                 shutil.rmtree(self.db)
             raise RuntimeError(f"RetrievalAgent.__load_docs error: {ex}")
 
-    def __call__(self, messages, functions=[]):
+    def __call__(self, messages, functions=[], doc_name=None):
         if isinstance(messages, str):
             text = messages
         else:
@@ -94,10 +85,15 @@ class RetrievalAgent(Agent):
             except Exception as ex:
                 raise TypeError(f"Incorrect argument for retrieval-agent: {ex}")
         embeddings_values = self.embeddings_getter.get_embeddings(text)
-        context = self.collection.query(query_embeddings=embeddings_values, n_results=self.docs_count)
+        if doc_name is None:
+            context = self.collection.query(query_embeddings=embeddings_values, n_results=self.docs_count)
+        else:
+            if self.data_source not in doc_name:
+                doc_name = os.path.join(self.data_source, doc_name)
+            context = self.collection.query(query_embeddings=embeddings_values, n_results=self.docs_count,
+                                            where={"source": doc_name})
         docs = context["documents"][0]
         res = ""
-        prev = ""
         for doc in docs:
             next = doc.replace('"', "'")
             if next not in res:
