@@ -13,7 +13,7 @@ class ChatGPTAgent(Agent):
     def __init__(self, model="gpt-3.5-turbo-0613"):
         self._model = model
 
-    def __call__(self, messages, functions):
+    def __call__(self, messages, functions=[]):
         if functions==[]:
             response = client.chat.completions.create(model=self._model,
             messages=messages,

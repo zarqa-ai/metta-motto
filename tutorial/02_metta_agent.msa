@@ -1,0 +1,17 @@
+; Note that in order to turn the argument of the function call
+; from String to Expression, it should have Atom type in Doc.
+(= (doc calc)
+    (Doc
+      (description "Call this function to calculate the expression")
+      (parameters
+        ((: math_expr Atom) "Correct Scheme expression")
+      ))
+)
+(= (calc ($expr) $msgs) $expr)
+
+! (Response (llm (Agent (chat-gpt))
+    (Messages (system "Convert the user query to expression in Scheme/Lisp")
+              (messages))
+    (Functions calc))
+  )
+
