@@ -4,7 +4,7 @@ class FunctionCall:
         self.arguments = arguments
 
 class Response:
-    def __init__(self, content, function_call):
+    def __init__(self, content, function_call=None):
         self.content = content
         self.function_call = function_call
 
