@@ -3,8 +3,9 @@
 (= (get_information $question)
    (llm &retrieval (user $question)))
 
-!(bind! &retrieval_folder (Agent (retrieval-agent "./data/texts_for_retrieval" 200 1 "data")))
-!(llm &retrieval_folder (user "Cold Winter has begun his reign already!"))
+!(bind! &retrieval_folder  (retrieval-agent "./data/texts_for_retrieval" 200 1 "data"))
+!(llm (Agent &retrieval_folder) (user "Cold Winter has begun his reign already!"))
+!(llm (Agent &retrieval_folder (doc_name "story1.txt")) (user "Cold Winter has begun his reign already!"))
 
 !(let $question "Can I publish service without using grpc?"
   (llm
