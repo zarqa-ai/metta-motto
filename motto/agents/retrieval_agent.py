@@ -75,7 +75,7 @@ class RetrievalAgent(Agent):
                 shutil.rmtree(self.db)
             raise RuntimeError(f"RetrievalAgent.__load_docs error: {ex}")
 
-    def __call__(self, messages, functions=[], doc_name=None):
+    def __call__(self, messages, functions=[], doc_name=[]):
         if isinstance(messages, str):
             text = messages
         else:
@@ -85,7 +85,7 @@ class RetrievalAgent(Agent):
             except Exception as ex:
                 raise TypeError(f"Incorrect argument for retrieval-agent: {ex}")
         embeddings_values = self.embeddings_getter.get_embeddings(text)
-        if doc_name is None:
+        if not doc_name:
             context = self.collection.query(query_embeddings=embeddings_values, n_results=self.docs_count)
         else:
             if self.data_source not in doc_name:
