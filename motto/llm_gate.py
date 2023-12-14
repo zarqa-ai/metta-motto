@@ -136,6 +136,11 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                         agent = agent.get_name()
                     else:
                         raise TypeError(f"Agent {agent} is not identified")
+                    params = {}
+                    for param in ch[2:]:
+                        ps = param.get_children()
+                        params[repr(ps[0])] = ps[1]
+                    agent = (agent, params)
                 elif name == '=':
                     # We ignore equalities here: if a space is used to store messages,
                     # it can contain equalities as well (another approach would be to
@@ -156,7 +161,7 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
 
 
 def llm(metta: MeTTa, *args):
-    agent, messages, functions, msgs_atom = get_llm_args(metta, None, *args)
+    (agent, params), messages, functions, msgs_atom = get_llm_args(metta, None, *args)
     if agent is None:
         agent = __default_agent
     if isinstance(agent, str):
@@ -164,8 +169,11 @@ def llm(metta: MeTTa, *args):
         agent = MettaAgent(agent)
     if not isinstance(agent, Agent):
         raise TypeError(f"Agent {agent} should be of Agent type. Got {type(agent)}")
+    if not isinstance(agent, MettaAgent):
+        for p in params.keys():
+            params[p] = params[p].get_object().value
     response = agent(msgs_atom if isinstance(agent, MettaAgent) else messages,
-                     functions)
+                     functions, **params)
     if response.function_call is not None:
         fname = response.function_call.name
         fs = S(fname)
