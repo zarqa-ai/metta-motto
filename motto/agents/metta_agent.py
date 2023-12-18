@@ -1,5 +1,5 @@
 from .agent import Agent, Response
-from hyperon import MeTTa, ExpressionAtom, GroundedAtom, OperationAtom, E, S
+from hyperon import MeTTa, ExpressionAtom, OperationAtom, E, S
 
 class MettaAgent(Agent):
 
