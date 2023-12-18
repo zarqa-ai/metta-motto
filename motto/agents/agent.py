@@ -7,6 +7,8 @@ class Response:
     def __init__(self, content, function_call=None):
         self.content = content
         self.function_call = function_call
+    def __repr__(self):
+        return f"Response(content: {self.content}, function_call: {self.function_call})"
 
 
 class Agent:

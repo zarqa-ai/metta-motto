@@ -161,9 +161,12 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
 
 
 def llm(metta: MeTTa, *args):
-    (agent, params), messages, functions, msgs_atom = get_llm_args(metta, None, *args)
+    agent, messages, functions, msgs_atom = get_llm_args(metta, None, *args)
     if agent is None:
         agent = __default_agent
+        params = {}
+    else:
+        (agent, params) = agent
     if isinstance(agent, str):
         # NOTE: We could pass metta here, but it is of no use atm
         agent = MettaAgent(agent)
@@ -190,7 +193,8 @@ def llm(metta: MeTTa, *args):
                 if func["parameters"]["properties"][k]['metta-type'] == 'Atom':
                     args[k] = metta.parse_single(v)
         return [E(fs, to_nested_expr(list(args.values())), msgs_atom)]
-    return [ValueAtom(response.content)]
+    return response.content if isinstance(agent, MettaAgent) else \
+           [ValueAtom(response.content)]
 
 
 @register_atoms(pass_metta=True)
@@ -202,8 +206,7 @@ def llmgate_atoms(metta):
     # the message converted from expression to text
     msgAtom = OperationAtom('atom2msg',
                     lambda atom: [ValueAtom(atom2msg(atom))], unwrap=False)
-    chatGPTAtom = OperationAtom('chat-gpt',
-                    lambda model: ChatGPTAgent(model))
+    chatGPTAtom = OperationAtom('chat-gpt', ChatGPTAgent)
     echoAgentAtom = ValueAtom(EchoAgent())
     mettaChatAtom = OperationAtom('metta-chat',
                     lambda path: [ValueAtom(DialogAgent(path=path))], unwrap=False)
