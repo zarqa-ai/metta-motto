@@ -1,8 +1,8 @@
 !(extend-py! motto)
 
 ; We can call ChatGPT Agent from MeTTa as well using generic llm function
-(llm (Agent (chat-gpt)) (user "Hello"))
-(llm (Agent (chat-gpt))
+! (llm (Agent (chat-gpt)) (user "Hello"))
+! (llm (Agent (chat-gpt))
   (Messages (assistant "Hello") (user "Hello")))
 
 ; We can also pass function call to ChatGPT from MeTTa.

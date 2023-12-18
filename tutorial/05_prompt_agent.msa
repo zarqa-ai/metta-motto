@@ -19,6 +19,6 @@
 
 ; Now, let's generate the next piece
 !(println! "======== LOCATION ========")
-!(println! (llm &prompt (user "Please describe the first location of the adventure")))
+!(println! (llm &prompt (user "Please compose a very short description of the first location of the adventure")))
 
 !(Response "DONE")
