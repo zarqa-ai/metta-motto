@@ -1,5 +1,5 @@
 from .agent import Agent, Response
-from hyperon import MeTTa, ExpressionAtom, GroundedAtom, E, S
+from hyperon import MeTTa, ExpressionAtom, GroundedAtom, OperationAtom, E, S
 
 class MettaAgent(Agent):
 
@@ -8,28 +8,37 @@ class MettaAgent(Agent):
             return val
         return repr(val)
 
-    def __init__(self, path = None, code = None):
+    def __init__(self, path=None, code=None, atoms={}):
         self._path = self._try_unwrap(path)
         self._code = self._try_unwrap(code)
         if path is None and code is None:
             raise RuntimeError(f"{self.__class__.__name__} requires either path or code")
+        self._atoms = atoms
 
     def _prepare(self, metta, msgs_atom):
+        for k, v in self._atoms.items():
+            metta.register_atom(k, v)
+        # FIXME: We add this function here, so we can explicitly evaluate results of LLMs, but
+        # we may either expect that this function appear in core MeTTa or need a special safe eval
+        metta.register_atom("_eval", OperationAtom("_eval",
+            lambda atom: metta.run("! " + atom.get_object().value)[0],
+            unwrap=False))
         metta.space().add_atom(E(S('='), E(S('messages')), msgs_atom))
 
     def _postproc(self, response):
-        # TODO: multiple alternatives for responses
+        results = []
+        # Multiple responses are now returned as a list
         for rs in response:
             for r in rs:
                 if isinstance(r, ExpressionAtom):
                     ch = r.get_children()
                     if len(ch) == 0:
                         continue
-                    # TODO: do we always expect a string as a response?
-                    if len(ch) == 1 or not isinstance(ch[1], GroundedAtom):
+                    # FIXME? we can simply ignore all non-Response results
+                    if len(ch) != 2 or repr(ch[0]) != 'Response':
                         raise TypeError(f"Unexpected response format {ch}")
-                    return Response(ch[1].get_object().value, None)
-        return Response(None, None)
+                    results += [ch[1]]
+        return Response(results, None)
 
     def __call__(self, msgs_atom, functions=[]):
         # FIXME: we cannot use higher-level metta here (e.g. passed by llm func),
@@ -74,5 +83,6 @@ class DialogAgent(MettaAgent):
         # But one can add explicit commands for putting something into
         # the history as well as to do other stuff
         result = super()._postproc(response)
-        self.history += [E(S('assistant'), S(result.content))]
+        # TODO: 0 or >1 results, to expression?
+        self.history += [E(S('assistant'), result.content[0])]
         return result

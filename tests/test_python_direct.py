@@ -20,7 +20,8 @@ def test_python_metta_agent():
     (= (proc-messages (user "Ping")) (assistant "Pong"))
     !(Response (llm (Agent EchoAgent) (proc-messages (messages))))
     ''')
-    assert a('(user "Ping")').content == "assistant Pong"
+    # MeTTa agents return atoms for better composability with other agents
+    assert a('(user "Ping")').content == [ValueAtom("assistant Pong")]
     # we can also call llm directly, but the main purpose of llm is to unwrap atoms
     # for the agent call, so it usually makes more sense to call the agent directly
     # but we do this here for the testing purpose
@@ -35,5 +36,5 @@ def test_python_metta_dialog():
     (= (proc-messages (user "Echo")) (messages))
     !(Response (llm (Agent EchoAgent) (proc-messages (messages))))
     ''')
-    assert a('(user "Echo")').content == 'user Echo'
-    assert a('(user "Recall")').content == 'user Echo\nassistant user Echo'
+    assert a('(user "Echo")').content == [ValueAtom('user Echo')]
+    assert a('(user "Recall")').content == [ValueAtom('user Echo\nassistant user Echo')]
