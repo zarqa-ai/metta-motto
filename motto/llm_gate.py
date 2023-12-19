@@ -209,7 +209,8 @@ def llmgate_atoms(metta):
     chatGPTAtom = OperationAtom('chat-gpt', ChatGPTAgent)
     echoAgentAtom = ValueAtom(EchoAgent())
     mettaChatAtom = OperationAtom('metta-chat',
-                    lambda path: [ValueAtom(DialogAgent(path=path))], unwrap=False)
+                    lambda x: [ValueAtom(DialogAgent(code=x) if isinstance(x, ExpressionAtom) else \
+                                         DialogAgent(path=x))], unwrap=False)
     retrievalAgentAtom = OperationAtom('retrieval-agent', RetrievalAgent, unwrap=True)
     return {
         r"llm": llmAtom,

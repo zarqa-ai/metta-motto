@@ -1,5 +1,5 @@
 from .agent import Agent, Response
-from hyperon import MeTTa, ExpressionAtom, OperationAtom, E, S
+from hyperon import MeTTa, ExpressionAtom, OperationAtom, E, S, interpret
 
 class MettaAgent(Agent):
 
@@ -10,7 +10,8 @@ class MettaAgent(Agent):
 
     def __init__(self, path=None, code=None, atoms={}):
         self._path = self._try_unwrap(path)
-        self._code = self._try_unwrap(code)
+        self._code = code.get_children()[1] if isinstance(code, ExpressionAtom) else \
+                     self._try_unwrap(code)
         if path is None and code is None:
             raise RuntimeError(f"{self.__class__.__name__} requires either path or code")
         self._atoms = atoms
@@ -58,7 +59,8 @@ class MettaAgent(Agent):
         if self._path is not None:
             response = metta.import_file(self._path)
         if self._code is not None:
-            response = metta.run(self._code)
+            response = metta.run(self._code) if isinstance(self._code, str) else \
+                       [interpret(metta.space(), self._code)]
         return self._postproc(response)
 
 
