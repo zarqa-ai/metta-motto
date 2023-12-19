@@ -1,5 +1,5 @@
 from .agent import Agent, Response
-from hyperon import MeTTa, ExpressionAtom, OperationAtom, E, S, interpret
+from hyperon import MeTTa, Environment, ExpressionAtom, OperationAtom, E, S, interpret
 
 class MettaAgent(Agent):
 
@@ -8,13 +8,14 @@ class MettaAgent(Agent):
             return val
         return repr(val)
 
-    def __init__(self, path=None, code=None, atoms={}):
+    def __init__(self, path=None, code=None, atoms={}, include_paths=None):
         self._path = self._try_unwrap(path)
         self._code = code.get_children()[1] if isinstance(code, ExpressionAtom) else \
                      self._try_unwrap(code)
         if path is None and code is None:
             raise RuntimeError(f"{self.__class__.__name__} requires either path or code")
         self._atoms = atoms
+        self._includes = include_paths
 
     def _prepare(self, metta, msgs_atom):
         for k, v in self._atoms.items():
@@ -50,7 +51,11 @@ class MettaAgent(Agent):
         # It could also be possible to import! the agent script into a new space,
         # but there is no function to do this without creating a new token
         # (which might be useful). The latter solution will work differently.
-        metta = MeTTa()
+        if self._includes is not None:
+            env_builder = Environment.custom_env(include_paths=self._includes)
+            metta = MeTTa(env_builder=env_builder)
+        else:
+            metta = MeTTa()
         metta.run("!(extend-py! motto)")
         # TODO: support {'role': , 'content': } dict input
         if isinstance(msgs_atom, str):
@@ -66,9 +71,9 @@ class MettaAgent(Agent):
 
 class DialogAgent(MettaAgent):
 
-    def __init__(self, path = None, code = None):
+    def __init__(self, path=None, code=None, atoms={}, include_paths=None):
         self.history = []
-        super().__init__(path, code)
+        super().__init__(path, code, atoms, include_paths)
 
     def _prepare(self, metta, msgs_atom):
         super()._prepare(metta, msgs_atom)
