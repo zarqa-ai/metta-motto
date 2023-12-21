@@ -44,12 +44,12 @@ class RetrievalAgent(Agent):
 
     def _process_doc(self, file):
         chunks = {}
-        text = DocProcessor.clear_text(file)
-        chunks['texts'] = DocProcessor.get_text_chunks(text, self.chunk_token_size)
-        chunks['embeddings'] = self.embeddings_getter.get_chunks_embeddings(chunks['texts'])
-        length = len(chunks['texts'])
-        if length > 0:
-            chunks['source'] = [{'source': file}] * length
+        if os.path.exists(file):
+            text = DocProcessor.clear_text(file)
+            chunks['texts'] = DocProcessor.get_text_chunks(text, self.chunk_token_size)
+            chunks['embeddings'] = self.embeddings_getter.get_chunks_embeddings(chunks['texts'])
+            length = len(chunks['texts'])
+            chunks['source'] = [{'source': file}] * length if length > 0 else []
         return chunks
 
     def _load_docs(self):
@@ -65,11 +65,12 @@ class RetrievalAgent(Agent):
                 i = 0
                 for future in concurrent.futures.as_completed(futures):
                     chunks = future.result()
-                    length = len(chunks['texts'])
-                    chunks['ids'] = [f"id{i + j}" for j in range(length)]
-                    i += length
-                    self.collection.add(embeddings=chunks['embeddings'], documents=chunks['texts'],
-                                        metadatas=chunks['source'], ids=chunks['ids'])
+                    length = len(chunks['texts']) if ('texts' in chunks) else 0
+                    if length > 0:
+                        chunks['ids'] = [f"id{i + j}" for j in range(length)]
+                        i += length
+                        self.collection.add(embeddings=chunks['embeddings'], documents=chunks['texts'],
+                                            metadatas=chunks['source'], ids=chunks['ids'])
         except Exception as ex:
             if os.path.exists(self.db):
                 shutil.rmtree(self.db)
