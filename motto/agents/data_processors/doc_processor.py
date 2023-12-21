@@ -1,3 +1,5 @@
+from typing import List
+
 import markdown
 import tiktoken
 from bs4 import BeautifulSoup
@@ -31,7 +33,7 @@ class DocProcessor:
         return text
 
     @staticmethod
-    def get_text_chunks(text: str, chunk_token_size: int = CHUNK_SIZE) -> list[str]:
+    def get_text_chunks(text: str, chunk_token_size: int = CHUNK_SIZE) -> List[str]:
         """Splits a text into chunks of ~CHUNK_SIZE tokens, based on punctuation and newline boundaries.
 
         Args:
