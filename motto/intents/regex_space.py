@@ -14,10 +14,9 @@ def get_string_value(value):
 
 
 class RegularExpression:
-    def __init__(self, name, patterns, vars_regex=None):
+    def __init__(self, name, patterns):
         self.intentName = name
         self.patterns = patterns
-        self.vars_regex = vars_regex
 
     @staticmethod
     def from_json(filepath):
@@ -28,8 +27,7 @@ class RegularExpression:
         json_list = json.loads(data)
         reg_expressions = []
         for json_dict in json_list:
-            reg_expressions.append(RegularExpression(json_dict['intentName'], json_dict['patterns'],
-                                                     json_dict["vars_regex"] if "vars_regex" in json_dict else None))
+            reg_expressions.append(RegularExpression(json_dict['intentName'], json_dict['patterns']))
         return reg_expressions
 
 
@@ -50,13 +48,7 @@ class RegexSpace(GroundingSpace):
         if regular_expressions is not None:
             self.regular_expressions.extend(regular_expressions)
 
-    def var_value_matched(self, vars, vars_regex):
-        for k, v in vars.items():
-            if k in vars_regex:
-                match = re.search(pattern=vars_regex[k], string=v, flags=re.IGNORECASE)
-                if match is None:
-                    return False
-        return True
+
 
     def match_text(self, text, regexpr, expr):
         match = re.search(pattern=regexpr, string=text.strip(), flags=re.IGNORECASE)
