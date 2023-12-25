@@ -1,0 +1,18 @@
+[
+  {
+    "intentName": "@greeting",
+    "patterns": [
+      "^Hello(\\.|!)?$",
+      "^Hi(\\.|!)?$",
+      "^Hey(\\.|!)?$",
+      "^Hi there(\\.|!)?$",
+      "Hello there(\\.|!)?$",
+      "^Hi hi(\\.|!)?$",
+      "^Hey there(\\.|!)?",
+      "Good morning(\\.|!)?",
+      "Good afternoon(\\.|!)?",
+      "Good evening(\\.|!)?",
+      "^Howdy(\\.|!)?"
+    ]
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "intentName": "@can-sing?",
+    "patterns": [
+      "can you sing\\??$",
+      "do you have the ability to sing( songs?)?\\??$",
+      "do you know how to sing( songs?)?\\??$",
+      "are you able to sing( songs?)?\\??$"
+    ]
+  }
+]
