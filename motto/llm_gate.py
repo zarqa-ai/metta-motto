@@ -3,6 +3,9 @@ from hyperon.ext import register_atoms
 from .agents import *
 import json
 
+import logging
+logger = logging.getLogger(__name__)
+
 __default_agent = None
 
 def to_nested_expr(xs):
@@ -105,6 +108,10 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
         # on information from the agent.
         # TODO: we may want to do something special with equalities
         arg = interpret(metta.space(), atom)
+        # NOTE: doesn't work now since Error inside other expressions is not passed through them
+        #       but it can be needed in the future
+        #if isinstance(arg, ExpressionAtom) and repr(arg.get_children()[0]) == 'Error':
+        #    raise RuntimeError(repr(arg.get_children()[1]))
         arg = atom if len(arg) == 0 else arg[0]
         if isinstance(arg, GroundedAtom) and \
            isinstance(arg.get_object(), SpaceRef):
@@ -161,7 +168,13 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
 
 
 def llm(metta: MeTTa, *args):
-    agent, messages, functions, msgs_atom = get_llm_args(metta, None, *args)
+    try:
+        agent, messages, functions, msgs_atom = get_llm_args(metta, None, *args)
+    except Exception as e:
+        # NOTE: we put the error into the log since it can be ignored by the caller
+        logger.error(e)
+        # return [E(S("Error"), ValueAtom(str(e)))]
+        raise e
     if agent is None:
         agent = __default_agent
         params = {}
@@ -177,8 +190,12 @@ def llm(metta: MeTTa, *args):
             if not isinstance(params[p], GroundedAtom):
                 raise TypeError(f"GroundedAtom is expected as input to a non-MeTTa agent. Got type({params[p]})={type(params[p])}")
             params[p] = params[p].get_object().value
-    response = agent(msgs_atom if isinstance(agent, MettaAgent) else messages,
-                     functions, **params)
+    try:
+        response = agent(msgs_atom if isinstance(agent, MettaAgent) else messages,
+                        functions, **params)
+    except Exception as e:
+        logger.error(e)
+        raise e
     if response.function_call is not None:
         fname = response.function_call.name
         fs = S(fname)
