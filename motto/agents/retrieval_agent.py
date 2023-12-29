@@ -8,6 +8,12 @@ from .agent import Response
 from .data_processors import OpenAIEmbeddings, DocProcessor
 
 
+def fix_for_chromabd(ex):
+    if "sqlite3" in str(ex):
+        __import__('pysqlite3')
+        import sys
+        sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
 class RetrievalAgent(Agent):
     max_length = 2270
 
@@ -29,7 +35,13 @@ class RetrievalAgent(Agent):
         self.db = os.path.join(data_dir, f"{db_name}_embedings")
         self.collection_name = f"{db_name}_collection"
         need_load_docs = not os.path.exists(self.db)
-        import chromadb
+
+        try:
+            import chromadb
+        except Exception as ex:
+            fix_for_chromabd(ex)
+            import chromadb
+
         self.chroma_client = chromadb.PersistentClient(self.db)
         self.collection = self.chroma_client.get_or_create_collection(name=self.collection_name,
                                                                       metadata={"hnsw:space": "cosine"})
