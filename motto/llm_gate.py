@@ -229,6 +229,7 @@ def llmgate_atoms(metta):
                     lambda x: [ValueAtom(DialogAgent(code=x) if isinstance(x, ExpressionAtom) else \
                                          DialogAgent(path=x))], unwrap=False)
     retrievalAgentAtom = OperationAtom('retrieval-agent', RetrievalAgent, unwrap=True)
+    regexAgentAtom = OperationAtom('regex-agent', RegexAgent, unwrap=True)
     return {
         r"llm": llmAtom,
         r"atom2msg": msgAtom,
@@ -236,6 +237,8 @@ def llmgate_atoms(metta):
         r"EchoAgent": echoAgentAtom,
         r"metta-chat": mettaChatAtom,
         r"retrieval-agent": retrievalAgentAtom,
+        r"regex-agent": regexAgentAtom,
+
     }
 
 

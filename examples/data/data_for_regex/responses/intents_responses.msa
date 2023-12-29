@@ -1,0 +1,2 @@
+((Intent Hello)(response "Hi, how can I assist you?"))
+((Intent Hello)(response "Hi, I am here to help you."))

@@ -1,0 +1,3 @@
+(= (intent regex:"^Hello[[\.|!]]?$")  (Intent Hello))
+(= (intent regex:"Hello~there[[\.|!]]?$")  (Intent Hello))
+(= (intent regex:"Good~morning[[\.|!]]?")  (Intent Hello))

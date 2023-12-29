@@ -1,18 +1,29 @@
-from .agent import Agent
+from .agent import Agent, Response
 from pathlib import Path
 from hyperon import MeTTa, Environment
+import random
+
 
 class RegexAgent(Agent):
 
-    def __init__(self, space_name,  regex_intents_dir, possible_responses_dir, include_paths=None):
+    def __init__(self, regex_intents_dir, possible_responses_dir, include_paths=None):
 
-        if not (Path.exists(regex_intents_dir)):
+        regex_templates_dir = Path(regex_intents_dir)
+        if not (regex_templates_dir.exists()):
             raise AttributeError("Need to provide a path to regex templates")
 
-
-        if not (Path.exists(possible_responses_dir)):
+        possible_responses_dir = Path(possible_responses_dir)
+        if not (possible_responses_dir.exists()):
             raise AttributeError("Need to provide a path to responses for intents")
+
+        if not regex_templates_dir.is_dir():
+            regex_templates_dir = regex_templates_dir.parent
+        if not possible_responses_dir.is_dir():
+            possible_responses_dir = possible_responses_dir.parent
+
         self._includes = include_paths
+        # this name could be passed to function , but I do not know will we need it
+        self.space_name = "resp"
 
         if self._includes is not None:
             env_builder = Environment.custom_env(include_paths=self._includes)
@@ -20,15 +31,13 @@ class RegexAgent(Agent):
         else:
             self.metta = MeTTa()
 
-        regex_templates = Path(regex_intents_dir)
-        for template in regex_templates.iterdir():
-            self.metta.run(f"!(import! &{space_name} {template})")
+        for template in regex_templates_dir.iterdir():
+            self.metta.run(f"!(import! &self {template})")
 
-        regex_templates = Path(possible_responses_dir)
-        for template in regex_templates.iterdir():
-            self.metta.run(f"!(import! &{space_name} {template})")
+        for template in possible_responses_dir.iterdir():
+            self.metta.run(f"!(import! &{self.space_name} {template})")
 
-
+        self.metta.run("(= (get-intent-name (Intent $x)) $x)")
 
     def __call__(self, messages, functions=[], doc_name=[]):
         if isinstance(messages, str):
@@ -40,18 +49,9 @@ class RegexAgent(Agent):
             except Exception as ex:
                 raise TypeError(f"Incorrect argument for retrieval-agent: {ex}")
 
-
-        embeddings_values = self.embeddings_getter.get_embeddings(text)
-        if not doc_name:
-            context = self.collection.query(query_embeddings=embeddings_values, n_results=self.docs_count)
-        else:
-            if self.data_source not in doc_name:
-                doc_name = os.path.join(self.data_source, doc_name)
-            context = self.collection.query(query_embeddings=embeddings_values, n_results=self.docs_count,
-                                            where={"source": doc_name})
-        docs = context["documents"][0]
-        res = ""
-        for doc in docs:
-            next = doc.replace('"', "'")
-            if next not in res:
-                res += next + "\n"
+        responses = self.metta.run(f'''!(let $intent  (get-intent-name (intent "{text}") )
+                             (match &{self.space_name} ((Intent $intent)(response $x)) $x))''', True)
+        res = ''
+        if len(responses) > 0:
+            res = random.sample(responses, 1)[0]
+        return Response(f"{res}", None)
