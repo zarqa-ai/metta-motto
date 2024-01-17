@@ -33,4 +33,8 @@
 (filter_not_exists ($person dbo:deathDate $death))  (limit 3)) ($name $birth))
 
 
-
+!(match &rdf_space (, ($city dbp:populationTotal $popTotal) ($city rdfs:label $name)
+(optional ($city dbp:populationMetro $popMetro) )
+(filter ($popTotal > 50000))
+(union (($city rdf:type "<http://dbpedia.org/class/yago/WikicatCitiesInTexas>")
+($city rdf:type "<http://dbpedia.org/class/yago/CitiesInCalifornia>")))(limit 3) (offset 2)) ($city $popTotal $popMetro $name ))

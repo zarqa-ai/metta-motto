@@ -34,7 +34,6 @@ class QueryItems:
                     str_items.extend(q_item.str_items)
                     variables.union(q_item.variables)
                     continue
-
             item = repr(i)
             if len(item) > 2 and item[0] == '"' and item[-1] == '"':
                 item = item[1:-1]
@@ -47,6 +46,20 @@ class QueryItems:
             str_items.append(item)
 
         return cls(str_items, variables)
+
+class SPARQLComponents:
+    def __init__(self):
+        self.conditions = []
+        self.filters = []
+        self.filter_not_exists = []
+        self.limit = ""
+        self.variables = set()
+        self.distinct = False
+        self.order_asc = []
+        self.order_desc = []
+        self.union = []
+        self.optional = []
+        self.offset = ""
 
 
 class ServiceFeatures:
@@ -67,93 +80,132 @@ class ServiceFeatures:
             self.service = "<https://dbpedia.org/sparql>"
 
 
+
 class RdfHelper:
 
     @staticmethod
     def get_fields_and_conditions(query_atom):
         ''' parse sql query and get columns to select and conditions for filtering '''
         atoms = query_atom.get_children()
-        conditions = []
-        filters = []
-        filter_not_exists = []
-        limit = ""
-        distinct = False
-        order_asc = []
-        order_desc = []
-        variables = set()
+
+        query_components = SPARQLComponents()
+        optional_query_components = []
         for atom in atoms:
             if isinstance(atom, ExpressionAtom):
                 items = atom.get_children()
                 if len(items) == 3:
                     query_item = QueryItems.from_atoms(items)
-                    conditions.append(" ".join(query_item.str_items))
-                    variables = variables.union(query_item.variables)
+                    query_components.conditions.append(" ".join(query_item.str_items))
+                    query_components.variables = query_components.variables.union(query_item.variables)
                 elif len(items) == 2:
                     first = repr(items[0]).lower()
                     query_item = QueryItems.from_atoms(items[1:])
                     if first == "filter":
-                        filters.append(" ".join(query_item.str_items))
-                        variables = variables.union(query_item.variables)
+                        query_components.filters.append(" ".join(query_item.str_items))
+                        query_components.variables = query_components.variables.union(query_item.variables)
                     elif first == "filter_not_exists":
-                        filter_not_exists.append(" ".join(query_item.str_items))
-                        variables = variables.union(query_item.variables)
+                        query_components.filter_not_exists.append(" ".join(query_item.str_items))
+                        query_components.variables = query_components.variables.union(query_item.variables)
                     elif first == "limit":
-                        limit = repr(items[1])
+                        query_components.limit = repr(items[1])
+                    elif first == "offset":
+                        query_components.offset = repr(items[1])
                     elif first == "distinct":
-                        distinct = "true" in repr(items[1]).lower()
+                        query_components.distinct = "true" in repr(items[1]).lower()
                     elif first == "order_asc":
-                        order_asc.extend(query_item.str_items)
+                        query_components.order_asc.extend(query_item.str_items)
                     elif first == "order_desc":
-                        order_desc.extend(query_item.str_items)
+                        query_components.order_desc.extend(query_item.str_items)
+                    elif first == "optional":
+                        s = RdfHelper.get_fields_and_conditions(E(items[1]))
+                        query_components.optional.append(s)
+                        query_components.variables = query_components.variables.union(s.variables)
+                    elif first == "union":
+                        if hasattr(items[1], 'get_children'):
+                            children = items[1].get_children()
+                            components = []
+                            for child in children:
+                                s = RdfHelper.get_fields_and_conditions(E(child))
+                                components.append(s)
+                                query_components.variables = query_components.variables.union(s.variables)
+                            query_components.union.append(components)
                     else:
                         raise ValueError(f"Unexpected query item")
-        return conditions, filters, limit, variables, distinct, order_asc, order_desc, filter_not_exists
+        return query_components
 
 
 class RdfSpace(GroundingSpace):
     def __init__(self, dbtype):
         super().__init__()
         self.service_features = ServiceFeatures(dbtype)
+        self.helper = RdfHelper()
 
     def from_space(self, cspace):
         self.gspace = GroundingSpaceRef(cspace)
 
+    def __collect_conditions(self, query_components):
+        sparql_query = ""
+        for condition in query_components.conditions:
+            sparql_query += condition + " . \n"
+        for filter in query_components.filters:
+            sparql_query += f"filter ({filter})\n"
+
+        if len(query_components.filter_not_exists) > 0:
+            sparql_query += "filter not exists {"
+            for filter in query_components.filter_not_exists:
+                sparql_query += f"{filter} .\n"
+            sparql_query += "}"
+        return sparql_query
+
     def construct_query(self, query_atom):
-        conditions, filters, limit, variables, distinct, order_asc, order_desc, filter_not_exists = RdfHelper.get_fields_and_conditions(query_atom)
+        query_components = self.helper.get_fields_and_conditions(query_atom)
         sparql_query = ""
         for key, prefix in self.service_features.prefixes.items():
             sparql_query += f"PREFIX {key}: {prefix}" + "\n"
-        fixed_variables = " ".join([f"?{var}" for var in variables])
+        fixed_variables = " ".join([f"?{var}" for var in query_components.variables])
 
-        sparql_query += f"SELECT distinct {fixed_variables}\n" if distinct else f"SELECT {fixed_variables}\n"
-        if self.service_features.service or len(conditions) > 0 or len(filters) > 0:
+        sparql_query += f"SELECT distinct {fixed_variables}\n" if query_components.distinct else f"SELECT {fixed_variables}\n"
+        if self.service_features.service or len(query_components.conditions) > 0 or len(query_components.filters) > 0:
             sparql_query += "WHERE {\n"
             if self.service_features.service:
                 sparql_query += f"SERVICE {self.service_features.service}" + "{\n"
-            for condition in conditions:
-                sparql_query += condition + " . \n"
-            for filter in filters:
-                sparql_query += f"filter ({filter})\n"
 
-            if len(filter_not_exists) > 0:
-                sparql_query += "filter not exists {"
-                for filter in filter_not_exists:
-                    sparql_query += f"{filter} .\n"
-                sparql_query += "}"
+            sparql_query += self.__collect_conditions(query_components)
+
+            if len(query_components.union) > 0:
+                for union in query_components.union:
+                    union_conditions = []
+                    for component in union:
+                        condition = self.__collect_conditions(component)
+                        union_conditions.append(f"{{{condition}}}")
+                    if len(union_conditions) > 0:
+                        sparql_query += "{" + " UNION ".join(union_conditions) + "}\n"
+
+            if len(query_components.optional) > 0:
+                optional_conditions = ""
+                for component in query_components.optional:
+                    optional_conditions = self.__collect_conditions(component)
+                if optional_conditions:
+                    sparql_query += f"Optional {{{optional_conditions}}} \n"
+
             if self.service_features.service:
                 sparql_query += "}"
             sparql_query += "}\n"
-        if len(order_asc) > 0:
+        if len(query_components.order_asc) > 0:
             sparql_query += f"ORDER BY ASC "
-            for order in order_asc:
+            for order in query_components.order_asc:
                 sparql_query += f"({order}) "
-        if len(order_desc) > 0:
+        if len(query_components.order_desc) > 0:
             sparql_query += f"ORDER BY DESC "
-            for order in order_desc:
+            for order in query_components.order_desc:
                 sparql_query += f"({order}) "
-        if limit:
-            sparql_query += f"Limit {limit} "
-        return sparql_query, variables
+        if query_components.limit:
+            sparql_query += f"Limit {query_components.limit} "
+        if query_components.offset:
+            sparql_query += f"OFFSET {query_components.offset} "
+
+
+        return sparql_query, query_components.variables
 
     def query(self, query_atom):
         try:
