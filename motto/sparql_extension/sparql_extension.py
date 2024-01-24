@@ -28,7 +28,8 @@ class RdfHelper:
     unary_operations_dict = {"not": "!"}
 
     output_options_functions = ['limit', 'offset', 'group by', 'order by']
-    aggregate_functions = ['count', 'sum', 'avg', 'min', 'max', 'groupconcat', 'sample']
+    # all aggregate_functions are handled by 'fields' this array is not used in code
+    aggregate_functions = ['count', 'sum', 'avg', 'min', 'max', 'group_concat', 'sample']
 
     def __init__(self, service_type="dbpedia"):
         self.set_service_type(service_type)
@@ -70,8 +71,11 @@ class RdfHelper:
                 # takes into account unary operations
                 args += RdfHelper.unary_operations_dict[
                     key] if key in RdfHelper.unary_operations_dict else RdfHelper.repr_atom(child)
-                if i < last:
+                if i == 0:
                     args += "("
+                elif i < last:
+                    atom_repr = RdfHelper.repr_atom(children[0]).lower()
+                    args += ", " if  atom_repr not in RdfHelper.aggregate_functions else "; "
 
             else:
                 args += f"{RdfHelper.parse_functions_and_args(child)}"
@@ -112,7 +116,7 @@ class RdfHelper:
 
     def having(self, atom):
         result = RdfHelper.__filter_inner(atom)
-        return [ValueAtom(f"Having ({result})")]
+        return [ValueAtom(f"having ({result})")]
 
     @staticmethod
     def repr_children(atom):
@@ -147,9 +151,9 @@ class RdfHelper:
                 condition = RdfHelper.repr_children(child)
                 if isinstance(condition, list):
                     is_simple = False
-                    conditions.append(" ".join(condition))
+                    conditions.append(" ".join(condition).strip())
                 else:
-                    conditions.append(condition)
+                    conditions.append(condition.strip())
         return conditions, is_simple
 
     def collect_conditions(self, atom, function: str):
@@ -157,12 +161,12 @@ class RdfHelper:
         if hasattr(atom, 'get_children'):
             conditions, is_simple = self.__get_conditions_from_children(atom)
             if function == "union":
-                return [ValueAtom("{{" + "} UNION {".join(conditions) + "}}\n")]
+                return [ValueAtom("{{" + "} UNION {".join(conditions) + "}}")]
             # if function is limit, order by, offset, ...
             elif function in RdfHelper.output_options_functions:
                 return [ValueAtom(f"{function} " + " ".join(conditions))]
-            joiner = " . \n" if not is_simple else " "
-            return [ValueAtom(f"{function} {{" + joiner.join(conditions) + "}")]
+            joiner = " .\n" if not is_simple else " "
+            return [ValueAtom(f"{function} {{" + (joiner.join(conditions)) + "}")]
         # order by desc
         elif function == 'order by desc':
             return [ValueAtom(f"{function}({atom})")]
@@ -190,7 +194,7 @@ class RdfHelper:
                     condition = RdfHelper.repr_children(child)
                     conditions.append(" ".join(condition) if isinstance(condition, list) else condition)
             if function == "select" and distinct:
-                str_select =  "select distinct"
+                str_select = "select distinct"
             else:
                 str_select = function
             sparql_query = ""

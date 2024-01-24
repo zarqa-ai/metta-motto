@@ -38,7 +38,7 @@
 ;takes into account cases where the occupation is given as a plain string
 
 !(select ((fields ($name $birth)) (where (($person dbo:birthPlace dbr:London) ($person foaf:name $name)
-(union (($person dbo:occupation dbr:Actor)  ($person dbp:occupation $occupation)
+(union (($person dbo:occupation dbr:Actor) ($person dbp:occupation $occupation)
 (filter (or (contains (str $occupation) 'Actor')  (contains (str $occupation) 'Actress') ) )
 ))
 ($person dbo:birthDate $birth)
@@ -65,7 +65,13 @@
 (filter (gt $amazon $nile))))))
 
 ;Tell me whatever you'd like to tell me about the Ford Motor Company.
-!( describe ((fields $ford) (where ( (?ford foaf:name "'FORD MOTOR CO'") ))))
+!( describe ((fields $ford) (where ( ($ford foaf:name "'FORD MOTOR CO'") ))))
+
+
+; test group_concat
+!(select ((fields ($name (as (group_concat $birth (= separator '|')) $bth))) (where (($person dbo:birthPlace dbr:Dublin)
+($person dbo:birthDate $birth) ($person dbp:name  $name) (filter ( = (lang $name) 'en'))
+(filter (contains (str $name) 'Murphy')))) (group_by  $name) (order_by $name) (limit 3)))
 
 
 
