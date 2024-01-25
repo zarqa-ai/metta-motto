@@ -60,9 +60,6 @@
 !(select ((fields ($manufacturer (as (count $product) $count))) (where (($product rdf:type <http://dbpedia.org/ontology/Device>)
 ($product dbo:manufacturer $manufacturer))) (group_by $manufacturer) (having (GT  (count $product) 10)) limit 3))
 
-; Is the Amazon river longer than the Nile River?
-!(ask ((conditions ((<http://dbpedia.org/resource/Amazon_River> dbp:length $amazon) (<http://dbpedia.org/resource/Nile> dbp:length $nile )
-(filter (gt $amazon $nile))))))
 
 ;Tell me whatever you'd like to tell me about the Ford Motor Company.
 !( describe ((fields $ford) (where ( ($ford foaf:name "'FORD MOTOR CO'") ))))

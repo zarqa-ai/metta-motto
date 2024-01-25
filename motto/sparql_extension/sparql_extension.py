@@ -203,14 +203,17 @@ class RdfHelper:
             sparql_query += str_select + " " + " ".join(conditions)
             if sparql_query:
                 graph = Graph()
+                appended = False
                 for r in graph.query(sparql_query):
                     row = []
                     if hasattr(r, 'asdict'):
                         for k, v in r.asdict().items():
                             row.append(ValueAtom(v))
                     else:
-                        row.append(ValueAtom(r))
-                    values.append(ValueAtom(row))
+                        values.append(ValueAtom(r))
+                        appended = True
+                    if not appended:
+                        values.append(ValueAtom(row))
         except Exception as error:
             print(error)
         finally:

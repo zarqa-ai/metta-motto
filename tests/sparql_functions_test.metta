@@ -108,4 +108,17 @@ $ev bio:date $birthdate}")
 $ev rdf:type bio:Birth .
 $ev bio:date $birthdate}")
 
+;test ASK
+; Is the Amazon river longer than the Nile River?
+!(assertEqual
+    (ask ((conditions ((<http://dbpedia.org/resource/Amazon_River> dbp:length $amazon) (<http://dbpedia.org/resource/Nile> dbp:length $nile )
+    (filter (gt $amazon $nile))))))
+    False)
+
+;test select
+
+;Display names and dates of birth and death of all people born in
+;London between 1900-1950; sort the results based on the birth date
+!(assertEqual
+    ("Phil Scott", "1900-01-03", "Harry Kernoff", "1900-01-09", "Harry Kernoff", "1900-01-09"))
 
