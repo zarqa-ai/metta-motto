@@ -12,7 +12,7 @@ def test_select():
     (filter (= (lang $name) 'en'))
     (optional ($person dbo:deathDate $death ))
     (filter (and (GT $birth "'1900-01-01'^^xsd:date")  (LT $birth "'1950-01-01'^^xsd:date")))))
-       (order_by ($birth))(limit 1)))
+       (order_by ($birth))(limit 3)))
     ''', True)
     correct = [["Phil Scott", "1900-01-03"],
                ["Harry Kernoff", "1900-01-09"], ["Violette Cordery", "1900-01-10"]]
