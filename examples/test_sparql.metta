@@ -1,4 +1,4 @@
-!(extend-py! motto.sparql_extension.sparql_extension)
+!(extend-py! motto.sparql_gate)
 
 ;People who were born in Berlin before 1900
 ;http://sites.linkeddata.center/help/devop/examples/sparql-examples

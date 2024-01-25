@@ -1,4 +1,4 @@
-!(extend-py! motto.sparql_extension.sparql_extension)
+!(extend-py! motto.sparql_gate)
 
 ;test filters
 !(assertEqual
