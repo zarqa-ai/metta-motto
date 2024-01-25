@@ -236,6 +236,11 @@ def llmgate_atoms(metta):
         r"EchoAgent": echoAgentAtom,
         r"metta-chat": mettaChatAtom,
         r"retrieval-agent": retrievalAgentAtom,
+        # FIXME: We add this function here, so we can explicitly evaluate results of LLMs, but
+        # we may either expect that this function appear in core MeTTa or need a special safe eval
+        r"_eval": OperationAtom("_eval",
+            lambda atom: metta.run("! " + atom.get_object().value)[0],
+            unwrap=False),
     }
 
 
