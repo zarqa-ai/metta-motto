@@ -20,11 +20,6 @@ class MettaAgent(Agent):
     def _prepare(self, metta, msgs_atom):
         for k, v in self._atoms.items():
             metta.register_atom(k, v)
-        # FIXME: We add this function here, so we can explicitly evaluate results of LLMs, but
-        # we may either expect that this function appear in core MeTTa or need a special safe eval
-        metta.register_atom("_eval", OperationAtom("_eval",
-            lambda atom: metta.run("! " + atom.get_object().value)[0],
-            unwrap=False))
         metta.space().add_atom(E(S('='), E(S('messages')), msgs_atom))
 
     def _postproc(self, response):
