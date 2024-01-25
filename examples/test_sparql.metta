@@ -23,7 +23,7 @@
 ($countryOfBirth dbo:populationTotal $population)
 ($countryOfTeam a dbo:Country)
 (filter (!= $countryOfTeam  $countryOfBirth))
-(filter (GT $stadiumcapacity 30000)) (filter (GT $population 10000000))))  (order_by  $soccerplayer)(limit 3))
+(filter (> $stadiumcapacity 30000)) (filter (> $population 10000000))))  (order_by  $soccerplayer)(limit 3))
 )
 
 ;Display names and dates of birth of all actors born in London after year 1930. who are still alive
@@ -31,7 +31,7 @@
 
 !(select ((fields ($name $birth) )(where (($person dbo:birthPlace dbr:London) ($person dbo:occupation dbr:Actor) ($person foaf:name $name)
 ($person dbo:birthDate $birth)
-(filter (GT $birth  "'1930-01-01'^^xsd:date"))
+(filter (> $birth  "'1930-01-01'^^xsd:date"))
 (filter_not_exists ($person dbo:deathDate $death)) )) (limit 3)))
 
 ;Display names and dates of birth of all actors born in London after year 1930. who are still alive
@@ -42,7 +42,7 @@
 (filter (or (contains (str $occupation) 'Actor')  (contains (str $occupation) 'Actress') ) )
 ))
 ($person dbo:birthDate $birth)
-(filter (GT $birth "'1930-01-01'^^xsd:date"))
+(filter (> $birth "'1930-01-01'^^xsd:date"))
 (filter_not_exists ($person dbo:deathDate $death)) ) ) (limit 3)))
 
 ;Display names and dates of birth and death of all people born in
@@ -52,13 +52,13 @@
 ($person rdfs:label $name)
 (filter (= (lang $name) 'en'))
 (optional ($person dbo:deathDate $death ))
-(filter (and (GT $birth "'1900-01-01'^^xsd:date")  (LT $birth "'1950-01-01'^^xsd:date")))))
+(filter (and (> $birth "'1900-01-01'^^xsd:date")  (< $birth "'1950-01-01'^^xsd:date")))))
    (order_by ($birth))(limit 3)))
 
 ;Find manufacturers who produce more than 10 different products and display the number of different products they produce
 ;http://ai.fon.bg.ac.rs/wp-content/uploads/2015/04/SPARQL_Dec-2014_eng.pdf
 !(select ((fields ($manufacturer (as (count $product) $count))) (where (($product rdf:type <http://dbpedia.org/ontology/Device>)
-($product dbo:manufacturer $manufacturer))) (group_by $manufacturer) (having (GT  (count $product) 10)) limit 3))
+($product dbo:manufacturer $manufacturer))) (group_by $manufacturer) (having (> (count $product) 10)) limit 3))
 
 
 ;Tell me whatever you'd like to tell me about the Ford Motor Company.

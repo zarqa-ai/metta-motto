@@ -11,7 +11,7 @@ def test_select():
     ($person dbp:name $name)
     (filter (= (lang $name) 'en'))
     (optional ($person dbo:deathDate $death ))
-    (filter (and (GT $birth "'1900-01-01'^^xsd:date")  (LT $birth "'1950-01-01'^^xsd:date")))))
+    (filter (and (> $birth "'1900-01-01'^^xsd:date")  (< $birth "'1950-01-01'^^xsd:date")))))
        (order_by ($birth))(limit 3)))
     ''', True)
     correct = [["Phil Scott", "1900-01-03"],

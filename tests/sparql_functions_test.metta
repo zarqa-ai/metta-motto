@@ -6,7 +6,7 @@
     "filter (!(bound($url)))")
 
 !(assertEqual
-    (filter (gt $population  15000000))
+    (filter (> $population  15000000))
     "filter ($population > 15000000)")
 
 !(assertEqual
@@ -14,7 +14,7 @@
     "filter (contains(str($occupation), 'Actor') || contains(str($occupation), 'Actress'))")
 
 !(assertEqual
-    (filter (and (gt $date "'1968-10-1'^^xsd:date")  (lt $date "'1968-10-30'^^xsd:date")))
+    (filter (and (> $date "'1968-10-1'^^xsd:date")  (< $date "'1968-10-30'^^xsd:date")))
     "filter ($date > '1968-10-1'^^xsd:date && $date < '1968-10-30'^^xsd:date)")
 
 ;test fields
@@ -32,14 +32,14 @@
 
 ;test having
 !(assertEqual
-    (having (gt (count $subject)  1) )
+    (having (> (count $subject)  1) )
     "having (count($subject) > 1)")
 
 ;test where
 !(assertEqual
     (where (($person dbo:birthPlace dbr:London) ($person foaf:name $name)
     ($person dbo:birthDate $birth)
-    (filter (gt $birth  "'1930-01-01'^^xsd:date"))))
+    (filter (> $birth  "'1930-01-01'^^xsd:date"))))
    "WHERE{
 SERVICE <https://dbpedia.org/sparql>{
 $person dbo:birthPlace dbr:London .
@@ -52,7 +52,7 @@ filter ($birth > '1930-01-01'^^xsd:date)}}")
 !(assertEqual
     (conditions (($person dbo:birthPlace dbr:London) ($person foaf:name $name)
     ($person dbo:birthDate $birth)
-    (filter (gt $birth  "'1930-01-01'^^xsd:date"))))
+    (filter (> $birth  "'1930-01-01'^^xsd:date"))))
    "{
 SERVICE <https://dbpedia.org/sparql>{
 $person dbo:birthPlace dbr:London .
@@ -112,7 +112,7 @@ $ev bio:date $birthdate}")
 ; Is the Amazon river longer than the Nile River?
 !(assertEqual
     (ask ((conditions ((<http://dbpedia.org/resource/Amazon_River> dbp:length $amazon) (<http://dbpedia.org/resource/Nile> dbp:length $nile )
-    (filter (gt $amazon $nile))))))
+    (filter (> $amazon $nile))))))
     False)
 
 

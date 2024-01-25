@@ -22,8 +22,8 @@ class ServiceFeatures:
 
 class RdfHelper:
     complex_filters = ["filter_exists", "filter_not_exists", "union", "minus"]
-    binary_operations_dict = {"+": "+", "-": "-", "*": "*", "/": "*", "=": "=", "!=": "!=", "lt": "<", "gt": ">",
-                              "le": "<=", "ge": ">=",
+    binary_operations_dict = {"+": "+", "-": "-", "*": "*", "/": "*", "=": "=", "!=": "!=", "<": "<", ">": ">",
+                              "<=": "<=", ">=": ">=",
                               "or": "||", "and": "&&", "as": "as"}
     unary_operations_dict = {"not": "!"}
 
@@ -50,7 +50,7 @@ class RdfHelper:
     def parse_functions_and_args(atom):
         '''
         :param atom:
-        :return: converts expression like  (GT  (count $product) 10)) into next: count($product) > 10
+        :return: converts expression like  (>  (count $product) 10)) into next: count($product) > 10
         '''
         if not hasattr(atom, 'get_children'):
             return RdfHelper.repr_atom(atom)
@@ -228,7 +228,7 @@ def sql_space_atoms():
         r"set-sparql-service-type": G(
             OperationObject('set-sparql-service-type', lambda a: helper.set_service_type(a), unwrap=False)),
         'filter':
-            G(OperationObject('filter', lambda a: helper.filter(a), unwrap=False)),
+            OperationAtom('filter', lambda a: helper.filter(a), type_names=['Atom', 'Atom'], unwrap=False),
         'union':
             G(OperationObject('union', lambda a: helper.collect_conditions(a, "union"), unwrap=False)),
         'filter_not_exists':
@@ -269,6 +269,6 @@ def sql_space_atoms():
         'group_by':
             G(OperationObject('group_by', lambda a: helper.collect_conditions(a, "group by"), unwrap=False)),
         'having':
-            G(OperationObject('having', lambda a: helper.having(a), unwrap=False)),
+            OperationAtom('having', lambda a: helper.having(a), type_names=['Atom', 'Atom'], unwrap=False),
 
     }
