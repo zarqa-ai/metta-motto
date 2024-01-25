@@ -208,7 +208,7 @@ class RdfHelper:
                     row = []
                     if hasattr(r, 'asdict'):
                         for k, v in r.asdict().items():
-                            row.append(ValueAtom(v))
+                            row.append(ValueAtom(str(v)))
                     else:
                         values.append(ValueAtom(r))
                         appended = True

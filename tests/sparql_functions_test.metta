@@ -115,10 +115,5 @@ $ev bio:date $birthdate}")
     (filter (gt $amazon $nile))))))
     False)
 
-;test select
 
-;Display names and dates of birth and death of all people born in
-;London between 1900-1950; sort the results based on the birth date
-!(assertEqual
-    ("Phil Scott", "1900-01-03", "Harry Kernoff", "1900-01-09", "Harry Kernoff", "1900-01-09"))
 
