@@ -19,6 +19,43 @@ class ServiceFeatures:
             self.prefixes["skos"] = "<http://www.w3.org/2004/02/skos/core#>"
             self.service = "<https://dbpedia.org/sparql>"
 
+        elif service_type == "wikidata":
+            self.prefixes["wd"] = "<http://www.wikidata.org/entity/>"
+            self.prefixes["wds"] = "<http://www.wikidata.org/entity/statement/>"
+            self.prefixes["wdv"] = "<http://www.wikidata.org/value/>"
+            self.prefixes["wdt"] = "<http://www.wikidata.org/prop/direct/>"
+            self.prefixes["wikibase"] = "<http://wikiba.se/ontology#>"
+            self.prefixes["p"] = "<http://www.wikidata.org/prop/>"
+            self.prefixes["ps"] = "<http://www.wikidata.org/prop/statement/>"
+            self.prefixes["pq"] = "<http://www.wikidata.org/prop/qualifier/>"
+            self.prefixes["rdfs"] = "<http://www.w3.org/2000/01/rdf-schema#>"
+            self.prefixes["bd"] = "<http://www.bigdata.com/rdf#>"
+
+            self.prefixes["wdref"] = "<http://www.wikidata.org/reference/>"
+            self.prefixes["psv"] = "<http://www.wikidata.org/prop/statement/value/>"
+            self.prefixes["psn"] = "<http://www.wikidata.org/prop/statement/value-normalized/>"
+            self.prefixes["pqv"] = "<http://www.wikidata.org/prop/qualifier/value/>"
+            self.prefixes["pqn"] = "<http://www.wikidata.org/prop/qualifier/value-normalized/>"
+            self.prefixes["pr"] = "<http://www.wikidata.org/prop/reference/>"
+            self.prefixes["prv"] = "<http://www.wikidata.org/prop/reference/value/>"
+            self.prefixes["prn"] = "<http://www.wikidata.org/prop/reference/value-normalized/>"
+            self.prefixes["wdno"] = "<http://www.wikidata.org/prop/novalue/>"
+            self.prefixes["wdata"] = "<http://www.wikidata.org/wiki/Special:EntityData/>"
+
+            self.prefixes["schema"] = "<http://schema.org/>"
+            self.prefixes["rdf"] = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+            self.prefixes["owl"] = "<http://www.w3.org/2002/07/owl#>"
+            self.prefixes["skos"] = "<http://www.w3.org/2004/02/skos/core#>"
+            self.prefixes["xsd"] = "<http://www.w3.org/2001/XMLSchema#>"
+            self.prefixes["prov"] = "<http://www.w3.org/ns/prov#>"
+            self.prefixes["bds"] = "<http://www.bigdata.com/rdf/search#>"
+            self.prefixes["gas"] = "<http://www.bigdata.com/rdf/gas#>"
+            self.prefixes["hint"] = "<http://www.bigdata.com/queryHints#>"
+
+            self.service = "<https://query.wikidata.org/sparql>"
+
+
+
 
 class RdfHelper:
     complex_filters = ["filter_exists", "filter_not_exists", "union", "minus"]
@@ -35,8 +72,9 @@ class RdfHelper:
         self.set_service_type(service_type)
 
     def set_service_type(self, service_type):
-        self.service_type = repr(service_type).lower() if not isinstance(service_type, str) else service_type.lower()
+        self.service_type =self.repr_atom(service_type).lower() if not isinstance(service_type, str) else service_type.lower()
         self.service_features = ServiceFeatures(self.service_type)
+        return []
 
 
     @staticmethod
