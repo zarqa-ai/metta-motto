@@ -1,6 +1,6 @@
 from hyperon import *
 from hyperon.ext import register_atoms
-from rdflib import Graph
+from SPARQLWrapper import SPARQLWrapper, JSON
 
 class ServiceFeatures:
     def __init__(self, service_type):
@@ -17,7 +17,7 @@ class ServiceFeatures:
             self.prefixes["dc"] = "<http://purl.org/dc/elements/1.1/>"
             self.prefixes["dct"] = "<http://purl.org/dc/terms/>"
             self.prefixes["skos"] = "<http://www.w3.org/2004/02/skos/core#>"
-            self.service = "<https://dbpedia.org/sparql>"
+            self.service = "https://dbpedia.org/sparql"
 
         elif service_type == "wikidata":
             self.prefixes["wd"] = "<http://www.wikidata.org/entity/>"
@@ -52,7 +52,7 @@ class ServiceFeatures:
             self.prefixes["gas"] = "<http://www.bigdata.com/rdf/gas#>"
             self.prefixes["hint"] = "<http://www.bigdata.com/queryHints#>"
 
-            self.service = "<https://query.wikidata.org/sparql>"
+            self.service = "https://query.wikidata.org/sparql"
 
 
 
@@ -166,11 +166,19 @@ class RdfHelper:
     def where(self, atom, function):
         conditions, _ = self.__get_conditions_from_children(atom)
         result = "WHERE{\n" if function == "where" else "{\n"
-        if self.service_features.service:
-            result += f"SERVICE {self.service_features.service}" + "{\n"
         result += " .\n".join(conditions) + "}"
-        if self.service_features.service:
-            result += "}"
+        return [ValueAtom(result)]
+
+    def service(self, atom):
+        result = ""
+        conditions, _ = self.__get_conditions_from_children(atom)
+        if len(conditions) > 0:
+            result += "service "
+        for condition in conditions:
+            if " " not in condition:
+                result += f" {condition} "
+            else:
+                result += f"{{{condition}}}"
         return [ValueAtom(result)]
 
     def __get_conditions_from_children(self, atom):
@@ -217,7 +225,6 @@ class RdfHelper:
 
     def execute_query(self, query_atom, function, distinct=False):
         '''
-
         :param query_atom:
         :param function:
         :param distinct:
@@ -240,17 +247,18 @@ class RdfHelper:
                 sparql_query += f"PREFIX {key}: {prefix}" + "\n"
             sparql_query += str_select + " " + " ".join(conditions)
             if sparql_query:
-                graph = Graph()
-                appended = False
-                for r in graph.query(sparql_query):
-                    row = []
-                    if hasattr(r, 'asdict'):
-                        for k, v in r.asdict().items():
-                            row.append(ValueAtom(str(v)))
-                    else:
-                        values.append(ValueAtom(r))
-                        appended = True
-                    if not appended:
+                sparql = SPARQLWrapper(self.service_features.service)
+                sparql.setQuery(sparql_query)
+                sparql.setReturnFormat(JSON)
+                result = sparql.query().convert()
+                if 'boolean' in result:
+                    values.append(ValueAtom(result['boolean']))
+                else:
+                    vars = result['head']['vars']
+                    for res in result["results"]["bindings"]:
+                        row = []
+                        for var in vars:
+                            row.append(ValueAtom(str(res[var]['value'])))
                         values.append(ValueAtom(row))
         except Exception as error:
             print(error)
@@ -308,5 +316,8 @@ def sql_space_atoms():
             G(OperationObject('group_by', lambda a: helper.collect_conditions(a, "group by"), unwrap=False)),
         'having':
             OperationAtom('having', lambda a: helper.having(a), type_names=['Atom', 'Atom'], unwrap=False),
+
+        'service':
+            G(OperationObject('where', lambda a: helper.service(a), unwrap=False)),
 
     }

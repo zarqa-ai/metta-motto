@@ -41,11 +41,10 @@
     ($person dbo:birthDate $birth)
     (filter (> $birth  "'1930-01-01'^^xsd:date"))))
    "WHERE{
-SERVICE <https://dbpedia.org/sparql>{
 $person dbo:birthPlace dbr:London .
 $person foaf:name $name .
 $person dbo:birthDate $birth .
-filter ($birth > '1930-01-01'^^xsd:date)}}")
+filter ($birth > '1930-01-01'^^xsd:date)}")
 
 
 ;test conditions
@@ -54,11 +53,10 @@ filter ($birth > '1930-01-01'^^xsd:date)}}")
     ($person dbo:birthDate $birth)
     (filter (> $birth  "'1930-01-01'^^xsd:date"))))
    "{
-SERVICE <https://dbpedia.org/sparql>{
 $person dbo:birthPlace dbr:London .
 $person foaf:name $name .
 $person dbo:birthDate $birth .
-filter ($birth > '1930-01-01'^^xsd:date)}}")
+filter ($birth > '1930-01-01'^^xsd:date)}")
 
 ;test optional
 !(assertEqual
