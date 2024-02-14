@@ -1,5 +1,3 @@
-!(import! &prompt 05_nested_prompt.mps)
-
 ; We can define a function expected by the prompt template
 ; after importing it, because the template will be evaluated by `llm`
 (= (topic)
@@ -12,13 +10,14 @@
 (= (story) (get-state &story))
 
 ; Let's generate the first part
-!(change-state! &story (llm &prompt))
+!(change-state! &story (llm (Script 05_nested_prompt.mps)))
 
 !(println! "======== STORY ========")
 !(println! (story))
 
 ; Now, let's generate the next piece
 !(println! "======== LOCATION ========")
-!(println! (llm &prompt (user "Please compose a very short description of the first location of the adventure")))
+!(println! (llm (Script 05_nested_prompt.mps)
+                (user "Please compose a very short description of the first location of the adventure")))
 
 !(Response "DONE")

@@ -1,4 +1,4 @@
-!(extend-py! motto)
+!(import! motto &self)
 
 ! (bind! &messages (new-space))
 

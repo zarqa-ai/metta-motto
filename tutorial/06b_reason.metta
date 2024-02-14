@@ -1,4 +1,4 @@
-!(extend-py! motto)
+!(import! motto &self)
 
 ; This is another PoC example of LLM-MeTTa interoperability
 

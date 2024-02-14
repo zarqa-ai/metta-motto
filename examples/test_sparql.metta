@@ -1,4 +1,4 @@
-!(extend-py! motto.sparql_gate)
+!(import! motto.sparql_gate &self)
 
 ;People who were born in Berlin before 1900
 ;http://sites.linkeddata.center/help/devop/examples/sparql-examples
@@ -62,7 +62,7 @@
 
 
 ;Tell me whatever you'd like to tell me about the Ford Motor Company.
-!( describe ((fields $ford) (where ( ($ford foaf:name "'FORD MOTOR CO'") ))))
+!(describe ((fields $ford) (where ( ($ford foaf:name "'FORD MOTOR CO'") ))))
 
 
 ; test group_concat

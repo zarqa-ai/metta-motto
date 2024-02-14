@@ -1,4 +1,4 @@
-!(extend-py! motto)
+!(import! motto &self)
 !(bind! &chat (metta-chat chat_history.msa))
 !(llm (Agent &chat) (user "Hi"))
 ;!(llm (Agent &chat) (user "Yes"))

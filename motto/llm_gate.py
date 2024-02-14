@@ -115,6 +115,9 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
         arg = atom if len(arg) == 0 else arg[0]
         if isinstance(arg, GroundedAtom) and \
            isinstance(arg.get_object(), SpaceRef):
+            # NOTE: a fix for standard libraries put into the module
+            if 'lib' in repr(arg) or 'motto' in repr(arg):
+                continue
             # FIXME? This will overwrites the current prompt_space if it is set.
             # It is convenient to have it here to successfully execute
             # (llm &prompt (Functions fn)), when fn is defined in &prompt.
@@ -134,6 +137,15 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                 elif name in ['Functions', 'function']:
                     functions += [get_func_def(fn, metta, prompt_space)
                                   for fn in ch[1:]]
+                elif name == 'Script':
+                    # TODO: a better way to load a script?
+                    m = MeTTa()
+                    # TODO: asserts
+                    m.run("!(import! motto &self)")
+                    with open(atom2msg(ch[1])) as f:
+                        m.run(f.read())
+                    prompt_space = m.space()
+                    __msg_update(*get_llm_args(metta, prompt_space, *prompt_space.get_atoms()))
                 elif name == 'Agent':
                     agent = ch[1]
                     # The agent can be a Python object or a string (filename)

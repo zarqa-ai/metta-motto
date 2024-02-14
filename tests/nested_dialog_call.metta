@@ -1,4 +1,4 @@
-!(extend-py! motto)
+!(import! motto &self)
 
 ; A dialog agent, which calls another agent with the additional system message,
 ; which should not appear in the history

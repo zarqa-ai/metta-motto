@@ -1,4 +1,4 @@
-!(extend-py! motto)
+!(import! motto &self)
 
 !(bind! &chat (metta-chat chat_echo_history.msa))
 

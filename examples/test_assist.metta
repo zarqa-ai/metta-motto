@@ -2,7 +2,7 @@
 ; It also composes messages and llm execution in a functional way.
 ; Thus, it is not a canonical (but still valid) way of using motto.
 
-!(extend-py! motto)
+!(import! motto &self)
 
 (= (append-expr $xs $x)
    (collapse (superpose ((superpose $xs) $x))))

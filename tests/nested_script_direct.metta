@@ -1,14 +1,13 @@
-!(extend-py! motto)
+!(import! motto &self)
 
 (= (user-query) "Hi there")
 (= (task) ORDER)
 
 ; user-query and task are not accessible during import!
 ; and are kept as symbols
-!(import! &script nested_script_main.mps)
 
 ; they are resolved by llm-gate in the call
 !(assertEqual
-   (llm (Agent EchoAgent) &script)
+   (llm (Agent EchoAgent) (Script nested_script_main.mps))
 "system Help the user with lunch order
 user Hi there")

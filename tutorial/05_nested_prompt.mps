@@ -1,6 +1,6 @@
 ; We can insert templates into other templates to
 ; compose and reuse them
-! (import! &self 04_prompt_template.mps)
+(Script 04_prompt_template.mps)
 
 ; Prompt templates are evaluate in the context of the parent agent,
 ; and can be parameterized by expressions, which should be defined outside

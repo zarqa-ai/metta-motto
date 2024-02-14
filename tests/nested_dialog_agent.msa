@@ -1,5 +1,3 @@
-!(import! &script nested_dialog_script.mps)
-
 (= (respond $msg)
    (case $msg
      (("Hello" "Hello")
@@ -12,4 +10,4 @@
 ; message), but don't include this system message into the history
 !(Response
   (respond
-    (llm (Agent nested_dialog_sub.msa) &script)))
+    (llm (Agent nested_dialog_sub.msa) (Script nested_dialog_script.mps))))
