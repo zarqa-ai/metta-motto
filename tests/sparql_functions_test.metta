@@ -41,11 +41,10 @@
     ($person dbo:birthDate $birth)
     (filter (> $birth  "'1930-01-01'^^xsd:date"))))
    "WHERE{
-SERVICE <https://dbpedia.org/sparql>{
 $person dbo:birthPlace dbr:London .
 $person foaf:name $name .
 $person dbo:birthDate $birth .
-filter ($birth > '1930-01-01'^^xsd:date)}}")
+filter ($birth > '1930-01-01'^^xsd:date)}")
 
 
 ;test conditions
@@ -54,11 +53,10 @@ filter ($birth > '1930-01-01'^^xsd:date)}}")
     ($person dbo:birthDate $birth)
     (filter (> $birth  "'1930-01-01'^^xsd:date"))))
    "{
-SERVICE <https://dbpedia.org/sparql>{
 $person dbo:birthPlace dbr:London .
 $person foaf:name $name .
 $person dbo:birthDate $birth .
-filter ($birth > '1930-01-01'^^xsd:date)}}")
+filter ($birth > '1930-01-01'^^xsd:date)}")
 
 ;test optional
 !(assertEqual
@@ -74,6 +72,7 @@ filter (isLiteral($name))}"
 !(assertEqual
     (order_by ($protons $weight))
     "order by $protons $weight")
+
 ;test order by
 !(assertEqual
     (order_by_desc $protons)
@@ -114,6 +113,8 @@ $ev bio:date $birthdate}")
     (ask ((conditions ((<http://dbpedia.org/resource/Amazon_River> dbp:length $amazon) (<http://dbpedia.org/resource/Nile> dbp:length $nile )
     (filter (> $amazon $nile))))))
     False)
+
+
 
 
 
