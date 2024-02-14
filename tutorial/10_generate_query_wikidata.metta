@@ -160,7 +160,7 @@
         )
     )
 ))
-;corrrect
+;correct
 (select
 (
     (fields ($awardYearLabel))
