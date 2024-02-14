@@ -72,6 +72,7 @@ filter (isLiteral($name))}"
 !(assertEqual
     (order_by ($protons $weight))
     "order by $protons $weight")
+
 ;test order by
 !(assertEqual
     (order_by_desc $protons)
@@ -112,6 +113,8 @@ $ev bio:date $birthdate}")
     (ask ((conditions ((<http://dbpedia.org/resource/Amazon_River> dbp:length $amazon) (<http://dbpedia.org/resource/Nile> dbp:length $nile )
     (filter (> $amazon $nile))))))
     False)
+
+
 
 
 
