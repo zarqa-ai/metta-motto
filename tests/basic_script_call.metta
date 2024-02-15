@@ -1,4 +1,4 @@
-;!(import! motto &self)
+!(import! motto &self)
 
 (= (user-query) "Hello world.")
 

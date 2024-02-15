@@ -5,7 +5,8 @@ from motto.agents import Agent, Response
 def test_select():
 
     m = MeTTa()
-    m.load_module_at_path('motto:sparql_gate')
+    #m.load_module_at_path('motto:sparql_gate')
+    m.run("!(import! motto:sparql_gate &self)")
     result =  m.run('''
         !(select ( (fields ($name $birth)) (where (($person dbo:birthPlace dbr:London) ($person dbo:birthDate $birth)
     ($person dbp:name $name)
