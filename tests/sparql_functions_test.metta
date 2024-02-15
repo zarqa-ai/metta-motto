@@ -1,4 +1,4 @@
-!(extend-py! motto.sparql_gate)
+!(import! motto &self)
 
 ;test filters
 !(assertEqual

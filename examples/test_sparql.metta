@@ -1,4 +1,4 @@
-!(import! motto.sparql_gate &self)
+!(import! motto &self)
 
 ;People who were born in Berlin before 1900
 ;http://sites.linkeddata.center/help/devop/examples/sparql-examples

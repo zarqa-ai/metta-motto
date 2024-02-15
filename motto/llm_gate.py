@@ -86,6 +86,10 @@ def get_func_def(fn, metta, prompt_space):
         }
     }
 
+def is_space(atom):
+    return isinstance(atom, GroundedAtom) and \
+           isinstance(atom.get_object(), SpaceRef)
+
 
 def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
     agent = None
@@ -113,18 +117,9 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
         #if isinstance(arg, ExpressionAtom) and repr(arg.get_children()[0]) == 'Error':
         #    raise RuntimeError(repr(arg.get_children()[1]))
         arg = atom if len(arg) == 0 else arg[0]
-        if isinstance(arg, GroundedAtom) and \
-           isinstance(arg.get_object(), SpaceRef):
-            # NOTE: a fix for standard libraries put into the module
-            if 'lib' in repr(arg) or 'motto' in repr(arg):
-                continue
-            # FIXME? This will overwrites the current prompt_space if it is set.
-            # It is convenient to have it here to successfully execute
-            # (llm &prompt (Functions fn)), when fn is defined in &prompt.
-            # But (function fn) can also be put in &prompt directly.
-            # Depending on what is more convenient, this overriding can be changed.
-            prompt_space = arg.get_object()
-            __msg_update(*get_llm_args(metta, prompt_space, *prompt_space.get_atoms()))
+        if is_space(arg):
+            # Spaces as prompt templates should be wrapped into Script argument
+            continue
         elif isinstance(arg, ExpressionAtom):
             ch = arg.get_children()
             if len(ch) > 1:
@@ -138,13 +133,21 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                     functions += [get_func_def(fn, metta, prompt_space)
                                   for fn in ch[1:]]
                 elif name == 'Script':
-                    # TODO: a better way to load a script?
-                    m = MeTTa()
-                    # TODO: asserts
-                    m.run("!(import! motto &self)")
-                    with open(atom2msg(ch[1])) as f:
-                        m.run(f.read())
-                    prompt_space = m.space()
+                    if is_space(ch[1]):
+                        # FIXME? This will overwrites the current prompt_space if it is set.
+                        # It is convenient to have it here to successfully execute
+                        # (llm &prompt (Functions fn)), when fn is defined in &prompt.
+                        # But (function fn) can also be put in &prompt directly.
+                        # Depending on what is more convenient, this overriding can be changed.
+                        prompt_space = ch[1].get_object()
+                    else:
+                        # TODO: a better way to load a script?
+                        m = MeTTa()
+                        # TODO: asserts
+                        m.run("!(import! motto &self)")
+                        with open(atom2msg(ch[1])) as f:
+                            m.run(f.read())
+                        prompt_space = m.space()
                     __msg_update(*get_llm_args(metta, prompt_space, *prompt_space.get_atoms()))
                 elif name == 'Agent':
                     agent = ch[1]

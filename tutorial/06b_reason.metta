@@ -2,7 +2,7 @@
 
 ; This is another PoC example of LLM-MeTTa interoperability
 
-; Here. we have a set of statements in natural language
+; Here, we have a set of statements in natural language
 (Fact "Sam is a frog")
 (Fact "Any frog is not a helicopter")
 (Fact "Any alien likes helicopter")

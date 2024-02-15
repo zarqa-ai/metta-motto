@@ -19,4 +19,4 @@ def test_scripts():
     process_exceptions(run_script(f"{pwd}/metta_chat.metta"))
     process_exceptions(run_script(f"{pwd}/nested_script_direct.metta"))
     process_exceptions(run_script(f"{pwd}/nested_dialog_call.metta"))
-    #process_exceptions(run_script(f"{pwd}/sparql_functions_test.metta"))
+    process_exceptions(run_script(f"{pwd}/sparql_functions_test.metta"))
