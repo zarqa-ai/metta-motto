@@ -1,5 +1,4 @@
-!(extend-py! motto)
-!(extend-py! motto.sparql_gate)
+!(import! &self motto)
 !(set-sparql-service-type "wikidata")
 (llm (Agent 10_generate_query_wikidata.msa)(user "Select US presidents and their wives"))
 ;result
