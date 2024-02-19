@@ -4,7 +4,7 @@
 ;http://sites.linkeddata.center/help/devop/examples/sparql-examples
 
 !(select ((fields ($name $birth $death $person )) (where (($person dbo:birthPlace dbr:Berlin) ($person dbo:birthDate $birth) ($person foaf:name $name)
-($person dbo:deathDate $death) (filter (LT $birth  "'1900-01-01'^^xsd:date")))) (order_by $name)
+($person dbo:deathDate $death) (filter (< $birth  "'1900-01-01'^^xsd:date")))) (order_by $name)
 (limit 3)))
 
 
