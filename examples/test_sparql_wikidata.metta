@@ -1,4 +1,4 @@
-!(extend-py! motto.sparql_gate)
+!(import! &self motto)
 !(set-sparql-service-type "wikidata")
 ;sparql query to wikidata which lists names and places of birth of all Nobel laureates in literature over the past 10 years
 

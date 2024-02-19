@@ -1,4 +1,4 @@
-!(extend-py! motto)
+!(import! &self motto)
 !(llm (Agent 09_generate_query_dbpedia.msa)
 (user "Display names of all capital cities that are in the CET time zone. Sort the results based on the size of the population of the capitals from the result set."))
 
