@@ -1,4 +1,4 @@
-!(extend-py! motto)
+!(import! &self motto)
 
 (= (user-msg)
    (user "Can you calculate (109 plus 3) times 11?"))

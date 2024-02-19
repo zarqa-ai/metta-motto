@@ -1,6 +1,4 @@
-!(extend-py! motto)
-
-!(import! &msgs test_guide_prompt.mps)
+!(import! &self motto)
 
 ; Function for calls still cannot be put into the prompt space, because
 ; they will not be evaluated, when the functional call is evoked here
@@ -17,4 +15,4 @@
 
 (= (user-query) "What is the result of 111102 + 18333?")
 
-! (llm &msgs)
+!(llm (Script test_guide_prompt.mps))
