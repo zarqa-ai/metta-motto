@@ -1,6 +1,7 @@
 from hyperon import *
 from hyperon.ext import register_atoms
-from SPARQLWrapper import SPARQLWrapper, JSON
+
+# TODO: requirement for SPARQLWrapper
 
 class ServiceFeatures:
     def __init__(self, service_type):
@@ -247,6 +248,7 @@ class RdfHelper:
                 sparql_query += f"PREFIX {key}: {prefix}" + "\n"
             sparql_query += str_select + " " + " ".join(conditions)
             if sparql_query:
+                from SPARQLWrapper import SPARQLWrapper, JSON
                 sparql = SPARQLWrapper(self.service_features.service)
                 sparql.setQuery(sparql_query)
                 sparql.setReturnFormat(JSON)
