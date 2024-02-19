@@ -1,4 +1,4 @@
-!(import! motto &self)
+!(import! &self motto)
 
 !(bind! &chat (metta-chat chat_echo_history.msa))
 

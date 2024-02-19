@@ -144,7 +144,7 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                         # TODO: a better way to load a script?
                         m = MeTTa()
                         # TODO: asserts
-                        m.run("!(import! motto &self)")
+                        m.run("!(import! &self motto)")
                         with open(atom2msg(ch[1])) as f:
                             m.run(f.read())
                         prompt_space = m.space()

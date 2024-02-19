@@ -1,4 +1,4 @@
-!(import! motto &self)
+!(import! &self motto)
 
 (= (no-new-expression) True)
 

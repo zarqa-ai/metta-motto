@@ -14,7 +14,7 @@ def test_custom_agent():
     agent = CustomSplitAgent()
     m = MeTTa()
     m.register_atom('&agent', ValueAtom(agent))
-    m.run("!(import! motto &self)")
+    m.run("!(import! &self motto)")
     assert m.run('''
         !(llm (Agent &agent) (user "Hello"))
         !(llm (Agent &agent (word "name is ")) (user "My name is Name"))

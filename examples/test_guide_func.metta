@@ -1,4 +1,4 @@
-!(import! motto &self)
+!(import! &self motto)
 
 ; Function for calls still cannot be put into the prompt space, because
 ; they will not be evaluated, when the functional call is evoked here

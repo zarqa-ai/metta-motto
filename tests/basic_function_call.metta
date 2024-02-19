@@ -1,4 +1,4 @@
-!(import! motto &self)
+!(import! &self motto)
 
 (= (doc func_test)
    (Doc

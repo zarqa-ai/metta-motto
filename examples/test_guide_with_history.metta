@@ -1,4 +1,4 @@
-!(import! motto &self)
+!(import! &self motto)
 !(bind! &chat (metta-chat chat_history.msa))
 !(llm (Agent &chat) (user "Hi"))
 ;!(llm (Agent &chat) (user "Yes"))

@@ -1,4 +1,4 @@
-!(import! motto &self)
+!(import! &self motto)
 !(bind! &retrieval (Agent (retrieval-agent "text_for_retrieval.txt" 200 2 "data")))
 (= (get_information $question)
    (llm &retrieval (user $question)))

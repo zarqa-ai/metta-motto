@@ -1,4 +1,4 @@
-!(import! motto &self)
+!(import! &self motto)
 
 ; We can call ChatGPT Agent from MeTTa using generic llm function
 ! (llm (Agent (chat-gpt)) (user "Hello"))

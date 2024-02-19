@@ -1,4 +1,4 @@
-!(import! motto &self)
+!(import! &self motto)
 
 ; Testing parsing of arguments of `llm` using EchoAgent,
 ; which is passed explicitly as one of the arguments

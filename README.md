@@ -21,7 +21,7 @@ import motto
 
 and MeTTa extention
 ```
-!(import! motto &self)
+!(import! &self motto)
 ```
 
 Please, refer to the [tutorial](tutorial) and [examples](examples). [Tests](tests) can also be considered in addition.

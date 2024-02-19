@@ -1,4 +1,4 @@
-!(import! motto &self)
+!(import! &self motto)
 
 (= (user-query) "Hi there")
 (= (task) ORDER)

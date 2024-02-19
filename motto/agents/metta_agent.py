@@ -52,7 +52,7 @@ class MettaAgent(Agent):
         else:
             metta = MeTTa()
         # TODO: assert
-        metta.run("!(import! motto &self)")
+        metta.run("!(import! &self motto)")
         #metta.load_module_at_path("motto")
         # TODO: support {'role': , 'content': } dict input
         if isinstance(msgs_atom, str):

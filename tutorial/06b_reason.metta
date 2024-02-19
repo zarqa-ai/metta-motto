@@ -1,4 +1,4 @@
-!(import! motto &self)
+!(import! &self motto)
 
 ; This is another PoC example of LLM-MeTTa interoperability
 
