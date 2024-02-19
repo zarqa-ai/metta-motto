@@ -1,4 +1,4 @@
-!(extend-py! motto)
+!(import! &self motto)
 
 (= (instruction) (system
     "Look at interaction history. Depending on the history, do one of next options:

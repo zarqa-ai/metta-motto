@@ -1,11 +1,10 @@
-from hyperon import MeTTa, ValueAtom, G,S, AtomType
-from motto.agents import Agent, Response
-
+from hyperon import MeTTa
 
 def test_select():
 
     m = MeTTa()
-    m.load_py_module('motto.sparql_gate')
+    #m.load_module_at_path('motto:sparql_gate')
+    m.run("!(import! &self motto)")
     result =  m.run('''
         !(select ( (fields ($name $birth)) (where (($person dbo:birthPlace dbr:London) ($person dbo:birthDate $birth)
     ($person dbp:name $name)

@@ -51,13 +51,18 @@ class MettaAgent(Agent):
             metta = MeTTa(env_builder=env_builder)
         else:
             metta = MeTTa()
-        metta.run("!(extend-py! motto)")
+        # TODO: assert
+        metta.run("!(import! &self motto)")
+        #metta.load_module_at_path("motto")
         # TODO: support {'role': , 'content': } dict input
         if isinstance(msgs_atom, str):
             msgs_atom = metta.parse_single(msgs_atom)
         self._prepare(metta, msgs_atom)
         if self._path is not None:
-            response = metta.import_file(self._path)
+            #response = metta.load_module_at_path(self._path)
+            with open(self._path, mode='r') as f:
+                code = f.read()
+                response = metta.run(code)
         if self._code is not None:
             response = metta.run(self._code) if isinstance(self._code, str) else \
                        [interpret(metta.space(), self._code)]

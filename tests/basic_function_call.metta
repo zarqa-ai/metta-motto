@@ -1,4 +1,4 @@
-!(extend-py! motto)
+!(import! &self motto)
 
 (= (doc func_test)
    (Doc
