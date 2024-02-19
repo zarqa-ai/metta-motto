@@ -159,7 +159,7 @@
             (fields ($draftYear $draftTeam))
             (where
                 (
-                ($person foaf:name "'Michael Jordan'@en")
+                ($person foaf:name \"'Michael Jordan'@en\")
                 ($person dbp:draftyear $draftYear)
                 ($person dbp:draftteam $draftTeam)
                 )
@@ -173,7 +173,7 @@
             (fields ($person $death))
             (where
                 (
-                ($person foaf:name "'John Lennon'@en")
+                ($person foaf:name \"'John Lennon'@en\")
                 ($person dbo:deathDate $death)
                 )
             )
@@ -186,9 +186,9 @@
             (fields ($name))
             (where
                 (
-                ($actor dbo:birthPlace "<http://dbpedia.org/resource/Australia>")
-                ($actor dbo:birthDate $birth) ($actor dbo:occupation "<http://dbpedia.org/resource/Actor>") ($actor foaf:name $name)
-                (filter (>= $birth "'1990-01-01'^^xsd:date"))
+                ($actor dbo:birthPlace \"<http://dbpedia.org/resource/Australia>\")
+                ($actor dbo:birthDate $birth) ($actor dbo:occupation \"<http://dbpedia.org/resource/Actor>\") ($actor foaf:name $name)
+                (filter (>= $birth \"'1990-01-01'^^xsd:date\"))
                 )
             )
         )
@@ -201,7 +201,7 @@
             (where
                 (
                     ($politician a dbo:Politician)
-                    ($politician dbo:party "<http://dbpedia.org/resource/Republican_Party_(United_States)>")
+                    ($politician dbo:party \"<http://dbpedia.org/resource/Republican_Party_(United_States)>\")
                     ($politician dbo:birthDate $birth)
                     (filter (>= (year $birth) (- (year (now)) 70)))
                 )
@@ -216,7 +216,7 @@
             (where
                 (
                 ($person rdf:type dbo:Person) ($person dbo:birthPlace $birthplace)
-                ($person dbo:award "<http://dbpedia.org/resource/Nobel_Prize_in_Literature>")
+                ($person dbo:award \"<http://dbpedia.org/resource/Nobel_Prize_in_Literature>\")
                 ($person dbo:awardYear $year) (filter (>= (year $year) (- (year (now)) 20)))
                 )
             )
@@ -230,7 +230,7 @@
             (where
                 (
                 ($writer a dbo:Writer)
-                ($writer dbo:birthPlace "<http://dbpedia.org/resource/Switzerland>")
+                ($writer dbo:birthPlace \"<http://dbpedia.org/resource/Switzerland>\")
                 ($writer dbo:birthPlace $birthplace)
                 )
             )
@@ -246,7 +246,7 @@
                 ($capital a dbo:City)
                 ($capital dbo:country ?country)
                 ($country dbo:capital $capital)
-                ($capital dbo:timeZone "<http://dbpedia.org/resource/Central_European_Time>")
+                ($capital dbo:timeZone \"<http://dbpedia.org/resource/Central_European_Time>\")
                 ($capital dbo:populationTotal $population)
                 )
             )
