@@ -259,6 +259,7 @@
     Important:
     Check the correctness of brackets in query, number of closing brackets should be equal to the number of opening brackets.
     All values  starting with \"<http://dbpedia.org/\" should be in quotes.
-    The fields statement should not contain properties (like dbo:MusicalArtist or foaf:name). Return only query.
+    The fields statement should not contain properties (like dbo:MusicalArtist or foaf:name).
+    Return only query,  no explanation and other texts
     ")
     (messages)))

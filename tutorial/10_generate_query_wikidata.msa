@@ -202,6 +202,6 @@
     Check the correctness of brackets in query, number of closing brackets should be equal to the number of opening brackets.
     All values  starting with \"<http://\" should be in quotes.
     The fields statement should not contain properties (like dbo:MusicalArtist or foaf:name).
-    Start variable names with "$" noot with "?".
-    Return only query, no explanation and other texts.")
+    Start variable names with \"$\" noot with \"?\".
+    Return only query, no explanation and other texts")
     (messages)))
