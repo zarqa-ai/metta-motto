@@ -11,7 +11,7 @@
     (service (wikibase:label (bd:serviceParam wikibase:language "'en'")))
     )
 )
-(order_by $when) (limit 3)))
+(order_by $when) (limit 1)))
 
 ;List all actors born in US after 2000
 !(select ((fields ($actor $actorLabel))
@@ -22,7 +22,7 @@
     (service (wikibase:label (bd:serviceParam wikibase:language "'en'")))
     )
 )
-(limit 3)))
+(limit 2)))
 
 
 ;Sculptures by Max Bill
