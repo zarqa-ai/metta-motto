@@ -1,0 +1,185 @@
+! (llm (Agent (chat-gpt "gpt-3.5-turbo"))
+        (system "Generate queryes in Scheme according to user question.
+        There are some examples user's queries converted to Scheme:
+;Get properties of gene ENSG00000177508
+(match &space ($prop (gene ENSG00000177508) $val)
+    ($prop $val))
+
+;Get properties of gene ENSG00000223972
+(match &space ($prop (gene ENSG00000223972) $val)
+    ($prop $val))
+
+;Get properties of gene ENSG00000279994
+(match &space ($prop (gene ENSG00000279994) $val)
+    ($prop $val))
+
+;Find the transcripts of gene ENSG00000177508
+(match &space (transcribed_to (gene ENSG00000177508) $transcript)
+    $transcript)
+
+;Find the transcripts of gene ENSG00000238009
+(match &space (transcribed_to (gene ENSG00000238009) $transcript)
+    $transcript)
+
+;Find the transcripts of gene ENSG00000164733
+(match &space (transcribed_to (gene ENSG00000164733) $transcript)
+    $transcript)
+
+;What are the proteins that gene ENSG00000177508 codes for
+(match &space (, (transcribed_to (gene ENSG00000177508) $transcript)
+                (translates_to $transcript $protein))
+                $protein)
+
+;What are the proteins that gene ENSG00000185070 codes for
+(match &space (, (transcribed_to (gene ENSG00000185070) $transcript)
+                (translates_to $transcript $protein))
+                $protein)
+
+;What are the proteins that gene ENSG00000052795 codes for
+(match &space (, (transcribed_to (gene ENSG00000052795) $transcript)
+                (translates_to $transcript $protein))
+                $protein)
+
+
+;Find the Gene Ontology (GO) categories associated with protein P78415
+(match &space (go_gene_product $ontology (protein P78415))
+    $ontology)
+
+;Find the Gene Ontology (GO) categories associated with protein O43155
+(match &space (go_gene_product $ontology (protein O43155))
+    $ontology)
+
+;Find the Gene Ontology (GO) categories associated with protein A6NIX2
+(match &space (go_gene_product $ontology (protein A6NIX2))
+    $ontology)
+
+
+;Find the GO categories associated with gene ENSG00000177508
+(match &space (, (transcribed_to (gene ENSG00000177508) $transcript)
+                (translates_to $transcript $protein)
+                (go_gene_product $ontology $protein))
+                $ontology)
+
+;Find the GO categories associated with gene ENSG00000185070
+(match &space (, (transcribed_to (gene ENSG00000185070) $transcript)
+                (translates_to $transcript $protein)
+                (go_gene_product $ontology $protein))
+                $ontology)
+
+;Find the GO categories associated with gene ENSG00000052795
+(match &space (, (transcribed_to (gene ENSG00000052795) $transcript)
+                (translates_to $transcript $protein)
+                (go_gene_product $ontology $protein))
+                $ontology)
+
+;Find biological process GO categories associated with gene ENSG00000052795
+(match &space (, (transcribed_to (gene ENSG00000052795) $transcript)
+                (translates_to $transcript $protein)
+                (go_gene_product $ontology $protein)
+                (subontology $ontology biological_process))
+                $ontology)
+
+;Find biological process GO categories associated with gene ENSG00000185070
+(match &space (, (transcribed_to (gene ENSG00000185070) $transcript)
+                (translates_to $transcript $protein)
+                (go_gene_product $ontology $protein)
+                (subontology $ontology biological_process))
+                $ontology)
+
+;Find biological process GO categories associated with gene ENSG00000052795
+(match &space (, (transcribed_to (gene ENSG00000052795) $transcript)
+                (translates_to $transcript $protein)
+                (go_gene_product $ontology $protein)
+                (subontology $ontology biological_process))
+                $ontology)
+
+
+;Find pathways that gene ENSG00000177508 is a subset of
+(match &space (genes_pathways (gene ENSG00000177508) $p)
+        $p)
+
+;Find pathways that gene ENSG00000000419 is a subset of
+(match &space (genes_pathways (gene ENSG00000000419) $p)
+        $p)
+
+;Find pathways that gene ENSG00000000938 is a subset of
+(match &space (genes_pathways (gene ENSG00000000938) $p)
+        $p)
+
+;Find pathways that gene IRX3 is a subset of (use the gene HGNC symbol instead of ensembl id)
+(match &space (, (gene_name (gene $ens) IRX3)
+                (genes_pathways (gene $ens) $p))
+        $p)
+
+;Find pathways that gene FGR is a subset of
+(match &space (, (gene_name (gene $ens) FGR)
+                (genes_pathways (gene $ens) $p))
+        $p)
+
+;Find pathways that gene TFAP2A is a subset of (use the gene HGNC symbol instead of ensembl id)
+(match &space (, (gene_name (gene $ens) TFAP2A)
+                (genes_pathways (gene $ens) $p))
+        $p)
+
+;Find parent pathways of the pathways that
+;gene IRX3 is a subset of (use the gene HGNC symbol instead of ensembl id)
+(match &space (, (gene_name (gene $ens) IRX3)
+                (genes_pathways (gene $ens) $p1)
+                (parent_pathway_of $p2 $p1))
+        $p2)
+
+;Find parent pathways of the pathways that
+;gene FGR is a subset of (use the gene HGNC symbol instead of ensembl id)
+(match &space (, (gene_name (gene $ens) FGR)
+                (genes_pathways (gene $ens) $p1)
+                (parent_pathway_of $p2 $p1))
+        $p2)
+
+;Find parent pathways of the pathways that gene TFAP2A is a subset of
+(match &space (, (gene_name (gene $ens) TFAP2A)
+                (genes_pathways (gene $ens) $p1)
+                (parent_pathway_of $p2 $p1))
+        $p2)
+
+
+;What variants have eqtl association with gene IRX3
+(match &space (, (gene_name (gene $ens) IRX3)
+                (eqtl $seq (gene $ens)))
+                $seq)
+
+;What variants have eqtl association with gene ARL6IP1
+(match &space (, (gene_name (gene $ens) ARL6IP1)
+                (eqtl $seq (gene $ens)))
+                $seq)
+
+;What variants have eqtl association with gene POLR3K
+(match &space (, (gene_name (gene $ens) POLR3K)
+                (eqtl $seq (gene $ens)))
+                $seq)
+
+;What variants have eqtl association with gene IRX3 and return the
+;properties of the association
+(match &space (, (gene_name  $ens IRX3)
+                (eqtl $seq $ens)
+                ($prop (eqtl $seq $ens) $val))
+                ($prop (eqtl $seq $ens) $val))
+
+
+;What variants have eqtl association with gene ARL6IP1 and return the
+;properties of the association
+(match &space (, (gene_name $ens ARL6IP1)
+                (eqtl $seq $ens)
+                ($prop (eqtl $seq $ens) $val))
+                ($prop (eqtl $seq $ens) $val))
+
+;What variants have eqtl association with gene POLR3K and return the
+;properties of the association
+(match &space (, (gene_name  $ens POLR3K)
+                (eqtl $seq $ens)
+                ($prop (eqtl $seq $ens) $val))
+                ($prop (eqtl $seq $ens) $val))
+
+ Return only query,  no explanation and other texts
+
+  ")
+    (messages))

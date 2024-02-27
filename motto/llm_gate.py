@@ -243,6 +243,7 @@ def llmgate_atoms(metta):
     mettaChatAtom = OperationAtom('metta-chat',
                     lambda x: [ValueAtom(DialogAgent(code=x) if isinstance(x, ExpressionAtom) else \
                                          DialogAgent(path=x))], unwrap=False)
+    bioAIAtom = OperationAtom('bioai-agent', BioAIAgent, unwrap=True)
     retrievalAgentAtom = OperationAtom('retrieval-agent', RetrievalAgent, unwrap=True)
     return {
         r"llm": llmAtom,
@@ -256,6 +257,7 @@ def llmgate_atoms(metta):
         r"_eval": OperationAtom("_eval",
             lambda atom: metta.run("! " + atom.get_object().value)[0],
             unwrap=False),
+        r"bioai-agent": bioAIAtom,
     }
 
 
