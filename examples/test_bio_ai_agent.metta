@@ -1,5 +1,5 @@
 !(import! &self motto)
-!(bind! &bioaiagent (Agent (bioai-agent "/media/sveta/hdisk4/singnet/bioatomspace/bio_atomspace_subset/valid" "./query_bioatomspace.msa")))
+!(bind! &bioaiagent (Agent (bioai-agent "/media/sveta/hdisk4/singnet/bioatomspace/bio_atomspace_subset/valid")))
 
 ;!(llm &bioaiagent (user "Find the transcripts of gene ENSG00000206014"))
 ;!(llm &bioaiagent (user "Get properties of gene ENSG00000279139"))

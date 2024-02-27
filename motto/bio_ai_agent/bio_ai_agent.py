@@ -1,10 +1,12 @@
 import os
 
-from .agent import Response
+from motto.agents.agent import Response
 
-from .metta_agent import MettaAgent
+from motto.agents.metta_agent import MettaAgent
 from hyperon import MeTTa, Environment, E, S
-
+from hyperon.ext import register_atoms
+from hyperon import *
+from pathlib import Path
 
 def repr_atom(atom) -> str:
     item = repr(atom)
@@ -14,13 +16,12 @@ def repr_atom(atom) -> str:
 
 class BioAIAgent(MettaAgent):
 
-    def __init__(self,  data_folder=None, path=None, include_paths=None):
+    def __init__(self,  data_folder=None,  include_paths=None):
         self._data_folder = self._try_unwrap(data_folder)
-        self._path = self._try_unwrap(path)
+        parent = Path(__file__).parent
+        self._path = os.path.join(parent, "query_bioatomspace.msa")
         if data_folder is None:
             raise RuntimeError(f"{self.__class__.__name__} requires path to  data")
-        if path is None:
-            raise RuntimeError(f"{self.__class__.__name__} requires path to instructions")
         self._includes = include_paths
 
         if self._includes is not None:
@@ -41,9 +42,6 @@ class BioAIAgent(MettaAgent):
         self.metta.run(f"!(bind! &{self.space_name} (new-space))")
         for file in files:
             self.metta.run(f"!(load-ascii &{self.space_name} {file})")
-
-
-
 
     def _prepare(self, metta, msgs_atom):
         metta.space().add_atom(E(S('='), E(S('messages')), msgs_atom))
@@ -75,7 +73,12 @@ class BioAIAgent(MettaAgent):
                 if len(query) == 1:
                     query = repr_atom(query[0])
                     query = query.replace("&self", f"&{self.space_name}")
-                    print(query)
                     response = self.metta.run("!"+query, True)
 
         return Response(response, None)
+@register_atoms
+def bioai_atoms():
+    bioAIAtom = OperationAtom('bioai-agent', BioAIAgent, unwrap=True)
+    return {
+        r"bioai-agent": bioAIAtom,
+    }
