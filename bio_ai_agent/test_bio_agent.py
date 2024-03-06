@@ -33,7 +33,10 @@ def test_bioaiagent():
         '''!(llm &bioaiagent (user
             "What variants have eqtl association with gene HBM and return the properties of the association"))''',
         '!(llm &bioaiagent (user "Get properties of gene SNORD39"))',
-        '!(llm &bioaiagent (user "Find the transcripts of gene LINC01409"))'
+        '!(llm &bioaiagent (user "Find the transcripts of gene LINC01409"))',
+        '''!(llm &bioaiagent (user 
+        "What variants have eqtl association with gene ENSG00000206177 and return the properties of the association"))''',
+        '!(llm &bioaiagent (user "Find parent pathways of the pathways that ENSG00000000938  gene is a subset of"))'
     ]
 
     results = ["(transcript ENST00000533722)", "(gene_name ENSG00000279139)", "(protein Q9NQ38)",
@@ -41,7 +44,9 @@ def test_bioaiagent():
                "(pathway R-HSA-9664417)", "(pathway R-HSA-76002)", "(pathway R-HSA-9664407)",
                "(sequence_variant rs74001198)",
                "(p_value (eqtl (sequence_variant rs144775822) (gene ENSG00000206177)) 0.500688)", "(gene_name SNORD39)",
-               "(transcript ENST00000443772)"]
+               "(transcript ENST00000443772)",
+               "(p_value (eqtl (sequence_variant rs144775822) (gene ENSG00000206177)) 0.500688)",
+               "(pathway R-HSA-9664407)"]
     # m.load_module_at_path('motto:sparql_gate')
     m.run("!(import! &self motto)")
     m.run(f'!(bind! &bioaiagent (Agent bio_ai_agent/bio_ai_agent.msa))')
