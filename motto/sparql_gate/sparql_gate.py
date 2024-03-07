@@ -1,6 +1,6 @@
 from hyperon import *
 from hyperon.ext import register_atoms
-from motto.help_functions import get_string_value
+from motto.utils import get_string_value
 
 # TODO: requirement for SPARQLWrapper
 
