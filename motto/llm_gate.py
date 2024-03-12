@@ -253,6 +253,7 @@ def llmgate_atoms(metta):
         r"llm": llmAtom,
         r"atom2msg": msgAtom,
         r"chat-gpt": chatGPTAtom,
+        r"anthropic-agent": OperationAtom('anthropic-agent', AnthropicAgent),
         r"EchoAgent": echoAgentAtom,
         r"metta-chat": mettaChatAtom,
         r"retrieval-agent": retrievalAgentAtom,
