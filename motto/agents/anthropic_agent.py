@@ -36,9 +36,6 @@ class AnthropicAgent(Agent):
         return response
 
     def __call__(self, messages, functions=[]):
-        print("-------------------")
-        print("call AnthropicAgent: ", messages)
-        print("------------------")
         if functions == []:
             response = self.run_insists(model=self._model,
                 messages=get_messages_no_system(messages),
