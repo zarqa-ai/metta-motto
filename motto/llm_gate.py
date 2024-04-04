@@ -3,6 +3,7 @@ from hyperon.ext import register_atoms
 from .agents import *
 import json
 from .utils import *
+from .langchain_tools import LangchainTools
 
 import logging
 logger = logging.getLogger(__name__)
@@ -97,13 +98,15 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
     messages = []
     functions = []
     msg_atoms = []
-    def __msg_update(ag, m, f, a):
-        nonlocal agent, messages, functions, msg_atoms
+    langchain_tools = []
+    def __msg_update(ag, m, f, a,lt):
+        nonlocal agent, messages, functions, msg_atoms, langchain_tools
         if ag is not None:
             agent = ag
         messages += m
         functions += f
         msg_atoms += [a]
+        langchain_tools += lt
 
     for atom in args:
         # We first interpret the atom argument in the context of the main metta space.
@@ -130,6 +133,8 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                 elif name in ['system', 'user', 'assistant']:
                     messages += [{'role': name, 'content': atom2msg(ch[1])}]
                     msg_atoms += [arg]
+                elif name == 'langchain_tool':
+                    langchain_tools += [LangchainTools.get_function_by_tool_name(repr(tool_name)) for tool_name in ch[1:]]
                 elif name in ['Functions', 'function']:
                     functions += [get_func_def(fn, metta, prompt_space)
                                   for fn in ch[1:]]
@@ -180,12 +185,45 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
     # Do not wrap a single message into Message (necessary to avoid double
     # wrapping of single Message argument)
     return agent, messages, functions, \
-        msg_atoms[0] if len(msg_atoms) == 1 else E(S('Messages'), *msg_atoms)
+        msg_atoms[0] if len(msg_atoms) == 1 else E(S('Messages'), *msg_atoms),  langchain_tools
 
+def get_function_info(response):
+    fname = response.function_call.name
+    fs = S(fname)
+    args = response.function_call.arguments
+    args = {} if args is None else \
+        json.loads(args) if isinstance(args, str) else args
+    return fname, fs, args
+
+def call_function(metta, response, functions, msgs_atom):
+    fname, fs, args = get_function_info(response)
+    for func in functions:
+        if func["name"] != fname:
+            continue
+        for k, v in args.items():
+            if func["parameters"]["properties"][k]['metta-type'] == 'Atom':
+                args[k] = metta.parse_single(v)
+    return [E(fs, to_nested_expr(list(args.values())), msgs_atom)]
+
+
+def call_tool(response, langchain_tools):
+    fname, fs, args = get_function_info(response)
+    for func in langchain_tools:
+        if func["name"] != fname:
+            continue
+        tool = LangchainTools.get_tool_by_name(fname)
+        if tool is not None:
+            try:
+                result = tool.run(args) if len(args) > 1 else tool.run(list(args.values())[0])
+                return [ValueAtom(result)]
+            except Exception as e:
+                logger.error(e)
+                raise e
+    raise RuntimeError("Unrecognized langchain tool name: " + fname)
 
 def llm(metta: MeTTa, *args):
     try:
-        agent, messages, functions, msgs_atom = get_llm_args(metta, None, *args)
+        agent, messages, functions, msgs_atom,  langchain_tools = get_llm_args(metta, None, *args)
     except Exception as e:
         # NOTE: we put the error into the log since it can be ignored by the caller
         logger.error(e)
@@ -208,24 +246,16 @@ def llm(metta: MeTTa, *args):
             params[p] = params[p].get_object().value
     try:
         response = agent(msgs_atom if isinstance(agent, MettaAgent) else messages,
-                        functions, **params)
+                         langchain_tools if len(langchain_tools) > 0 else functions, **params)
     except Exception as e:
         logger.error(e)
         raise e
     if response.function_call is not None:
-        fname = response.function_call.name
-        fs = S(fname)
-        args = response.function_call.arguments
-        args = {} if args is None else \
-            json.loads(args) if isinstance(args, str) else args
         # Here, we check if the arguments should be parsed to MeTTa
-        for func in functions:
-            if func["name"] != fname:
-                continue
-            for k, v in args.items():
-                if func["parameters"]["properties"][k]['metta-type'] == 'Atom':
-                    args[k] = metta.parse_single(v)
-        return [E(fs, to_nested_expr(list(args.values())), msgs_atom)]
+        if len(langchain_tools) > 0:
+            return call_tool(response, langchain_tools)
+        if len(functions) > 0:
+            return call_function(metta, response, functions, msgs_atom)
     return response.content if isinstance(agent, MettaAgent) else \
            [ValueAtom(response.content)]
 
