@@ -3,7 +3,6 @@ from hyperon.ext import register_atoms
 from .agents import *
 import json
 from .utils import *
-from .langchain_tools import LangchainTools
 
 import logging
 logger = logging.getLogger(__name__)
@@ -294,6 +293,7 @@ def llmgate_atoms(metta):
             unwrap=False),
         r"contains-str": containsStrAtom,
         r"concat-str":  concatStrAtom,
+        r"openai-tools-agent": OperationAtom('openai-tools-agent', OpenAIToolsAgent, unwrap=True),
     }
 
 
