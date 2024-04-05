@@ -1,3 +1,4 @@
+from langchain_community.tools.arxiv.tool import ArxivQueryRun
 from langchain_core.tools import BaseTool
 
 
@@ -12,6 +13,8 @@ class LangchainTools:
             from langchain_community.tools.tavily_search import TavilyAnswer
             from langchain_community.utilities.tavily_search import TavilySearchAPIWrapper
             return TavilyAnswer(api_wrapper=TavilySearchAPIWrapper())
+        elif tool_name == "arxiv":
+            return ArxivQueryRun()
         else:
             return None
 
