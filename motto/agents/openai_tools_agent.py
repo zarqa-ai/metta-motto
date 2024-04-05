@@ -2,7 +2,6 @@ import anthropic
 from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_core.prompts import MessagesPlaceholder, ChatPromptTemplate
 
-from motto.agents.langchain_tools import LangchainTools
 from .agent import Agent, Response
 import httpx
 import os
@@ -10,6 +9,8 @@ import logging
 from langchain_openai import ChatOpenAI
 
 # FIXME: A more flexible was to setup proxy?
+from ..langchain_tools import LangchainTools
+
 proxy = os.environ.get('OPENAI_PROXY')
 client = anthropic.Anthropic() if proxy is None else \
     anthropic.Anthropic(http_client=httpx.Client(proxies=proxy))

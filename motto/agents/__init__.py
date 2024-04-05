@@ -3,5 +3,4 @@ from .metta_agent import MettaAgent, DialogAgent
 from .gpt_agent import ChatGPTAgent
 from .retrieval_agent import RetrievalAgent
 from .anthropic_agent import AnthropicAgent
-from .langchain_tools import LangchainTools
 from .openai_tools_agent import OpenAIToolsAgent
