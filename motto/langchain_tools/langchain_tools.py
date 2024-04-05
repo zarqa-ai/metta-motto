@@ -1,4 +1,6 @@
 from langchain_core.tools import BaseTool
+
+
 class LangchainTools:
     @staticmethod
     def get_tool_by_name(tool_name: str) -> BaseTool | None:
@@ -21,7 +23,24 @@ class LangchainTools:
             return convert_to_openai_function(tool)
         return {}
 
+    @staticmethod
+    def get_toolkit_by_name(toolkit_name: str):
+        if toolkit_name == "amadeus_toolkit":
+            from langchain_community.agent_toolkits.amadeus.toolkit import AmadeusToolkit
+            toolkit = AmadeusToolkit()
+            return toolkit.get_tools()
+        else:
+            return None
 
-
-
-
+    @staticmethod
+    def collect_tools_and_toolkits_by_name(tools_names):
+        tools = []
+        for tool in tools_names:
+            t = LangchainTools.get_tool_by_name(tool)
+            if t is None:
+                t = LangchainTools.get_toolkit_by_name(tool)
+                if t is not None:
+                    tools.extend(t)
+            else:
+                tools.append(t)
+        return tools

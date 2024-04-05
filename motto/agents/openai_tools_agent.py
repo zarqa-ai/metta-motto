@@ -28,8 +28,8 @@ class OpenAIToolsAgent(Agent):
     def __init__(self, tools, model="gpt-3.5-turbo-1106"):
         self.llm = ChatOpenAI(model=model, temperature=0)
         self.log = logging.getLogger(__name__ + '.' + type(self).__name__)
-        self.tools = tools.split(';') if ';' in tools else [tools]
-        self.tools = [LangchainTools.get_tool_by_name(tool) for tool in self.tools]
+        tools_names = tools.split(';') if ';' in tools else [tools]
+        self.tools = LangchainTools.collect_tools_and_toolkits_by_name(tools_names)
 
     def __call__(self, messages, functions=[]):
         input = ""
