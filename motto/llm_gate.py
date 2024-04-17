@@ -263,8 +263,7 @@ def llmgate_atoms(metta):
             lambda atom: metta.run("! " + atom.get_object().value)[0],
             unwrap=False),
         r"contains-str": containsStrAtom,
-        r"concat-str":  concatStrAtom,
-        r"openai-tools-agent": OperationAtom('openai-tools-agent', OpenAIToolsAgent, unwrap=True),
+        r"concat-str":  concatStrAtom
     }
 
 
