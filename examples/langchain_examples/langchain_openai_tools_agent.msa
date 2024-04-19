@@ -1,9 +1,6 @@
-!(bind! &langchain_llm ((py-atom langchain_openai.ChatOpenAI) (Kwargs (model (get-gpt-model)) (temperature 0))))
-!(bind! &chart-prompt ((py-dot (py-atom langchain_core.prompts.ChatPromptTemplate) from_messages) (py-array
-       (py-atom "(
-            'system',
-            'You are a helpful assistant.',
-        )")
+!(bind! &langchain_llm (get-langchain-model))
+!(bind! &chart-prompt ((py-dot (py-atom langchain_core.prompts.ChatPromptTemplate) from_messages) (py-list
+        (py-atom "('system', 'You are a helpful assistant.')")
         (py-atom "('placeholder', '{chat_history}')")
         (py-atom "('user', '{input}')")
         ((py-atom langchain_core.prompts.MessagesPlaceholder) (Kwargs (variable_name "agent_scratchpad")))
@@ -15,7 +12,7 @@
     (Kwargs (agent &langchain-agent) (tools (get-langchain-tools)))))
 
 (= (respond ($role $message))
-    ((py-dot &agent-executor invoke)(py-dict ('input' $message)))
+    ((py-dot &agent-executor invoke)(py-dict ("input" $message)))
 )
 
 !(Response (respond (messages)))

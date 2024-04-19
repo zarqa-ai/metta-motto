@@ -1,10 +1,9 @@
 !(let $tools (new-state "[list of tools]")
-   (add-atom &self (= (langchain-tools) $tools))
+   (let ()  (add-atom &self (= (langchain-tools) $tools)) (empty))
  )
 
-
-!(let $model (new-state "gpt-3.5-turbo-0125")
-    (add-atom &self (= (gtp-model-name) $model))
+!(let $model (new-state ((py-atom langchain_openai.ChatOpenAI) (Kwargs (model "gpt-3.5-turbo-0125") (temperature 0))))
+    (let () (add-atom &self (= (langchain-model) $model)) (empty))
 )
 
 (= (get-langchain-tools)
@@ -12,13 +11,13 @@
 )
 
 (= (set-langchain-tools $tools)
-   (change-state! (langchain-tools) $tools)
+   (let ()  (change-state! (langchain-tools) $tools) (empty))
 )
 
-(= (get-gpt-model)
-   (get-state (gtp-model-name))
+(= (get-langchain-model)
+   (get-state (langchain-model))
 )
 
-(= (set-gpt-model $model)
-   (change-state! (gtp-model-name) $model)
+(= (set-langchain-model $model)
+   (let () (change-state! (langchain-model) $model) (empty))
 )
