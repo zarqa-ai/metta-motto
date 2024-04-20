@@ -1,21 +1,8 @@
-!(bind! &langchain_llm (get-langchain-model))
-!(bind! &chart-prompt ((py-dot (py-atom langchain_core.prompts.ChatPromptTemplate) from_messages) (py-list
-        (py-atom "('system', 'You are a helpful assistant.')")
-        (py-atom "('placeholder', '{chat_history}')")
-        (py-atom "('user', '{input}')")
-        ((py-atom langchain_core.prompts.MessagesPlaceholder) (Kwargs (variable_name "agent_scratchpad")))
-)))
-
-!(bind! &langchain-agent ((py-atom langchain.agents.create_openai_tools_agent) &langchain_llm
-        (Kwargs (tools (get-langchain-tools)) (prompt &chart-prompt))))
-!(bind! &agent-executor ((py-atom langchain.agents.AgentExecutor)
-    (Kwargs (agent &langchain-agent) (tools (get-langchain-tools)))))
-
 (= (respond ($role $message))
-    ((py-dot &agent-executor invoke)(py-dict ("input" $message)))
+    ((py-dot (get-langchain-agent-executor) invoke)(py-dict ("input" $message)))
 )
-
-!(Response (respond (messages)))
+;need to add .get('output')
+!(Response (respond (messages)) )
 
 
 
