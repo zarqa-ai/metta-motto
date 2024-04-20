@@ -1,8 +1,8 @@
 !(import! &self motto)
 !(import! &self langchain_examples:langchain_states)
 
-!(bind! &google_tool ((py-atom langchain_community.tools.google_search.GoogleSearchRun)
-    (Kwargs (api_wrapper ((py-atom   langchain_community.utilities.GoogleSearchAPIWrapper))))))
+!(bind! &google_tool ((py-atom langchain_google_community.GoogleSearchRun)
+    (Kwargs (api_wrapper ((py-atom   langchain_google_community.GoogleSearchAPIWrapper))))))
 
 !(bind! &tavily_tool ((py-atom langchain_community.tools.tavily_search.TavilySearchResults)))
 !(bind! &arxiv_tool ((py-atom langchain_community.tools.arxiv.tool.ArxivQueryRun)))

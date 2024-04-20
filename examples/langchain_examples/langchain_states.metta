@@ -6,6 +6,10 @@
     (let () (add-atom &self (= (langchain-model) $model)) (empty))
 )
 
+!(let $history (new-state (py-list))
+    (let () (add-atom &self (= (langchain-history) $history)) (empty))
+)
+
 (= (get-langchain-tools)
    (get-state (langchain-tools))
 )
@@ -20,4 +24,21 @@
 
 (= (set-langchain-model $model)
    (let () (change-state! (langchain-model) $model) (empty))
+)
+
+
+
+(= (get-langchain-history)
+   (get-state (langchain-history))
+)
+
+(=(message2tuple $message) (py-tuple (car-atom $message) (let $a (cdr-atom $message) (car-atom $a) )))
+
+(= (add-langchain-history $history)
+
+        (let () ((py-dot (get-langchain-history) append)   (message2tuple $history)) (empty))
+)
+
+(= (clear-langchain-history)
+        (let () (change-state! (langchain-history)  (py-list)) (empty))
 )

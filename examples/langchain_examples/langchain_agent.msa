@@ -1,10 +1,14 @@
-!(bind! &prompt ((py-atom langchain_core.prompts.ChatPromptTemplate.from_messages) (py-tuple (messages))))
-!(bind! &chain (( py-atom langchain.chains.LLMChain )(Kwargs ("llm" (get-langchain-model)) (prompt &prompt))))
-(= (respond ($role $message))
-    ((py-dot &chain invoke)(py-dict))
-)
+(= (respond)
+   (superpose
+       (
+        (add-langchain-history  (messages))
+         (py-dot  ((py-dot (get-langchain-model)  invoke) (get-langchain-history)) content)
+       )
+   )
 
-!(Response (respond (messages)))
+)
+!(Response (respond) )
+
 
 
 
