@@ -7,8 +7,6 @@
     (let () (add-atom &self (= (langchain-history) $history)) (empty))
 )
 
-
-
 (= (get-langchain-model)
    (get-state (langchain-model))
 )
