@@ -1,13 +1,16 @@
+;!(import! &self langchain_examples:langchain_states)
 (= (respond)
-   (superpose
-       (
-        (add-langchain-history  (messages))
-         (py-dot  ((py-dot (get-langchain-model)  invoke) (get-langchain-history)) content)
-       )
+   (let () (add-langchain-history  (messages))
+         (let $ans (py-dot  ((py-dot (get-langchain-model)  invoke) (get-langchain-history)) content)
+              (let()
+                 (add-langchain-history  (assistant  $ans ))
+                 $ans
+               )
+         )
    )
-
 )
-!(Response (respond) )
+!(Response (respond ))
+
 
 
 
