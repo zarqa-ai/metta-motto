@@ -5,8 +5,9 @@
              (let $ans (py-dot  ((py-dot (get-langchain-model)  invoke) (get-langchain-history)) content)
                 (superpose
                   (
-                    (add-langchain-history  (assistant $ans))
                     $ans
+                    (add-langchain-history  (assistant $ans))
+
                   )
                  )
              )

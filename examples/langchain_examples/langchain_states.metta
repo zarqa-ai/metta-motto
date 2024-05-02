@@ -3,7 +3,7 @@
     (let () (add-atom &self (= (langchain-model) $model)) (empty))
 )
 
-!(let $history (new-state (py-list))
+!(let $history (new-state (py-list ()))
     (let () (add-atom &self (= (langchain-history) $history)) (empty))
 )
 
@@ -19,24 +19,26 @@
    (get-state (langchain-history))
 )
 
-(=(message2tuple $message) (py-tuple (let $first (car-atom $message) (repr $first)) (let $a (cdr-atom $message) (car-atom $a) )))
+(=(message2tuple ($role $message)) (py-tuple ((repr $role) $message) ))
 
 (= (add-langchain-history $history)
-     ((py-dot (get-langchain-history) append)   (message2tuple $history))
+     ((py-dot (get-langchain-history) append) (message2tuple $history))
 )
 
 (= (clear-langchain-history)
-        (let () (change-state! (langchain-history)  (py-list)) (empty))
+        (let () (change-state! (langchain-history)  (py-list ())) (empty))
 )
 
 
 ; functions for langchain tools
 (= (get-chat-prompt)
     ((py-dot (py-atom langchain_core.prompts.ChatPromptTemplate) from_messages) (py-list
-        (py-tuple "system" "You are a helpful assistant.")
-        (py-tuple "placeholder" "{chat_history}")
-        (py-tuple "user" "{input}")
-        ((py-atom langchain_core.prompts.MessagesPlaceholder) (Kwargs (variable_name "agent_scratchpad")))
+        (
+            (py-tuple ("system" "You are a helpful assistant."))
+            (py-tuple ("placeholder" "{chat_history}"))
+            (py-tuple ("user" "{input}"))
+            ((py-atom langchain_core.prompts.MessagesPlaceholder) (Kwargs (variable_name "agent_scratchpad")))
+        )
     ))
 )
 ( = (get-langchain-agent $langchain-tools)
@@ -66,4 +68,3 @@
         )
     (empty))
 )
-
