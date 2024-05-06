@@ -107,7 +107,7 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
 
     for atom in args:
         # We first interpret the atom argument in the context of the main metta space.
-        # If the prompt template is in a separate file and contains some external 
+        # If the prompt template is in a separate file and contains some external
         # symbols like (user-query) or (chat-gpt model), they will be resolved here.
         # It is useful for messages, agents, as well as arbitrary code, which relies
         # on information from the agent.
@@ -263,7 +263,7 @@ def llmgate_atoms(metta):
             lambda atom: metta.run("! " + atom.get_object().value)[0],
             unwrap=False),
         r"contains-str": containsStrAtom,
-        r"concat-str":  concatStrAtom,
+        r"concat-str":  concatStrAtom
     }
 
 
