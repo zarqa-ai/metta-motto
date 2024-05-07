@@ -1,0 +1,6 @@
+!(import! &self motto)
+!(import! &self langchain_examples:langchain_states)
+!(set-langchain-model ((py-atom langchain_anthropic.ChatAnthropic) (Kwargs (model "claude-3-opus-20240229"))))
+!(llm (Agent langchain_examples/langchain_agent.msa)(user "Hello!"))
+!(llm (Agent langchain_examples/langchain_agent.msa)(user "May I sell the ring?"))
+!(llm (Agent langchain_examples/langchain_agent.msa)(user "Sorry, I am confused. What I wanted to sell?"))

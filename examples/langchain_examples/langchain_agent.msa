@@ -1,0 +1,22 @@
+(= (respond)
+   (superpose
+         (
+             (add-langchain-history  (messages))
+             (let $ans (py-dot  ((py-dot (get-langchain-model)  invoke) (get-langchain-history)) content)
+                (superpose
+                  (
+                    $ans
+                    (add-langchain-history  (assistant $ans))
+
+                  )
+                 )
+             )
+         )
+   )
+)
+!(Response  (respond))
+
+
+
+
+
