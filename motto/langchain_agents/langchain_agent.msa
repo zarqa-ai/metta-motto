@@ -1,20 +1,17 @@
-(= (respond)
-   (superpose
-         (
-             (add-langchain-history  (messages))
-             (let $ans (py-dot  ((py-dot (get-langchain-model)  invoke) (get-langchain-history)) content)
-                (superpose
-                  (
-                    $ans
-                    (add-langchain-history  (assistant $ans))
-
+(= (respond $message)
+    (let $_ (add-langchain-history $message)
+        (
+            (let $ans (py-dot  ((py-dot (get-langchain-model)  invoke) (get-langchain-history)) content)
+                  (let $_ (add-langchain-history (assistant $ans))
+                   $ans
                   )
-                 )
-             )
-         )
-   )
+            )
+        )
+    )
 )
-!(Response  (respond))
+
+
+!(Response (respond (messages)))
 
 
 

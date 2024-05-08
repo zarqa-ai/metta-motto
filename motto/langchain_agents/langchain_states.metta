@@ -22,7 +22,7 @@
 (=(message2tuple ($role $message)) (py-tuple ((repr $role) $message) ))
 
 (= (add-langchain-history $history)
-     ((py-dot (get-langchain-history) append) (message2tuple $history))
+   ((py-dot (get-langchain-history) append) (message2tuple $history ))
 )
 
 (= (clear-langchain-history)
