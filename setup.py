@@ -9,7 +9,7 @@ setup(
        description="Integration of MeTTa and LLMs for prompt templates, guidance, and chaining as well as composition with other agents.",
        long_description=long_description,
        long_description_content_type="text/markdown",
-       url="https://github.com/zarqa/metta-motto",
+       url="https://github.com/zarqa-ai/metta-motto",
        packages=find_packages(),
        python_requires='>=3.8',
        install_requires=[
