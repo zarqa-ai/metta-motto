@@ -1,13 +1,28 @@
-(= (respond $message)
-    (let $_ (add-langchain-history $message)
-        (
-            (let $ans (py-dot  ((py-dot (get-langchain-model)  invoke) (get-langchain-history)) content)
-                  (let $_ (add-langchain-history (assistant $ans))
-                   $ans
-                  )
-            )
+(=(message2tuple ($role $message)) (py-tuple ((repr $role) $message) ))
+!(bind! &list (py-list ()))
+;convert messages to list of tuples
+(=(messages2list $xs)
+     (if (not  (== $xs  ()))
+         (let ()  ((py-dot &list append) (message2tuple (car-atom $xs)))
+                (let $t (cdr-atom $xs)
+
+                    (
+                        if (not  (== $t  ())) (messages2list  $t) ()
+                    )
+                )
+
         )
-    )
+        ()
+     )
+)
+(= (respond $message)
+     (let $k (messages2list  (history))
+
+          (let () ((py-dot &list append)  (message2tuple $message))
+           (py-dot  ((py-dot (langchain-model)  invoke)  &list ) content)
+          )
+
+     )
 )
 
 
