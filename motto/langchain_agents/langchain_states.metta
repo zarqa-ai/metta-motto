@@ -3,10 +3,6 @@
     (let () (add-atom &self (= (langchain-model) $model)) (empty))
 )
 
-!(let $history (new-state (py-list ()))
-    (let () (add-atom &self (= (langchain-history) $history)) (empty))
-)
-
 (= (get-langchain-model)
    (get-state (langchain-model))
 )
@@ -14,21 +10,6 @@
 (= (set-langchain-model $model)
    (let () (change-state! (langchain-model) $model) (empty))
 )
-
-(= (get-langchain-history)
-   (get-state (langchain-history))
-)
-
-(=(message2tuple ($role $message)) (py-tuple ((repr $role) $message) ))
-
-(= (add-langchain-history $history)
-     ((py-dot (get-langchain-history) append) (message2tuple $history))
-)
-
-(= (clear-langchain-history)
-        (let () (change-state! (langchain-history)  (py-list ())) (empty))
-)
-
 
 ; functions for langchain tools
 (= (get-chat-prompt)
