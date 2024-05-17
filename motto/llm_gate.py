@@ -3,6 +3,7 @@ from hyperon.ext import register_atoms
 from .agents import *
 import json
 from .utils import *
+import importlib.util
 
 import logging
 logger = logging.getLogger(__name__)
@@ -32,6 +33,7 @@ def atom2msg(atom):
             if isinstance(v, str):
                 return v.replace("\\n", "\n")
     return repr(atom)
+
 
 def get_func_def(fn, metta, prompt_space):
     doc = None
@@ -63,7 +65,7 @@ def get_func_def(fn, metta, prompt_space):
         prop = {"type": "string",
                 "description": p[1].get_object().value,
                 "metta-type": 'String',
-               }
+                }
         if isinstance(p[0], ExpressionAtom):
             par_typ = p[0].get_children()
             if repr(par_typ[0]) != ':':
@@ -87,6 +89,7 @@ def get_func_def(fn, metta, prompt_space):
         }
     }
 
+
 def is_space(atom):
     return isinstance(atom, GroundedAtom) and \
            isinstance(atom.get_object(), SpaceRef)
@@ -97,6 +100,7 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
     messages = []
     functions = []
     msg_atoms = []
+
     def __msg_update(ag, m, f, a):
         nonlocal agent, messages, functions, msg_atoms
         if ag is not None:
@@ -115,7 +119,7 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
         arg = interpret(metta.space(), atom)
         # NOTE: doesn't work now since Error inside other expressions is not passed through them
         #       but it can be needed in the future
-        #if isinstance(arg, ExpressionAtom) and repr(arg.get_children()[0]) == 'Error':
+        # if isinstance(arg, ExpressionAtom) and repr(arg.get_children()[0]) == 'Error':
         #    raise RuntimeError(repr(arg.get_children()[1]))
         arg = atom if len(arg) == 0 else arg[0]
         if is_space(arg):
@@ -180,7 +184,7 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
     # Do not wrap a single message into Message (necessary to avoid double
     # wrapping of single Message argument)
     return agent, messages, functions, \
-        msg_atoms[0] if len(msg_atoms) == 1 else E(S('Messages'), *msg_atoms)
+           msg_atoms[0] if len(msg_atoms) == 1 else E(S('Messages'), *msg_atoms)
 
 
 def llm(metta: MeTTa, *args):
@@ -204,11 +208,12 @@ def llm(metta: MeTTa, *args):
     if not isinstance(agent, MettaAgent):
         for p in params.keys():
             if not isinstance(params[p], GroundedAtom):
-                raise TypeError(f"GroundedAtom is expected as input to a non-MeTTa agent. Got type({params[p]})={type(params[p])}")
+                raise TypeError(
+                    f"GroundedAtom is expected as input to a non-MeTTa agent. Got type({params[p]})={type(params[p])}")
             params[p] = params[p].get_object().value
     try:
         response = agent(msgs_atom if isinstance(agent, MettaAgent) else messages,
-                        functions, **params)
+                         functions, **params)
     except Exception as e:
         logger.error(e)
         raise e
@@ -227,7 +232,7 @@ def llm(metta: MeTTa, *args):
                     args[k] = metta.parse_single(v)
         return [E(fs, to_nested_expr(list(args.values())), msgs_atom)]
     return response.content if isinstance(agent, MettaAgent) else \
-           [ValueAtom(response.content)]
+        [ValueAtom(response.content)]
 
 
 @register_atoms(pass_metta=True)
@@ -238,37 +243,42 @@ def llmgate_atoms(metta):
     # Just a helper function if one needs to print from a metta-script
     # the message converted from expression to text
     msgAtom = OperationAtom('atom2msg',
-                    lambda atom: [ValueAtom(atom2msg(atom))], unwrap=False)
+                            lambda atom: [ValueAtom(atom2msg(atom))], unwrap=False)
     chatGPTAtom = OperationAtom('chat-gpt', ChatGPTAgent)
     echoAgentAtom = ValueAtom(EchoAgent())
     mettaChatAtom = OperationAtom('metta-chat',
-                    lambda x: [ValueAtom(DialogAgent(code=x) if isinstance(x, ExpressionAtom) else \
-                                         DialogAgent(path=x))], unwrap=False)
+                                  lambda x: [ValueAtom(DialogAgent(code=x) if isinstance(x, ExpressionAtom) else \
+                                                           DialogAgent(path=x))], unwrap=False)
     retrievalAgentAtom = OperationAtom('retrieval-agent', RetrievalAgent, unwrap=True)
 
     containsStrAtom = OperationAtom('contains-str', lambda a, b: [ValueAtom(contains_str(a, b))], unwrap=False)
 
     concatStrAtom = OperationAtom('concat-str', lambda a, b: [ValueAtom(concat_str(a, b))], unwrap=False)
-    return {
+    result = {
         r"llm": llmAtom,
         r"atom2msg": msgAtom,
         r"chat-gpt": chatGPTAtom,
-        r"anthropic-agent": OperationAtom('anthropic-agent', AnthropicAgent),
         r"EchoAgent": echoAgentAtom,
         r"metta-chat": mettaChatAtom,
         r"retrieval-agent": retrievalAgentAtom,
         # FIXME: We add this function here, so we can explicitly evaluate results of LLMs, but
         # we may either expect that this function appear in core MeTTa or need a special safe eval
         r"_eval": OperationAtom("_eval",
-            lambda atom: metta.run("! " + atom.get_object().value)[0],
-            unwrap=False),
+                                lambda atom: metta.run("! " + atom.get_object().value)[0],
+                                unwrap=False),
         r"contains-str": containsStrAtom,
-        r"concat-str":  concatStrAtom
+        r"concat-str": concatStrAtom,
+
     }
+    if importlib.util.find_spec('anthropic') is not None:
+        result.update({r"anthropic-agent", OperationAtom('anthropic-agent', AnthropicAgent)})
+    return result
+
 
 
 def str_find_all(str, values):
     return list(filter(lambda v: v in str, values))
+
 
 @register_atoms
 def postproc_atoms():
