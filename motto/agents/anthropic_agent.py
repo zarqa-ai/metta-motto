@@ -24,7 +24,7 @@ if importlib.util.find_spec('anthropic') is not None:
             response = None
             while response is None:
                 try:
-                    response = self.client.messages.create(**kwargs)
+                    response = client.messages.create(**kwargs)
                 except anthropic.RateLimitError as e:
                     self.log.debug(f"Error: {e}")
                     self.log.debug(f"Error: {type(e)}")

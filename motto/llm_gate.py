@@ -271,7 +271,7 @@ def llmgate_atoms(metta):
 
     }
     if importlib.util.find_spec('anthropic') is not None:
-        result.update({r"anthropic-agent", OperationAtom('anthropic-agent', AnthropicAgent)})
+        result[r"anthropic-agent"] = OperationAtom('anthropic-agent', AnthropicAgent)
     return result
 
 
