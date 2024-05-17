@@ -15,14 +15,15 @@
         ()
      )
 )
+
 (= (respond $message)
-     (let $k (messages2list  (history))
-
-          (let () ((py-dot &list append)  (message2tuple $message))
-           (py-dot  ((py-dot (langchain-model)  invoke)  &list ) content)
-          )
-
-     )
+    (let $history (history)
+         (let $k (messages2list  (cdr-atom $history))
+              (let () ((py-dot &list append)  (message2tuple $message))
+                (py-dot  ((py-dot (langchain-model)  invoke)  &list ) content)
+              )
+         )
+    )
 )
 
 
