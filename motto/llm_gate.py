@@ -212,20 +212,24 @@ def llm(metta: MeTTa, *args):
     except Exception as e:
         logger.error(e)
         raise e
-    if response.function_call is not None:
-        fname = response.function_call.name
-        fs = S(fname)
-        args = response.function_call.arguments
-        args = {} if args is None else \
-            json.loads(args) if isinstance(args, str) else args
-        # Here, we check if the arguments should be parsed to MeTTa
-        for func in functions:
-            if func["name"] != fname:
-                continue
-            for k, v in args.items():
-                if func["parameters"]["properties"][k]['metta-type'] == 'Atom':
-                    args[k] = metta.parse_single(v)
-        return [E(fs, to_nested_expr(list(args.values())), msgs_atom)]
+    if response.tool_calls is not None:
+        result  = []
+        for tool_call in response.tool_calls :
+            fname = tool_call.function.name
+            fs = S(fname)
+            args = json.loads(tool_call.function.arguments)
+            args = {} if args is None else \
+                json.loads(args) if isinstance(args, str) else args
+            # Here, we check if the arguments should be parsed to MeTTa
+            for func in functions:
+                if func["name"] != fname:
+                    continue
+                for k, v in args.items():
+                    if func["parameters"]["properties"][k]['metta-type'] == 'Atom':
+                        args[k] = metta.parse_single(v)
+            result.append(repr(E(fs, to_nested_expr(list(args.values())), msgs_atom)))
+        val = metta.parse_single(f"({' '.join(result)})")
+        return  [val]
     return response.content if isinstance(agent, MettaAgent) else \
            [ValueAtom(response.content)]
 
