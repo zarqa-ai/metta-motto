@@ -3,26 +3,18 @@
 ;convert messages to list of tuples
 (=(messages2list $xs)
      (if (not  (== $xs  ()))
-         (let ()  ((py-dot &list append) (message2tuple (car-atom $xs)))
-                (let $t (cdr-atom $xs)
-
-                    (
-                        if (not  (== $t  ())) (messages2list  $t) ()
-                    )
-                )
-
+        (let* (( () ((py-dot &list append) (message2tuple (car-atom $xs))))  ($t (cdr-atom $xs)))
+             (if (not  (== $t  ())) (messages2list  $t) ())
         )
         ()
      )
 )
 
 (= (respond $message)
-    (let $history (history)
-         (let $k (messages2list  (cdr-atom $history))
-              (let () ((py-dot &list append)  (message2tuple $message))
-                (py-dot  ((py-dot (langchain-model)  invoke)  &list ) content)
-              )
-         )
+    (let* (($history (history))($k (messages2list  (cdr-atom $history))))
+      (let () ((py-dot &list append)  (message2tuple $message))
+        (py-dot  ((py-dot (langchain-model)  invoke)  &list ) content)
+      )
     )
 )
 
