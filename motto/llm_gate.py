@@ -3,6 +3,8 @@ from hyperon.ext import register_atoms
 from .agents import *
 import json
 from .utils import *
+import importlib.util
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -249,26 +251,31 @@ def llmgate_atoms(metta):
     containsStrAtom = OperationAtom('contains-str', lambda a, b: [ValueAtom(contains_str(a, b))], unwrap=False)
 
     concatStrAtom = OperationAtom('concat-str', lambda a, b: [ValueAtom(concat_str(a, b))], unwrap=False)
-    return {
+    result = {
         r"llm": llmAtom,
         r"atom2msg": msgAtom,
         r"chat-gpt": chatGPTAtom,
-        r"anthropic-agent": OperationAtom('anthropic-agent', AnthropicAgent),
         r"EchoAgent": echoAgentAtom,
         r"metta-chat": mettaChatAtom,
         r"retrieval-agent": retrievalAgentAtom,
         # FIXME: We add this function here, so we can explicitly evaluate results of LLMs, but
         # we may either expect that this function appear in core MeTTa or need a special safe eval
         r"_eval": OperationAtom("_eval",
-            lambda atom: metta.run("! " + atom.get_object().value)[0],
-            unwrap=False),
+                                lambda atom: metta.run("! " + atom.get_object().value)[0],
+                                unwrap=False),
         r"contains-str": containsStrAtom,
-        r"concat-str":  concatStrAtom
+        r"concat-str": concatStrAtom,
+
     }
+    if importlib.util.find_spec('anthropic') is not None:
+        result[r"anthropic-agent"] = OperationAtom('anthropic-agent', AnthropicAgent)
+    return result
+
 
 
 def str_find_all(str, values):
     return list(filter(lambda v: v in str, values))
+
 
 @register_atoms
 def postproc_atoms():
