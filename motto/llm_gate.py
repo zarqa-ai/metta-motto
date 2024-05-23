@@ -217,7 +217,7 @@ def llm(metta: MeTTa, *args):
         for tool_call in response.tool_calls :
             fname = tool_call.function.name
             fs = S(fname)
-            args = json.loads(tool_call.function.arguments)
+            args = tool_call.function.arguments if isinstance(tool_call.function.arguments, dict) else json.loads(tool_call.function.arguments)
             args = {} if args is None else \
                 json.loads(args) if isinstance(args, str) else args
             # Here, we check if the arguments should be parsed to MeTTa
@@ -228,7 +228,8 @@ def llm(metta: MeTTa, *args):
                     if func["parameters"]["properties"][k]['metta-type'] == 'Atom':
                         args[k] = metta.parse_single(v)
             result.append(repr(E(fs, to_nested_expr(list(args.values())), msgs_atom)))
-        val = metta.parse_single(f"({' '.join(result)})")
+        res = f"({' '.join(result)})" if len(result) > 1 else result[0]
+        val = metta.parse_single(res)
         return  [val]
     return response.content if isinstance(agent, MettaAgent) else \
            [ValueAtom(response.content)]
