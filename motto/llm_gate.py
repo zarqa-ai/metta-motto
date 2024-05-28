@@ -246,8 +246,6 @@ def llmgate_atoms(metta):
     mettaChatAtom = OperationAtom('metta-chat',
                     lambda x: [ValueAtom(DialogAgent(code=x) if isinstance(x, ExpressionAtom) else \
                                          DialogAgent(path=x))], unwrap=False)
-    retrievalAgentAtom = OperationAtom('retrieval-agent', RetrievalAgent, unwrap=True)
-
     containsStrAtom = OperationAtom('contains-str', lambda a, b: [ValueAtom(contains_str(a, b))], unwrap=False)
 
     concatStrAtom = OperationAtom('concat-str', lambda a, b: [ValueAtom(concat_str(a, b))], unwrap=False)
@@ -257,7 +255,6 @@ def llmgate_atoms(metta):
         r"chat-gpt": chatGPTAtom,
         r"EchoAgent": echoAgentAtom,
         r"metta-chat": mettaChatAtom,
-        r"retrieval-agent": retrievalAgentAtom,
         # FIXME: We add this function here, so we can explicitly evaluate results of LLMs, but
         # we may either expect that this function appear in core MeTTa or need a special safe eval
         r"_eval": OperationAtom("_eval",
@@ -269,6 +266,11 @@ def llmgate_atoms(metta):
     }
     if importlib.util.find_spec('anthropic') is not None:
         result[r"anthropic-agent"] = OperationAtom('anthropic-agent', AnthropicAgent)
+    if (importlib.util.find_spec('bs4') is not None) \
+            and (importlib.util.find_spec('tiktoken') is not None) \
+            and (importlib.util.find_spec('markdown') is not None):
+        result[r"retrieval-agent"]: OperationAtom('retrieval-agent', RetrievalAgent, unwrap=True)
+
     return result
 
 
