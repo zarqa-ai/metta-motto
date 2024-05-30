@@ -1,6 +1,6 @@
 !(import! &self motto)
 !(bind! &chat (langchain-agent ((py-atom langchain_anthropic.ChatAnthropic) (Kwargs (model "claude-3-opus-20240229") (temperature 0)))
                                     motto/langchain_agents/langchain_agent.msa))
-!(llm (Agent &chat)(user "Hello!"))
+!(llm (Agent &chat)(system "You are AI assistant")(user "Hello!"))
 !(llm (Agent &chat)(user "May I sell the ring?"))
 !(llm (Agent &chat)(user "Sorry, I am confused. What I wanted to sell?"))
