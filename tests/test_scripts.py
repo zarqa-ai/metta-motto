@@ -11,8 +11,7 @@ def run_script(fname):
         return MeTTa().run(f.read())
 
 def test_scripts():
-    process_exceptions(run_script(f"{pwd}/basic_function_call.metta"))
-    process_exceptions(run_script(f"{pwd}/basic_function_call.metta"))
+    process_exceptions(run_script(f"{pwd}/basic_direct_call.metta"))
     process_exceptions(run_script(f"{pwd}/basic_function_call.metta"))
     process_exceptions(run_script(f"{pwd}/basic_script_call.metta"))
     process_exceptions(run_script(f"{pwd}/basic_agent_call.metta"))
