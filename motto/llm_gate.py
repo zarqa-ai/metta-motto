@@ -247,8 +247,8 @@ def llmgate_atoms(metta):
                     lambda x: [ValueAtom(DialogAgent(code=x) if isinstance(x, ExpressionAtom) else \
                                          DialogAgent(path=x))], unwrap=False)
     containsStrAtom = OperationAtom('contains-str', lambda a, b: [ValueAtom(contains_str(a, b))], unwrap=False)
-
     concatStrAtom = OperationAtom('concat-str', lambda a, b: [ValueAtom(concat_str(a, b))], unwrap=False)
+    message2tupleAtom = OperationAtom('message2tuple', lambda a: [ValueAtom(message2tuple(a))], unwrap=False)
     result = {
         r"llm": llmAtom,
         r"atom2msg": msgAtom,
@@ -262,6 +262,7 @@ def llmgate_atoms(metta):
                                 unwrap=False),
         r"contains-str": containsStrAtom,
         r"concat-str": concatStrAtom,
+        r"message2tuple": message2tupleAtom
 
     }
     if importlib.util.find_spec('anthropic') is not None:
