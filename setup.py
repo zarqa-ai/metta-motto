@@ -18,7 +18,9 @@ setup(
         'Programming Language :: Python :: 3.8',  # Python versions supported
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: 3.11'
+        'Programming Language :: Python :: 3.11',
+        'Operating System :: POSIX :: Linux',
+        'Operating System :: MacOS :: MacOS X'
        ],
        python_requires='>=3.8',
        install_requires=[
