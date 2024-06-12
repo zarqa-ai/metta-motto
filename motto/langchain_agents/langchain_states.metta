@@ -23,8 +23,8 @@
     ))
 )
 ( = (get-langchain-agent $langchain-tools)
-     ((py-atom langchain.agents.create_openai_tools_agent) (get-langchain-model)
-        (Kwargs (tools  $langchain-tools) (prompt (get-chat-prompt)))
+     ((py-atom langchain.agents.create_tool_calling_agent)
+        (Kwargs ("llm" (get-langchain-model)) (tools  $langchain-tools) (prompt (get-chat-prompt)))
      )
 )
 
