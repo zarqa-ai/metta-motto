@@ -279,10 +279,11 @@ def llmgate_atoms(metta):
     }
     if importlib.util.find_spec('anthropic') is not None:
         result[r"anthropic-agent"] = OperationAtom('anthropic-agent', AnthropicAgent)
-    if (importlib.util.find_spec('bs4') is not None) \
-            and (importlib.util.find_spec('tiktoken') is not None) \
-            and (importlib.util.find_spec('markdown') is not None):
-        result[r"retrieval-agent"]: OperationAtom('retrieval-agent', RetrievalAgent, unwrap=True)
+    if importlib.util.find_spec('tiktoken') is not None:
+        if (importlib.util.find_spec('bs4') is not None) \
+                and (importlib.util.find_spec('markdown') is not None):
+            result[r"retrieval-agent"] = OperationAtom('retrieval-agent', RetrievalAgent, unwrap=True)
+        result[r"chat-gpt-ext"] = OperationAtom('chat-gpt-ext', ChatGPTAgentExtended)
 
     return result
 
