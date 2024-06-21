@@ -22,9 +22,9 @@ def get_max_tokens(model_name):
 
 class HistoryProcessor:
 
-    def __init__(self, model_name):
+    def __init__(self, model_name,  max_response_tokens):
         self.model_name = model_name
-        self.max_tokens = get_max_tokens(self.model_name)
+        self.max_tokens = get_max_tokens(self.model_name) -  max_response_tokens
         # we need tokenizer only to calculate number of tokens and cut dialog history if needed
         self.encoder = tiktoken.encoding_for_model(self.model_name)
 
@@ -66,13 +66,14 @@ class ChatGPTAgentExtended(Agent):
     GPT agent with a cut_history parameter to ensure the length of the current context window stays within the model's allowed limit
     '''
 
-    def __init__(self, model="gpt-3.5-turbo", stream=False, cut_history=False, timeout=15):
+    def __init__(self, model="gpt-3.5-turbo", stream=False, cut_history=False, timeout=15, max_response_tokens=512):
         self._model = model
         self.stream_response = stream
         self.cut_history = cut_history
         self.timeout = timeout
+        self.max_response_tokens = max_response_tokens
         if cut_history:
-            self.history_processor = HistoryProcessor(self._model)
+            self.history_processor = HistoryProcessor(self._model, self.max_response_tokens)
 
     def __call__(self, messages, functions=[]):
         if self.cut_history:
@@ -83,7 +84,8 @@ class ChatGPTAgentExtended(Agent):
                                                       messages=messages,
                                                       temperature=0,
                                                       timeout=self.timeout,
-                                                      stream=self.stream_response)
+                                                      stream=self.stream_respons,
+                                                      max_tokens=self.max_response_tokens)
             return response.choices[0].message if not self.stream_response else response
         tools = []
         for func in functions:
@@ -96,6 +98,7 @@ class ChatGPTAgentExtended(Agent):
                                                   tools=tools,
                                                   temperature=0,
                                                   tool_choice="auto",
-                                                  timeout=self.timeout)
+                                                  timeout=self.timeout,
+                                                  max_tokens=self.max_response_tokens)
         # FIXME? Only one result is supposed now. API can be changed later if it turns out to be needed.
         return response.choices[0].message
