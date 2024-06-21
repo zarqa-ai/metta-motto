@@ -84,7 +84,7 @@ class ChatGPTAgentExtended(Agent):
                                                       messages=messages,
                                                       temperature=0,
                                                       timeout=self.timeout,
-                                                      stream=self.stream_respons,
+                                                      stream=self.stream_response,
                                                       max_tokens=self.max_response_tokens)
             return response.choices[0].message if not self.stream_response else response
         tools = []
