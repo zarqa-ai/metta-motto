@@ -65,7 +65,7 @@ class MettaAgent(Agent):
                 # what to do if need to set som variables from python?
                 if (variables_values is not None) and isinstance(variables_values, dict):
                     for k,v in variables_values.items():
-                        code = code.replace(k, v)
+                        code = code.replace(k, str(v))
                 response = metta.run(code)
         if self._code is not None:
             response = metta.run(self._code) if isinstance(self._code, str) else \
