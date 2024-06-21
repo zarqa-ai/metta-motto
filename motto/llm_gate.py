@@ -208,7 +208,6 @@ def get_response(metta,agent,  response, functions, msgs_atom):
         res = f"({' '.join(result)})" if len(result) > 1 else result[0]
         val = metta.parse_single(res)
         return [val]
-    print(response)
     return response.content if isinstance(agent, MettaAgent) else \
         [ValueAtom(response.content)]
 
