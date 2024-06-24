@@ -1,5 +1,5 @@
 from .agent import Agent, Response
-from hyperon import MeTTa, Environment, ExpressionAtom, OperationAtom, E, S, interpret, V
+from hyperon import MeTTa, Environment, ExpressionAtom, OperationAtom, E, S, interpret, ValueAtom
 
 class MettaAgent(Agent):
 
@@ -22,9 +22,12 @@ class MettaAgent(Agent):
             metta.register_atom(k, v)
         metta.space().add_atom(E(S('='), E(S('messages')), msgs_atom))
         # what to do if need to set some variables from python?
-        if (additional_info is not None) and isinstance(additional_info, dict):
-            for k, v in additional_info.items():
-                metta.space().add_atom(E(S('='), E(S(k)), S(str(v))))
+        if (additional_info is not None) :
+            for val in additional_info:
+                f, v, t = val
+                x = metta.parse_single(f"(: {f} (-> '{t}'))")
+                metta.space().add_atom(x)
+                metta.space().add_atom(E(S('='), E(S(f)), ValueAtom(v)))
 
     def _postproc(self, response):
         results = []
@@ -79,8 +82,8 @@ class DialogAgent(MettaAgent):
         self.history = []
         super().__init__(path, code, atoms, include_paths)
 
-    def _prepare(self, metta, msgs_atom):
-        super()._prepare(metta, msgs_atom)
+    def _prepare(self, metta, msgs_atom,  additional_info=None):
+        super()._prepare(metta, msgs_atom, additional_info)
         metta.space().add_atom(E(S('='), E(S('history')),
                                  E(S('Messages'), *self.history)))
         # atm, we put the input message into the history by default

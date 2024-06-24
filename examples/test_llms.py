@@ -19,3 +19,10 @@ def test_chat_gpt_ext():
     # set stream = False and cut_history = True
     result = m.run('!(llm (Agent (chat-gpt-ext "gpt-3.5-turbo" False True)) (user "Say meow"))', True)
     assert "meow" in str(result[0].get_object().content).lower()
+
+def test_chat_gpt_ext_additional_info():
+    agent = MettaAgent(path="basic_stream_call.msa")
+    v = agent('(Messages (system  "You are Grace, you are in London")(user "Say meow"))',
+              additional_info=[("model_name", "gpt-3.5-turbo", 'String'), ("is_stream", False, 'Bool')]).content
+    result = v[0].get_object().content
+    assert "meow" in result.lower()
