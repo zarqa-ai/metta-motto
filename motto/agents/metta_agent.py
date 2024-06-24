@@ -1,5 +1,5 @@
 from .agent import Agent, Response
-from hyperon import MeTTa, Environment, ExpressionAtom, OperationAtom, E, S, interpret
+from hyperon import MeTTa, Environment, ExpressionAtom, OperationAtom, E, S, interpret, V
 
 class MettaAgent(Agent):
 
@@ -17,10 +17,14 @@ class MettaAgent(Agent):
         self._atoms = atoms
         self._includes = include_paths
 
-    def _prepare(self, metta, msgs_atom):
+    def _prepare(self, metta, msgs_atom, additional_info=None):
         for k, v in self._atoms.items():
             metta.register_atom(k, v)
         metta.space().add_atom(E(S('='), E(S('messages')), msgs_atom))
+        # what to do if need to set some variables from python?
+        if (additional_info is not None) and isinstance(additional_info, dict):
+            for k, v in additional_info.items():
+                metta.space().add_atom(E(S('='), E(S(k)), S(str(v))))
 
     def _postproc(self, response):
         results = []
@@ -37,7 +41,7 @@ class MettaAgent(Agent):
                     results += [ch[1]]
         return Response(results, None)
 
-    def __call__(self, msgs_atom, functions=[], variables_values=None):
+    def __call__(self, msgs_atom, functions=[], additional_info=None):
         # FIXME: we cannot use higher-level metta here (e.g. passed by llm func),
         # from which an agent can be called, because its space will be polluted.
         # Thus, we create new metta runner and import motto.
@@ -57,15 +61,11 @@ class MettaAgent(Agent):
         # TODO: support {'role': , 'content': } dict input
         if isinstance(msgs_atom, str):
             msgs_atom = metta.parse_single(msgs_atom)
-        self._prepare(metta, msgs_atom)
+        self._prepare(metta, msgs_atom, additional_info)
         if self._path is not None:
             #response = metta.load_module_at_path(self._path)
             with open(self._path, mode='r') as f:
                 code = f.read()
-                # what to do if need to set som variables from python?
-                if (variables_values is not None) and isinstance(variables_values, dict):
-                    for k,v in variables_values.items():
-                        code = code.replace(k, str(v))
                 response = metta.run(code)
         if self._code is not None:
             response = metta.run(self._code) if isinstance(self._code, str) else \
