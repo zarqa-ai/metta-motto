@@ -100,3 +100,6 @@ class DialogAgent(MettaAgent):
         # TODO: 0 or >1 results, to expression?
         self.history += [E(S('assistant'), result.content[0])]
         return result
+
+    def clear_history(self):
+        self.history = []
