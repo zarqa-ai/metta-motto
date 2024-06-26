@@ -156,7 +156,7 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                     agent = ch[1]
                     # The agent can be a Python object or a string (filename)
                     if isinstance(agent, GroundedAtom):
-                        agent = agent.get_object().value
+                        agent = agent.get_object().content
                     elif isinstance(agent, SymbolAtom):
                         agent = agent.get_name()
                     else:
@@ -184,10 +184,36 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
     return agent, messages, functions, \
         msg_atoms[0] if len(msg_atoms) == 1 else E(S('Messages'), *msg_atoms)
 
+def get_response(metta,agent,  response, functions, msgs_atom):
+    if not hasattr(response, "tool_calls"):
+        # if response is stream
+        return [ValueAtom(response)]
+    if response.tool_calls is not None:
+        result = []
+        for tool_call in response.tool_calls:
+            fname = tool_call.function.name
+            fs = S(fname)
+            args = tool_call.function.arguments if isinstance(tool_call.function.arguments, dict) else json.loads(
+                tool_call.function.arguments)
+            args = {} if args is None else \
+                json.loads(args) if isinstance(args, str) else args
+            # Here, we check if the arguments should be parsed to MeTTa
+            for func in functions:
+                if func["name"] != fname:
+                    continue
+                for k, v in args.items():
+                    if func["parameters"]["properties"][k]['metta-type'] == 'Atom':
+                        args[k] = metta.parse_single(v)
+            result.append(repr(E(fs, to_nested_expr(list(args.values())), msgs_atom)))
+        res = f"({' '.join(result)})" if len(result) > 1 else result[0]
+        val = metta.parse_single(res)
+        return [val]
+    return response.content if isinstance(agent, MettaAgent) else \
+        [ValueAtom(response.content)]
 
 def llm(metta: MeTTa, *args):
     try:
-        agent, messages, functions, msgs_atom = get_llm_args(metta, None, *args)
+        agent, messages, functions, msgs_atom= get_llm_args(metta, None, *args)
     except Exception as e:
         # NOTE: we put the error into the log since it can be ignored by the caller
         logger.error(e)
@@ -214,27 +240,7 @@ def llm(metta: MeTTa, *args):
     except Exception as e:
         logger.error(e)
         raise e
-    if response.tool_calls is not None:
-        result  = []
-        for tool_call in response.tool_calls :
-            fname = tool_call.function.name
-            fs = S(fname)
-            args = tool_call.function.arguments if isinstance(tool_call.function.arguments, dict) else json.loads(tool_call.function.arguments)
-            args = {} if args is None else \
-                json.loads(args) if isinstance(args, str) else args
-            # Here, we check if the arguments should be parsed to MeTTa
-            for func in functions:
-                if func["name"] != fname:
-                    continue
-                for k, v in args.items():
-                    if func["parameters"]["properties"][k]['metta-type'] == 'Atom':
-                        args[k] = metta.parse_single(v)
-            result.append(repr(E(fs, to_nested_expr(list(args.values())), msgs_atom)))
-        res = f"({' '.join(result)})" if len(result) > 1 else result[0]
-        val = metta.parse_single(res)
-        return  [val]
-    return response.content if isinstance(agent, MettaAgent) else \
-           [ValueAtom(response.content)]
+    return get_response(metta, agent, response, functions, msgs_atom )
 
 
 @register_atoms(pass_metta=True)
@@ -272,14 +278,13 @@ def llmgate_atoms(metta):
     }
     if importlib.util.find_spec('anthropic') is not None:
         result[r"anthropic-agent"] = OperationAtom('anthropic-agent', AnthropicAgent)
-    if (importlib.util.find_spec('bs4') is not None) \
-            and (importlib.util.find_spec('tiktoken') is not None) \
-            and (importlib.util.find_spec('markdown') is not None):
-        result[r"retrieval-agent"]: OperationAtom('retrieval-agent', RetrievalAgent, unwrap=True)
+    if importlib.util.find_spec('tiktoken') is not None:
+        if (importlib.util.find_spec('bs4') is not None) \
+                and (importlib.util.find_spec('markdown') is not None):
+            result[r"retrieval-agent"] = OperationAtom('retrieval-agent', RetrievalAgent, unwrap=True)
+        result[r"chat-gpt-ext"] = OperationAtom('chat-gpt-ext', ChatGPTAgentExtended)
 
     return result
-
-
 
 def str_find_all(str, values):
     return list(filter(lambda v: v in str, values))

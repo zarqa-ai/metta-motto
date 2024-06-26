@@ -38,3 +38,22 @@ def test_python_metta_dialog():
     ''')
     assert a('(user "Echo")').content == [ValueAtom('user Echo')]
     assert a('(user "Recall")').content == [ValueAtom('user Echo\nassistant user Echo')]
+
+def test_stream_response():
+    m = MeTTa()
+    # we can run metta code from python directly and motto works
+    m.run('!(import! &self motto)')
+    result = m.run('!(llm (Agent (chat-gpt "gpt-3.5-turbo" True)) (user "Who is John Lennon?"))', True)
+    assert hasattr(result[0].get_object().content, "__stream__")
+
+def test_python_metta_dialog_clear_histoy():
+    a = DialogAgent(code = '''
+    (= (proc-messages (user "Recall")) (history))
+    (= (proc-messages (user "Echo")) (messages))
+    !(Response (llm (Agent EchoAgent) (proc-messages (messages))))
+    ''')
+    assert a('(user "Echo")').content == [ValueAtom('user Echo')]
+    assert a('(user "Recall")').content == [ValueAtom('user Echo\nassistant user Echo')]
+    a.clear_history()
+    assert a('(user "Recall")').content == [ValueAtom('')]
+

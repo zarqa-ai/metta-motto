@@ -1,5 +1,5 @@
 from .agent import Agent, Response
-from hyperon import MeTTa, Environment, ExpressionAtom, OperationAtom, E, S, interpret
+from hyperon import MeTTa, Environment, ExpressionAtom, OperationAtom, E, S, interpret, ValueAtom
 
 class MettaAgent(Agent):
 
@@ -17,10 +17,17 @@ class MettaAgent(Agent):
         self._atoms = atoms
         self._includes = include_paths
 
-    def _prepare(self, metta, msgs_atom):
+    def _prepare(self, metta, msgs_atom, additional_info=None):
         for k, v in self._atoms.items():
             metta.register_atom(k, v)
         metta.space().add_atom(E(S('='), E(S('messages')), msgs_atom))
+        # what to do if need to set some variables from python?
+        if (additional_info is not None) :
+            for val in additional_info:
+                f, v, t = val
+                x = metta.parse_single(f"(: {f} (-> '{t}'))")
+                metta.space().add_atom(x)
+                metta.space().add_atom(E(S('='), E(S(f)), ValueAtom(v)))
 
     def _postproc(self, response):
         results = []
@@ -37,7 +44,7 @@ class MettaAgent(Agent):
                     results += [ch[1]]
         return Response(results, None)
 
-    def __call__(self, msgs_atom, functions=[]):
+    def __call__(self, msgs_atom, functions=[], additional_info=None):
         # FIXME: we cannot use higher-level metta here (e.g. passed by llm func),
         # from which an agent can be called, because its space will be polluted.
         # Thus, we create new metta runner and import motto.
@@ -57,7 +64,7 @@ class MettaAgent(Agent):
         # TODO: support {'role': , 'content': } dict input
         if isinstance(msgs_atom, str):
             msgs_atom = metta.parse_single(msgs_atom)
-        self._prepare(metta, msgs_atom)
+        self._prepare(metta, msgs_atom, additional_info)
         if self._path is not None:
             #response = metta.load_module_at_path(self._path)
             with open(self._path, mode='r') as f:
@@ -75,8 +82,8 @@ class DialogAgent(MettaAgent):
         self.history = []
         super().__init__(path, code, atoms, include_paths)
 
-    def _prepare(self, metta, msgs_atom):
-        super()._prepare(metta, msgs_atom)
+    def _prepare(self, metta, msgs_atom,  additional_info=None):
+        super()._prepare(metta, msgs_atom, additional_info)
         metta.space().add_atom(E(S('='), E(S('history')),
                                  E(S('Messages'), *self.history)))
         # atm, we put the input message into the history by default
@@ -93,3 +100,6 @@ class DialogAgent(MettaAgent):
         # TODO: 0 or >1 results, to expression?
         self.history += [E(S('assistant'), result.content[0])]
         return result
+
+    def clear_history(self):
+        self.history = []
