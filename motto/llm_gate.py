@@ -33,6 +33,8 @@ def atom2msg(atom):
             v = atom.get_object().value
             if isinstance(v, str):
                 return v.replace("\\n", "\n")
+            if isinstance(v, list) or isinstance(v, dict):
+                return v
     return repr(atom)
 
 def get_func_def(fn, metta, prompt_space):
