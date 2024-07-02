@@ -1,14 +1,19 @@
 from .agent import Agent, Response
-from hyperon import MeTTa, Environment, ExpressionAtom, OperationAtom, E, S, interpret, ValueAtom
+from hyperon import MeTTa, Environment, ExpressionAtom, GroundedAtom, E, S, interpret, ValueAtom
 
 class MettaAgent(Agent):
 
     def _try_unwrap(self, val):
         if val is None or isinstance(val, str):
             return val
+        if isinstance(val, GroundedAtom):
+            return str(val.get_object().content)
         return repr(val)
 
     def __init__(self, path=None, code=None, atoms={}, include_paths=None):
+        if isinstance(path, ExpressionAtom): # A hack to pass code here from MeTTa
+            code = path
+            path = None
         self._path = self._try_unwrap(path)
         self._code = code.get_children()[1] if isinstance(code, ExpressionAtom) else \
                      self._try_unwrap(code)

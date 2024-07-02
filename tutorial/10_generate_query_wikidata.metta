@@ -1,6 +1,6 @@
 !(import! &self motto)
 !(set-sparql-service-type "wikidata")
-(llm (Agent 10_generate_query_wikidata.msa)(user "List all known works of Vivaldi"))
+!((metta-script-agent "10_generate_query_wikidata.msa") (user "List all known works of Vivaldi"))
 ;$result
 (select ((fields ($workLabel))
         (where
@@ -11,7 +11,7 @@
         )
     ))
 
-(llm (Agent 10_generate_query_wikidata.msa)(user "Who wrote the book 'To the Lighthouse'"))
+((metta-script-agent "10_generate_query_wikidata.msa") (user "Who wrote the book 'To the Lighthouse'"))
 ;result
 (select ((fields ($authorLabel))
         (where
@@ -21,7 +21,7 @@
         )
     ))
 
-(llm (Agent 10_generate_query_wikidata.msa)(user "Which of the actors who played in the TV series 'Game of Thrones' was born in London?"))
+((metta-script-agent "10_generate_query_wikidata.msa") (user "Which of the actors who played in the TV series 'Game of Thrones' was born in London?"))
 ;result
 (select ((fields ($actorLabel))
         (where
@@ -41,7 +41,7 @@
             )
         )))
 
-(llm (Agent 10_generate_query_wikidata.msa)(user "List all writers born in London after 1780 year and before 1800"))
+((metta-script-agent "10_generate_query_wikidata.msa") (user "List all writers born in London after 1780 year and before 1800"))
 ;result
 (select ((fields ($actorLabel))
         (where
@@ -53,7 +53,7 @@
         )
  ))
 
-(llm (Agent 10_generate_query_wikidata.msa)(user "List  names and length (in kilometres) of rivers located in Africa continent"))
+((metta-script-agent "10_generate_query_wikidata.msa") (user "List  names and length (in kilometres) of rivers located in Africa continent"))
 ;result
 (select
   (
@@ -79,7 +79,7 @@
   )
 )
 
-(llm (Agent 10_generate_query_wikidata.msa)(user "When did the first season of 'True Detective' come out?"))
+((metta-script-agent "10_generate_query_wikidata.msa") (user "When did the first season of 'True Detective' come out?"))
 ;result
 (select
 (
@@ -104,7 +104,7 @@
     )
 ))
 
-(llm (Agent 10_generate_query_wikidata.msa)(user "What is the birth name of John F. Kennedy"))
+((metta-script-agent "10_generate_query_wikidata.msa") (user "What is the birth name of John F. Kennedy"))
 ;result
 (select
 (
@@ -118,7 +118,7 @@
     )
 ))
 
-(llm (Agent 10_generate_query_wikidata.msa)(user "Who is the director of the film 'The Grand Budapest Hotel'"))
+((metta-script-agent "10_generate_query_wikidata.msa") (user "Who is the director of the film 'The Grand Budapest Hotel'"))
 ;result
 (select
 (
@@ -132,7 +132,7 @@
     )
 ))
 
-(llm (Agent 10_generate_query_wikidata.msa)(user "Which team is football payer Neymar is playing now?"))
+((metta-script-agent "10_generate_query_wikidata.msa") (user "Which team is football payer Neymar is playing now?"))
 ;result
 (select
 (
@@ -145,7 +145,7 @@
     )
 ))
 
-!(llm (Agent 10_generate_query_wikidata.msa)(user "When did Jodie Foster won her first Academy Award?"))
+((metta-script-agent "10_generate_query_wikidata.msa") (user "When did Jodie Foster won her first Academy Award?"))
 ;result
 (select
 (

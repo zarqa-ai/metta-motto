@@ -242,6 +242,18 @@ def llm(metta: MeTTa, *args):
         raise e
     return get_response(metta, agent, response, functions, msgs_atom )
 
+class AgentCaller:
+
+    def __init__(self, metta, agent_class, *args, unwrap=True):
+        self.metta = metta
+        if unwrap:
+            self.agent_atom = OperationAtom("_", agent_class).get_object().execute(*args)[0]
+        else:
+            self.agent_atom = OperationAtom(str(agent_class), agent_class(*args))
+
+    def __call__(self, *args):
+        return llm(self.metta, E(S('Agent'), self.agent_atom), *args)
+
 
 @register_atoms(pass_metta=True)
 def llmgate_atoms(metta):
@@ -253,10 +265,8 @@ def llmgate_atoms(metta):
     msgAtom = OperationAtom('atom2msg',
                     lambda atom: [ValueAtom(atom2msg(atom))], unwrap=False)
     chatGPTAtom = OperationAtom('chat-gpt', ChatGPTAgent)
-    echoAgentAtom = ValueAtom(EchoAgent())
-    mettaChatAtom = OperationAtom('metta-chat',
-                    lambda x: [ValueAtom(DialogAgent(code=x) if isinstance(x, ExpressionAtom) else \
-                                         DialogAgent(path=x))], unwrap=False)
+    echoAgentAtom = OperationAtom('echo-agent', EchoAgent())
+    mettaChatAtom = OperationAtom('metta-chat', lambda x: [OperationAtom("metta-agent", DialogAgent(x))], unwrap=False)
     containsStrAtom = OperationAtom('contains-str', lambda a, b: [ValueAtom(contains_str(a, b))], unwrap=False)
     concatStrAtom = OperationAtom('concat-str', lambda a, b: [ValueAtom(concat_str(a, b))], unwrap=False)
     message2tupleAtom = OperationAtom('message2tuple', lambda a: [ValueAtom(message2tuple(a))], unwrap=False)
@@ -283,6 +293,23 @@ def llmgate_atoms(metta):
                 and (importlib.util.find_spec('markdown') is not None):
             result[r"retrieval-agent"] = OperationAtom('retrieval-agent', RetrievalAgent, unwrap=True)
         result[r"chat-gpt-ext"] = OperationAtom('chat-gpt-ext', ChatGPTAgentExtended)
+
+    chatGPTAgentAtom = OperationAtom('chat-gpt-agent',
+        lambda *args: [OperationAtom('chat-gpt', AgentCaller(metta, ChatGPTAgent, *args), unwrap=False)],
+        unwrap=False)
+    result[r"chat-gpt-agent"] = chatGPTAgentAtom
+    meTTaAgentAtom = OperationAtom('metta-script-agent',
+        lambda *args: [OperationAtom('msa', AgentCaller(metta, MettaAgent, *args), unwrap=False)],
+        unwrap=False)
+    result[r"metta-script-agent"] = meTTaAgentAtom
+    dialogAgentAtom = OperationAtom('dialog-agent',
+        lambda *args: [OperationAtom('mda', AgentCaller(metta, DialogAgent, unwrap=False, *args), unwrap=False)],
+        unwrap=False)
+    result[r"dialog-agent"] = dialogAgentAtom
+    echoAgentAtom = OperationAtom('echo-agent',
+        lambda *args: [OperationAtom('EchoAgent', AgentCaller(metta, EchoAgent, *args), unwrap=False)],
+        unwrap=False)
+    result[r"echo-agent"] = echoAgentAtom
 
     return result
 

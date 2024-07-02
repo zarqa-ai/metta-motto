@@ -2,7 +2,7 @@
    (case $msg
      (("Hello" "Hello")
       ("Who are you?" "I am a test bot")
-      ("History" (llm (Agent EchoAgent) (history))))
+      ("History" ((echo-agent) (history))))
    )
 )
 
@@ -10,4 +10,4 @@
 ; message), but don't include this system message into the history
 !(Response
   (respond
-    (llm (Agent nested_dialog_sub.msa) (Script nested_dialog_script.mps))))
+    ((metta-script-agent "nested_dialog_sub.msa") (Script nested_dialog_script.mps))))

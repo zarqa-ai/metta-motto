@@ -4,4 +4,4 @@
 !(Response
   (if (== (history) (Messages))
       "Nice to meet you"
-      (llm (Agent EchoAgent) (Messages (history) (messages)))))
+      ((echo-agent) (Messages (history) (messages)))))

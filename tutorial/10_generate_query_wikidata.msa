@@ -1,5 +1,5 @@
 ! (Response
-    (llm (Agent (chat-gpt "gpt-3.5-turbo"))
+    ((chat-gpt-agent "gpt-3.5-turbo")
         (system "Make sparql query to wikidata and represent it as expressions in Scheme.
         There are some examples of queries converted to Scheme:
 
