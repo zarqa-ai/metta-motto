@@ -14,7 +14,7 @@
 (= (calc ($expr) $msgs) $expr)
 
 ; Response is used to indicate that this is the output of the agent
-! (Response (llm (Agent (chat-gpt))
+! (Response ((chat-gpt-agent)
     (Messages (system "Convert the user query to expression in Scheme/Lisp")
               (messages))
     (Functions calc))
