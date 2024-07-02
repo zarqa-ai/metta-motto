@@ -15,7 +15,7 @@ def get_max_tokens(model_name):
         return 10000  # real limit 16385
     if model_name == "gpt-4-turbo-preview":
         return 10000  # Limit max number of tokens to reduce cost (real limit 128000)
-    if model_name == "gpt-4-turbo":
+    if model_name == "gpt-4o" or model_name == "gpt-4-turbo":
         return 10000  # Set max number of tokens to reduce cost (real limit 128000)
     raise Exception("Unknown model name")
 
