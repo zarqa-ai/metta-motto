@@ -28,27 +28,26 @@ class MessagesProcessor:
         for m in messages:
             # append media files to messages
             if m['role'] == 'media':
-                    try :
-                        value = json.loads(m['content'])
-                        if isinstance(value, list):
-                            new_messages.extend(value)
-                        else:
-                            new_messages.append(value)
-                    except:
-                        continue
+                try:
+                    value = json.loads(m['content'])
+                    if isinstance(value, list):
+                        new_messages.extend(value)
+                    else:
+                        new_messages.append(value)
+                except:
+                    continue
             else:
                 new_messages.append(m)
 
         return new_messages
 
     def num_tokens_for_single_message(self, m):
-        # will work for all models except outdated gpt-3.5-turbo-0301
         tokens_per_message = 3  # every message follows <|start|>{role/name}\n{content}<|end|>\n
-        # tokens_per_name = 1  # if there's a name, the role is omitted
         num_tokens = tokens_per_message
+        if ('role' in m) and m['role'] == 'media':
+            return num_tokens
         for key, value in m.items():
-            if (key != 'role') and ('media' == value):
-                num_tokens += len(self.encoder.encode(value))
+            num_tokens += len(self.encoder.encode(value))
         return num_tokens
 
     def cut_dialog_history(self, messages):
@@ -65,8 +64,8 @@ class MessagesProcessor:
             new_messages = messages[i_cut:]
             # do not cut media files
             for m in messages[:i_cut]:
-                for key, value in m.items():
-                    if (key == 'role') and ('media'== value):
-                        new_messages.append(m)
+                # do not cut media information
+                if ('role' in m) and m['role'] == 'media':
+                    new_messages.append(m)
             return new_messages
         return messages
