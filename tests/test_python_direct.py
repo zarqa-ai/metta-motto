@@ -1,6 +1,6 @@
 from hyperon import MeTTa, ValueAtom, E, S
 from motto.llm_gate import llm
-from motto.agents import EchoAgent, MettaAgent, DialogAgent
+from motto.agents import EchoAgent, MettaScriptAgent, DialogAgent
 
 def test_python_metta_direct():
     m = MeTTa()
@@ -16,7 +16,7 @@ def test_python_echo_agent():
 
 def test_python_metta_agent():
     # we can run metta agent directly (also from code string)
-    a = MettaAgent(code = '''
+    a = MettaScriptAgent(code = '''
     (= (proc-messages (user "Ping")) (assistant "Pong"))
     !(Response (llm (Agent EchoAgent) (proc-messages (messages))))
     ''')

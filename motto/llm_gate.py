@@ -114,7 +114,8 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
         # It is useful for messages, agents, as well as arbitrary code, which relies
         # on information from the agent.
         # TODO: we may want to do something special with equalities
-        arg = interpret(metta.space(), atom)
+        #arg = interpret(metta.space(), atom)
+        arg = metta.evaluate_atom(atom)
         # NOTE: doesn't work now since Error inside other expressions is not passed through them
         #       but it can be needed in the future
         #if isinstance(arg, ExpressionAtom) and repr(arg.get_children()[0]) == 'Error':
@@ -132,7 +133,7 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                 elif name in ['system', 'user', 'assistant']:
                     messages += [{'role': name, 'content': atom2msg(ch[1])}]
                     msg_atoms += [arg]
-                elif name in ['Functions', 'function']:
+                elif name in ['Functions', 'Function']:
                     functions += [get_func_def(fn, metta, prompt_space)
                                   for fn in ch[1:]]
                 elif name == 'Script':
@@ -140,7 +141,7 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                         # FIXME? This will overwrites the current prompt_space if it is set.
                         # It is convenient to have it here to successfully execute
                         # (llm &prompt (Functions fn)), when fn is defined in &prompt.
-                        # But (function fn) can also be put in &prompt directly.
+                        # But (Function fn) can also be put in &prompt directly.
                         # Depending on what is more convenient, this overriding can be changed.
                         prompt_space = ch[1].get_object()
                     else:
@@ -208,7 +209,7 @@ def get_response(metta,agent,  response, functions, msgs_atom):
         res = f"({' '.join(result)})" if len(result) > 1 else result[0]
         val = metta.parse_single(res)
         return [val]
-    return response.content if isinstance(agent, MettaAgent) else \
+    return response.content if isinstance(agent, MettaScriptAgent) else \
         [ValueAtom(response.content)]
 
 def llm(metta: MeTTa, *args):
@@ -226,16 +227,16 @@ def llm(metta: MeTTa, *args):
         (agent, params) = agent
     if isinstance(agent, str):
         # NOTE: We could pass metta here, but it is of no use atm
-        agent = MettaAgent(agent)
+        agent = MettaScriptAgent(agent)
     if not isinstance(agent, Agent):
         raise TypeError(f"Agent {agent} should be of Agent type. Got {type(agent)}")
-    if not isinstance(agent, MettaAgent):
+    if not isinstance(agent, MettaScriptAgent):
         for p in params.keys():
             if not isinstance(params[p], GroundedAtom):
                 raise TypeError(f"GroundedAtom is expected as input to a non-MeTTa agent. Got type({params[p]})={type(params[p])}")
             params[p] = params[p].get_object().value
     try:
-        response = agent(msgs_atom if isinstance(agent, MettaAgent) else messages,
+        response = agent(msgs_atom if isinstance(agent, MettaScriptAgent) else messages,
                         functions, **params)
     except Exception as e:
         logger.error(e)
@@ -298,10 +299,10 @@ def llmgate_atoms(metta):
         lambda *args: [OperationAtom('chat-gpt', AgentCaller(metta, ChatGPTAgent, *args), unwrap=False)],
         unwrap=False)
     result[r"chat-gpt-agent"] = chatGPTAgentAtom
-    meTTaAgentAtom = OperationAtom('metta-script-agent',
-        lambda *args: [OperationAtom('msa', AgentCaller(metta, MettaAgent, *args), unwrap=False)],
+    meTTaScriptAtom = OperationAtom('metta-script-agent',
+        lambda *args: [OperationAtom('msa', AgentCaller(metta, MettaScriptAgent, *args), unwrap=False)],
         unwrap=False)
-    result[r"metta-script-agent"] = meTTaAgentAtom
+    result[r"metta-script-agent"] = meTTaScriptAtom
     dialogAgentAtom = OperationAtom('dialog-agent',
         lambda *args: [OperationAtom('mda', AgentCaller(metta, DialogAgent, unwrap=False, *args), unwrap=False)],
         unwrap=False)

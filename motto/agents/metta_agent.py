@@ -1,7 +1,7 @@
 from .agent import Agent, Response
-from hyperon import MeTTa, Environment, ExpressionAtom, GroundedAtom, E, S, interpret, ValueAtom
+from hyperon import *
 
-class MettaAgent(Agent):
+class MettaScriptAgent(Agent):
 
     def _try_unwrap(self, val):
         if val is None or isinstance(val, str):
@@ -77,11 +77,12 @@ class MettaAgent(Agent):
                 response = metta.run(code)
         if self._code is not None:
             response = metta.run(self._code) if isinstance(self._code, str) else \
-                       [interpret(metta.space(), self._code)]
+                       [metta.evaluate_atom(self._code)]
+                       #[interpret(metta.space(), self._code)]
         return self._postproc(response)
 
 
-class DialogAgent(MettaAgent):
+class DialogAgent(MettaScriptAgent):
 
     def __init__(self, path=None, code=None, atoms={}, include_paths=None):
         self.history = []
@@ -108,3 +109,6 @@ class DialogAgent(MettaAgent):
 
     def clear_history(self):
         self.history = []
+
+class MettaBaseAgent(Agent):
+    pass

@@ -1,6 +1,6 @@
-from motto.agents import MettaAgent
+from motto.agents import MettaScriptAgent
 
-agent = MettaAgent(path='05_prompt_agent.msa')
+agent = MettaScriptAgent(path='05_prompt_agent.msa')
 
 agent('(user "kids studying programming")')
 
