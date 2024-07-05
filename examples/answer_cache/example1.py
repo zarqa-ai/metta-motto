@@ -18,7 +18,7 @@ if __name__ == '__main__':
       )
     '''
 
-    agent = MettaAgent(code=code, atoms={'&cache': cache_space})
+    agent = MettaScriptAgent(code=code, atoms={'&cache': cache_space})
 
     print(agent('(user "What is your name?")'))
     print(agent('(user "What is your name?")'))
