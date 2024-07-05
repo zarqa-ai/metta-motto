@@ -28,12 +28,14 @@ class MessagesProcessor:
         for m in messages:
             # append media files to messages
             if m['role'] == 'media':
-                if (not m['content'] == "") and  (m['content'] is not None):
-                    value = json.loads(m['content'])
-                    if isinstance(value, list):
-                        new_messages.extend(value)
-                    else:
-                        new_messages.append(value)
+                    try :
+                        value = json.loads(m['content'])
+                        if isinstance(value, list):
+                            new_messages.extend(value)
+                        else:
+                            new_messages.append(value)
+                    except:
+                        continue
             else:
                 new_messages.append(m)
 
