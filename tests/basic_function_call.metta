@@ -14,5 +14,5 @@
 !(assertEqual
   ((echo-agent)
    (user "Please execute call-me with argument=A")
-   (function func_test))
+   (Function func_test))
   "SUCCESS")

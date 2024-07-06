@@ -1,4 +1,4 @@
-from motto.agents import ChatGPTAgent, MettaAgent
+from motto.agents import ChatGPTAgent, MettaScriptAgent
 from hyperon import ValueAtom
 import re
 
@@ -43,7 +43,7 @@ agent_code = '''
 (= (mortal $x) (human $x))
 ! (Response (_eval (llm (Agent LogicAgent) (messages))))
 '''
-agentM = MettaAgent(code=agent_code,
+agentM = MettaScriptAgent(code=agent_code,
                     atoms={"LogicAgent": ValueAtom(agentL)})
 
 print(agentM('(user "Who is mortal?")').content)
