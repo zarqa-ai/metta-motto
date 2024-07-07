@@ -1,8 +1,7 @@
 import json
 
-from hyperon import MeTTa, ValueAtom, E, S
-from motto.llm_gate import llm
-from motto.agents import EchoAgent, MettaAgent, DialogAgent
+from hyperon import MeTTa
+from motto.agents import MettaScriptAgent
 
 
 def test_stream_response():
@@ -22,7 +21,7 @@ def test_no_stream_response():
 
 
 def test_chat_gpt_additional_info():
-    agent = MettaAgent(path="basic_stream_call.msa")
+    agent = MettaScriptAgent(path="basic_stream_call.msa")
     v = agent('(Messages (system  "You are Grace, you are in London")(user "Say meow"))',
               additional_info=[("model_name", "gpt-3.5-turbo", 'String'), ("is_stream", False, 'Bool'),
                                ("media_msg", "", 'String')]).content
@@ -40,7 +39,7 @@ def test_chat_gpt_media():
     import importlib.util
     if importlib.util.find_spec('base64') is not None:
         base64_image = encode_image("data/peace.jpg")
-        agent = MettaAgent(path="basic_stream_call.msa")
+        agent = MettaScriptAgent(path="basic_stream_call.msa")
         media_messages = {
                             "role": "user",
                             "content": [
