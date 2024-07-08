@@ -6,7 +6,6 @@ if importlib.util.find_spec('tiktoken') is not None:
     if (importlib.util.find_spec('bs4') is not None) \
             and (importlib.util.find_spec('markdown') is not None):
         from .retrieval_agent import RetrievalAgent
-    from .gpt_agent_extended import ChatGPTAgentExtended
 
 if importlib.util.find_spec('anthropic') is not None:
     from .anthropic_agent import AnthropicAgent
