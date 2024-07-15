@@ -288,7 +288,9 @@ def llmgate_atoms(metta):
 
     }
     if importlib.util.find_spec('anthropic') is not None:
-        result[r"anthropic-agent"] = OperationAtom('anthropic-agent', AnthropicAgent)
+        result[r"anthropic-agent"] = OperationAtom('anthropic',
+        lambda *args: [OperationAtom('anthropic-agent', AgentCaller(metta, AnthropicAgent, *args), unwrap=False)],
+        unwrap=False)
     if importlib.util.find_spec('tiktoken') is not None:
         if (importlib.util.find_spec('bs4') is not None) \
                 and (importlib.util.find_spec('markdown') is not None):
