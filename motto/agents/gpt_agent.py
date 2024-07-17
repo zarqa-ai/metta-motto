@@ -7,8 +7,10 @@ from .messages_processor import MessagesProcessor
 
 # FIXME: A more flexible was to setup proxy?
 proxy = os.environ.get('OPENAI_PROXY')
-client = OpenAI() if proxy is None else \
-    OpenAI(http_client=httpx.Client(proxies=proxy))
+key = os.environ.get('OPENAI_API_KEY')
+if key is not None:
+    client = OpenAI() if proxy is None else \
+        OpenAI(http_client=httpx.Client(proxies=proxy))
 
 class ChatGPTAgent(Agent):
     '''
