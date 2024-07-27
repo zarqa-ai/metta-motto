@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 from hyperon import *
 
 
@@ -40,3 +41,55 @@ def message2tuple(msg_atom):
         else:
             messages.append(process_inner(children))
     return messages
+
+
+def process_openrouter_stream(response):
+    if response.status_code == 200:
+        for chunk in response.iter_lines():
+            decoded_chunk = chunk.decode("utf-8")
+            if (
+                    "data:" in decoded_chunk
+                    and decoded_chunk.split("data:")[1].strip()
+            ):  # Check if the chunk is not empty
+                try:
+                    chunk_dict = json.loads(
+                        decoded_chunk.split("data:")[1].strip()
+                    )
+                    yield chunk_dict["choices"][0]["delta"].get("content", "")
+                except json.JSONDecodeError:
+                    pass
+    else:
+        print(f"Error: {response.status_code}, {response.text}")
+        raise Exception("Internal Server Error")
+
+def process_openai_stream(response):
+    for chunk in response:
+        rez = chunk.choices[0].delta.content
+        if rez != '' and rez is not None:
+            yield rez
+
+def get_token_from_stream_response(response):
+    if isinstance(response, str):
+        return response
+    if isinstance(response, list):
+        response = response[0]
+    if isinstance(response, GroundedAtom):
+        response = response.get_object().content
+    if hasattr(response, "status_code"):
+        return process_openrouter_stream(response)
+    return process_openai_stream(response)
+
+def get_sentence_from_stream_response(response):
+    it  =  get_token_from_stream_response(response)
+    sentence = ""
+    for token in it:
+        sentence += token
+        sentence_strip = sentence.strip()
+        if len(sentence_strip) > 0 and sentence_strip[-1] in ['.', '!', '?']:
+            yield sentence_strip
+            sentence = ""
+    sentence_strip = sentence.strip()
+    if len(sentence_strip) > 0:
+        yield sentence_strip
+
+

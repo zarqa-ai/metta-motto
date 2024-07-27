@@ -1,5 +1,6 @@
 !(import! &self motto)
-((open-router-agent) (user "Who was the 22nd President of France?"))
+!((open-router-agent ) (user "Who was the 22nd President of France?"))
+!((open-router-agent "openai/gpt-3.5-turbo" True) (user "Who was the 22nd President of France?"))
 
 (= (doc get_current_weather)
   (Doc

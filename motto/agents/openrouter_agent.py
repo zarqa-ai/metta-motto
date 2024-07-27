@@ -5,7 +5,6 @@ import json
 
 key = os.environ.get('OPENROUTER_API_KEY')
 
-
 class Function:
     def __init__(self, name, arguments):
         self.name = name
@@ -36,6 +35,8 @@ class OpenRouterAgent(Agent):
         self.stream_response = stream
 
     def __call__(self, messages, functions=[]):
+        if key is None:
+            return MessageClass("system", "No OPENROUTER_API_KEY is provided")
         data = {
             "model": self._model,
             "messages": messages,
@@ -60,11 +61,13 @@ class OpenRouterAgent(Agent):
             data=json.dumps(data)
         )
 
+        if self.stream_response and not functions:
+            return response
+
         result = json.loads(response.content)
         response_message = result['choices'][0]['message']
         if not functions:
-            return MessageClass(response_message['role'],
-                                response_message['content']) if not self.stream_response else response
+            return MessageClass(response_message['role'], response_message['content'])
         tool_calls = []
         for tool in response_message['tool_calls']:
             tool_calls.append(
