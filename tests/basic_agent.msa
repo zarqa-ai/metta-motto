@@ -13,4 +13,4 @@
 ; Let's check that internal functions can be called here.
 ; Calling EchoAgent is excessive, but let's check that it will be called.
 
-!(Response ((echo-agent) (proc-messages (messages))))
+(= (response) ((echo-agent) (proc-messages (messages))))

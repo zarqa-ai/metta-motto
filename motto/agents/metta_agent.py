@@ -94,26 +94,12 @@ class MettaScriptAgent(MettaAgent):
             msgs_atom = self._metta.parse_single(msgs_atom)
         self._prepare(msgs_atom, additional_info)
         # Loading the code after _prepare
-        response = super()._load_code()
-        return self._postproc(response)
-
-    def _postproc(self, response):
-        results = []
-        # Multiple responses are now returned as a list
-        for rs in response:
-            for r in rs:
-                if isinstance(r, ExpressionAtom):
-                    ch = r.get_children()
-                    if len(ch) == 0:
-                        continue
-                    # FIXME? we can simply ignore all non-Response results
-                    if len(ch) != 2 or repr(ch[0]) != 'Response':
-                        raise TypeError(f"Unexpected response format {ch}")
-                    results += [ch[1]]
-        return Response(results, None)
+        super()._load_code()
+        response = self._metta.run('!(response)')
+        return self._postproc(response[0])
 
 
-class DialogAgent(MettaScriptAgent):
+class DialogAgent(MettaAgent):
 
     def __init__(self, path=None, code=None, atoms={}, include_paths=None):
         self.history = []

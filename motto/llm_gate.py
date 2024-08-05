@@ -209,7 +209,7 @@ def get_response(metta,agent,  response, functions, msgs_atom):
         res = f"({' '.join(result)})" if len(result) > 1 else result[0]
         val = metta.parse_single(res)
         return [val]
-    return response.content if isinstance(agent, MettaScriptAgent) else \
+    return response.content if isinstance(agent, MettaAgent) else \
         [ValueAtom(response.content)]
 
 def llm(metta: MeTTa, *args):
@@ -230,13 +230,13 @@ def llm(metta: MeTTa, *args):
         agent = MettaScriptAgent(agent)
     if not isinstance(agent, Agent):
         raise TypeError(f"Agent {agent} should be of Agent type. Got {type(agent)}")
-    if not isinstance(agent, MettaScriptAgent):
+    if not isinstance(agent, MettaAgent):
         for p in params.keys():
             if not isinstance(params[p], GroundedAtom):
                 raise TypeError(f"GroundedAtom is expected as input to a non-MeTTa agent. Got type({params[p]})={type(params[p])}")
             params[p] = params[p].get_object().value
     try:
-        response = agent(msgs_atom if isinstance(agent, MettaScriptAgent) else messages,
+        response = agent(msgs_atom if isinstance(agent, MettaAgent) else messages,
                         functions, **params)
     except Exception as e:
         logger.error(e)
@@ -266,7 +266,6 @@ def llmgate_atoms(metta):
     msgAtom = OperationAtom('atom2msg',
                     lambda atom: [ValueAtom(atom2msg(atom))], unwrap=False)
     chatGPTAtom = OperationAtom('chat-gpt', ChatGPTAgent)
-    echoAgentAtom = OperationAtom('echo-agent', EchoAgent())
     containsStrAtom = OperationAtom('contains-str', lambda a, b: [ValueAtom(contains_str(a, b))], unwrap=False)
     concatStrAtom = OperationAtom('concat-str', lambda a, b: [ValueAtom(concat_str(a, b))], unwrap=False)
     message2tupleAtom = OperationAtom('message2tuple', lambda a: [ValueAtom(message2tuple(a))], unwrap=False)
@@ -274,7 +273,6 @@ def llmgate_atoms(metta):
         r"llm": llmAtom,
         r"atom2msg": msgAtom,
         r"chat-gpt": chatGPTAtom,
-        r"EchoAgent": echoAgentAtom,
         # FIXME: We add this function here, so we can explicitly evaluate results of LLMs, but
         # we may either expect that this function appear in core MeTTa or need a special safe eval
         r"_eval": OperationAtom("_eval",
@@ -302,9 +300,9 @@ def llmgate_atoms(metta):
         unwrap=False)
     result[r"metta-script-agent"] = meTTaScriptAtom
     meTTaAgentAtom = OperationAtom('metta-agent',
-        lambda *args: [OperationAtom('msa', AgentCaller(metta, MettaAgent, *args), unwrap=False)],
+        lambda *args: [OperationAtom('ma', AgentCaller(metta, MettaAgent, *args), unwrap=False)],
         unwrap=False)
-    result[r"metta-script-agent"] = meTTaScriptAtom
+    result[r"metta-agent"] = meTTaAgentAtom
     dialogAgentAtom = OperationAtom('dialog-agent',
         lambda *args: [OperationAtom('mda', AgentCaller(metta, DialogAgent, unwrap=False, *args), unwrap=False)],
         unwrap=False)

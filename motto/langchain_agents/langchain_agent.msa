@@ -19,4 +19,4 @@
    )
 )
 
-!(Response (respond (messages)))
+(= (response) (respond (messages)))

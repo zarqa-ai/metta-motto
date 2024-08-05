@@ -1,5 +1,5 @@
 
-! (Response
+(= (response)
    (_eval
      ((chat-gpt-agent)
         (system "Represent natural language statements as expressions in Scheme.

@@ -41,7 +41,7 @@ agent_code = '''
 (= (human Socrates) True)
 (= (human Plato) True)
 (= (mortal $x) (human $x))
-! (Response (_eval (llm (Agent LogicAgent) (messages))))
+(= (response) (_eval (llm (Agent LogicAgent) (messages))))
 '''
 agentM = MettaScriptAgent(code=agent_code,
                     atoms={"LogicAgent": ValueAtom(agentL)})

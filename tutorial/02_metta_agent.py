@@ -6,7 +6,7 @@ from motto.agents import MettaScriptAgent
 # `(messages)` is used by MettaScriptAgent to get the input messages.
 agent = MettaScriptAgent(code='''
     (= (respond (user Ping)) "Pong")
-    ! (Response (respond (messages)))
+    (= (response) (respond (messages)))
 ''')
 print(agent('(user Ping)').content)
 

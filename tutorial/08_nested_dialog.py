@@ -8,12 +8,13 @@ agent = DialogAgent(code='''
     !(bind! &internal
        (dialog-agent
          ; inline definitions should be single quoted Response expression
-         (quote (Response ((chat-gpt-agent) (history) (messages))))
+         (quote (= (response) ((chat-gpt-agent) (history) (messages))))
        )
      )
     ; Checking if the agent is required to return its history
-    !(if (== (messages) (system HISTORY))
-         (Response (history))
+    (= (response)
+       (if (== (messages) (system HISTORY))
+         (history)
          (superpose (
            (println! "======== PRELIMINARY ANSWER ========")
            ; We first execute the agent with the system and user message.
@@ -21,7 +22,7 @@ agent = DialogAgent(code='''
               (system "Try to break down the problem into parts and perform the first step of reasoning. Do not provide the final answer - only the breakdown.")
               (messages)))
            ; This agent call relies on the history, because the original message is not passed
-           (Response (&internal (user "Continue your reasoning and provide the final answer")))
+           (&internal (user "Continue your reasoning and provide the final answer"))
          ))
     )
 ''')

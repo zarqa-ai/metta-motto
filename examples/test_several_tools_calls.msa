@@ -35,13 +35,13 @@
   )
 )
 
-!(llm (Agent (chat-gpt "gpt-3.5-turbo-1106"))
+!((chat-gpt-agent "gpt-3.5-turbo-1106")
    (user "What is the current weather in London and tell me the area of New York?")
    (Function get_current_weather)
    (Function get_area)
 )
 
-!(llm (Agent (chat-gpt "gpt-3.5-turbo-1106"))
+!((chat-gpt-agent "gpt-3.5-turbo-1106")
    (user "What is the current weather in New York and Tokyo?")
    (Function get_current_weather)
    (Function get_area)
