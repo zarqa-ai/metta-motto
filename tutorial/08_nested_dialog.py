@@ -25,6 +25,7 @@ agent = DialogAgent(code='''
            (&internal (user "Continue your reasoning and provide the final answer"))
          ))
     )
+    )
 ''')
 
 #reply_and_print(agent, '''(user "

@@ -12,7 +12,9 @@
 )
 
 (= (respond $message)
-   (let* (($history (history))
+
+    (let* (($history (history))
+           (() ((py-dot &list clear)))
           ($k (messages2list (cdr-atom $history)))
           (() ((py-dot &list extend) (message2tuple $message))))
      (py-dot ((py-dot (langchain-model) invoke) &list) content)
