@@ -30,7 +30,7 @@ You can get Kovan or Ropsten Testnet AGIX by following the instructions here.")
 
 ; call llm to understand what user is asking about
 (= (get_step $user-msg)
-   (llm (Agent (chat-gpt "gpt-3.5-turbo-0613"))
+   (llm (Agent (chat-gpt "gpt-3.5-turbo"))
         (Messages (history) $user-msg (instruction)))
 )
 
@@ -45,7 +45,7 @@ You can get Kovan or Ropsten Testnet AGIX by following the instructions here.")
 
 (= (respond $user-msg)
    (let $info (add_info $user-msg)
-   (llm (Agent (chat-gpt "gpt-3.5-turbo-0613"))
+   (llm (Agent (chat-gpt "gpt-3.5-turbo"))
         (Messages (history) $info)))
 )
 
