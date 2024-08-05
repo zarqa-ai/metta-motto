@@ -46,7 +46,7 @@ class MettaAgent(Agent):
 
     def _load_code(self):
         return self._metta.run(self._code) if isinstance(self._code, str) else \
-                   [self._metta.evaluate_atom(self._code)]
+                   self._metta.space().add_atom(self._code)
 
     def _create_metta(self):
         self._init_metta()
@@ -127,5 +127,3 @@ class DialogAgent(MettaAgent):
     def clear_history(self):
         self.history = []
 
-class MettaBaseAgent(Agent):
-    pass

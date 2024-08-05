@@ -3,11 +3,11 @@
 (= (no-new-expression) True)
 
 !(assertEqual
-  ((metta-script-agent "basic_agent.msa") (user "Ping"))
+  ((metta-agent "basic_agent.msa") (user "Ping"))
   "assistant Pong")
 
 !(assertEqual
-  ((metta-script-agent "basic_agent.msa") (system "Ping"))
+  ((metta-agent "basic_agent.msa") (system "Ping"))
   "assistant gniP")
 
 !(assertEqual (no-new-expression) True)

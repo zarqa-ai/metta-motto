@@ -7,7 +7,7 @@ def reply_and_print(agent, msg):
 agent = DialogAgent(code='''
     !(bind! &internal
        (dialog-agent
-         ; inline definitions should be single quoted Response expression
+         ; inline definitions should be a quoted expression for response function
          (quote (= (response) ((chat-gpt-agent) (history) (messages))))
        )
      )
