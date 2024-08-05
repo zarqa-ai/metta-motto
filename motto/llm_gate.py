@@ -130,7 +130,7 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                 name = ch[0].get_name()
                 if name == 'Messages':
                     __msg_update(*get_llm_args(metta, prompt_space, *ch[1:]))
-                elif name in ['system', 'user', 'assistant']:
+                elif name in ['system', 'user', 'assistant', 'media']:
                     messages += [{'role': name, 'content': atom2msg(ch[1])}]
                     msg_atoms += [arg]
                 elif name in ['Functions', 'Function']:
@@ -284,12 +284,13 @@ def llmgate_atoms(metta):
 
     }
     if importlib.util.find_spec('anthropic') is not None:
-        result[r"anthropic-agent"] = OperationAtom('anthropic-agent', AnthropicAgent)
+        result[r"anthropic-agent"] = OperationAtom('anthropic',
+        lambda *args: [OperationAtom('anthropic-agent', AgentCaller(metta, AnthropicAgent, *args), unwrap=False)],
+        unwrap=False)
     if importlib.util.find_spec('tiktoken') is not None:
         if (importlib.util.find_spec('bs4') is not None) \
                 and (importlib.util.find_spec('markdown') is not None):
             result[r"retrieval-agent"] = OperationAtom('retrieval-agent', RetrievalAgent, unwrap=True)
-        result[r"chat-gpt-ext"] = OperationAtom('chat-gpt-ext', ChatGPTAgentExtended)
 
     chatGPTAgentAtom = OperationAtom('chat-gpt-agent',
         lambda *args: [OperationAtom('chat-gpt', AgentCaller(metta, ChatGPTAgent, *args), unwrap=False)],
