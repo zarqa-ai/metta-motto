@@ -1,6 +1,7 @@
 from .agent import Response, Agent, EchoAgent
 from .metta_agent import MettaScriptAgent, DialogAgent
 from .gpt_agent import ChatGPTAgent
+from .openrouter_agent import OpenRouterAgent
 import importlib.util
 if importlib.util.find_spec('tiktoken') is not None:
     if (importlib.util.find_spec('bs4') is not None) \

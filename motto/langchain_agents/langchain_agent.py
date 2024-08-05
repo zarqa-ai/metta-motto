@@ -16,7 +16,7 @@ class LangchainAgent(DialogAgent):
         self.model = model
         super().__init__(path, code, atoms, include_paths)
 
-    def _prepare(self, metta, msgs_atom):
+    def _prepare(self, metta, msgs_atom, additional_info=None):
         super()._prepare(metta, msgs_atom)
         metta.space().add_atom(E(S('='), E(S('langchain-model')),
                                  self.model))
