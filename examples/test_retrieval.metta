@@ -11,7 +11,7 @@
 
 !(let $question "Can I publish service without using grpc?"
   (llm
-    (Agent (chat-gpt "gpt-3.5-turbo"))
+    (chat-gpt-agent "gpt-3.5-turbo")
     (Messages (system ("Taking this information into account, answer the user question"
                       (get_information $question)))
               (user $question))

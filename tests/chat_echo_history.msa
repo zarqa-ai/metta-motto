@@ -2,6 +2,6 @@
 ; It also passes the history together with the current message[s]
 ; to another agent, which is not a dialog agent.
 (= (response)
-  (if (== (history) (Messages))
-      "Nice to meet you"
-      ((echo-agent) (Messages (history) (messages)))))
+   (if (== (history) (Messages))
+       "Nice to meet you"
+       ((echo-agent) (Messages (history) (messages)))))

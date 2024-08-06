@@ -13,6 +13,8 @@ def run_script(fname):
 def test_scripts():
     process_exceptions(run_script(f"{pwd}/basic_direct_call.metta"))
     process_exceptions(run_script(f"{pwd}/basic_function_call.metta"))
+    process_exceptions(run_script(f"{pwd}/basic_agent_stateful.metta"))
+    process_exceptions(run_script(f"{pwd}/basic_agent_script.metta"))
     process_exceptions(run_script(f"{pwd}/basic_script_call.metta"))
     process_exceptions(run_script(f"{pwd}/basic_agent_call.metta"))
     process_exceptions(run_script(f"{pwd}/metta_chat.metta"))

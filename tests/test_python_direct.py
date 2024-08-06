@@ -6,7 +6,7 @@ def test_python_metta_direct():
     m = MeTTa()
     # we can run metta code from python directly and motto works
     m.run('!(import! &self motto)')
-    assert m.run('!(llm (Agent basic_agent.msa) (user "Ping"))') == \
+    assert m.run('!((metta-agent basic_agent.msa) (user "Ping"))') == \
         [[ValueAtom("assistant Pong")]]
 
 def test_python_echo_agent():

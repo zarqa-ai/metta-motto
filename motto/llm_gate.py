@@ -110,7 +110,7 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
     for atom in args:
         # We first interpret the atom argument in the context of the main metta space.
         # If the prompt template is in a separate file and contains some external
-        # symbols like (user-query) or (chat-gpt model), they will be resolved here.
+        # symbols like (user-query), they will be resolved here.
         # It is useful for messages, agents, as well as arbitrary code, which relies
         # on information from the agent.
         # TODO: we may want to do something special with equalities
@@ -265,14 +265,12 @@ def llmgate_atoms(metta):
     # the message converted from expression to text
     msgAtom = OperationAtom('atom2msg',
                     lambda atom: [ValueAtom(atom2msg(atom))], unwrap=False)
-    chatGPTAtom = OperationAtom('chat-gpt', ChatGPTAgent)
     containsStrAtom = OperationAtom('contains-str', lambda a, b: [ValueAtom(contains_str(a, b))], unwrap=False)
     concatStrAtom = OperationAtom('concat-str', lambda a, b: [ValueAtom(concat_str(a, b))], unwrap=False)
     message2tupleAtom = OperationAtom('message2tuple', lambda a: [ValueAtom(message2tuple(a))], unwrap=False)
     result = {
         r"llm": llmAtom,
         r"atom2msg": msgAtom,
-        r"chat-gpt": chatGPTAtom,
         # FIXME: We add this function here, so we can explicitly evaluate results of LLMs, but
         # we may either expect that this function appear in core MeTTa or need a special safe eval
         r"_eval": OperationAtom("_eval",
@@ -297,11 +295,11 @@ def llmgate_atoms(metta):
         unwrap=False)
     result[r"chat-gpt-agent"] = chatGPTAgentAtom
     meTTaScriptAtom = OperationAtom('metta-script-agent',
-        lambda *args: [OperationAtom('msa', AgentCaller(metta, MettaScriptAgent, *args), unwrap=False)],
+        lambda *args: [OperationAtom('msa', AgentCaller(metta, MettaScriptAgent, unwrap=False, *args), unwrap=False)],
         unwrap=False)
     result[r"metta-script-agent"] = meTTaScriptAtom
     meTTaAgentAtom = OperationAtom('metta-agent',
-        lambda *args: [OperationAtom('ma', AgentCaller(metta, MettaAgent, *args), unwrap=False)],
+        lambda *args: [OperationAtom('ma', AgentCaller(metta, MettaAgent, unwrap=False, *args), unwrap=False)],
         unwrap=False)
     result[r"metta-agent"] = meTTaAgentAtom
     dialogAgentAtom = OperationAtom('dialog-agent',
