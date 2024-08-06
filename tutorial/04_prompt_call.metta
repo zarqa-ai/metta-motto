@@ -1,8 +1,8 @@
 !(import! &self motto)
 
-; Prompt templates can be provides via Script parameter to agents.
+; Prompt templates can be provided via Script parameter to agents.
 ; This way, motto extention is automatically enabled for the script,
-; and it should not contain !(import! &self motto)
+; and the script should not contain !(import! &self motto)
 !((chat-gpt-agent) (Script 04_prompt_template.mps)
       (user "Compose an adventure about Flatland"))
 

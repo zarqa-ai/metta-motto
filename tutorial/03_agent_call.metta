@@ -3,11 +3,11 @@
 (= (user-msg)
    (user "Can you calculate (109 plus 3) times 11?"))
 
-; We can call both Metta and ChatGPT agents using generic llm function
+; We can call both Metta and ChatGPT agents together
 ! ((chat-gpt-agent)
     (Messages
       (system ("Respond to the user taking into account that the answer is"
-                ((metta-script-agent "02_metta_agent.msa") (user-msg))))
+                ((metta-agent "02_metta_agent.msa") (user-msg))))
       (user-mgs)))
 
 ; Run this with and without system message.
