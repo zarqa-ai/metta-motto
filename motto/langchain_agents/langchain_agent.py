@@ -1,6 +1,7 @@
 from motto.agents import DialogAgent
 from hyperon import ExpressionAtom, OperationAtom, ValueAtom, E, S
 from hyperon.ext import register_atoms
+from motto.llm_gate import AgentCaller
 
 # from hyperon.stdlib import get_py_atom
 # from hyperon import G, AtomType, OperationObject, ValueObject
@@ -12,6 +13,7 @@ from hyperon.ext import register_atoms
 class LangchainAgent(DialogAgent):
 
     def __init__(self, model, path=None, code=None, atoms={}, include_paths=None):
+
         self.history = []
         self.model = model
         super().__init__(path, code, atoms, include_paths)
@@ -22,10 +24,9 @@ class LangchainAgent(DialogAgent):
 @register_atoms(pass_metta=True)
 def langchaingate_atoms(metta):
     langchainAtom = OperationAtom('langchain-agent',
-                                  lambda m, x: [
-                                      ValueAtom(LangchainAgent(model=m, code=x) if isinstance(x, ExpressionAtom) else \
-                                                    LangchainAgent(model=m, path=x))],
-                                  type_names=['Atom', '%Undefined%', 'Atom'], unwrap=False)
+      lambda *args: [
+          OperationAtom('langchain', AgentCaller(metta, LangchainAgent, unwrap=False, *args),  unwrap=False)],
+      type_names=['Atom', '%Undefined%', 'Atom'], unwrap=False)
     return {
         r"langchain-agent": langchainAtom,
 
