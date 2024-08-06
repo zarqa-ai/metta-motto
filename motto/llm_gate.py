@@ -288,7 +288,8 @@ def llmgate_atoms(metta):
     if importlib.util.find_spec('tiktoken') is not None:
         if (importlib.util.find_spec('bs4') is not None) \
                 and (importlib.util.find_spec('markdown') is not None):
-            result[r"retrieval-agent"] = OperationAtom('retrieval-agent', RetrievalAgent, unwrap=True)
+            result[r"retrieval-agent"] = OperationAtom('retrieval-agent',
+        lambda *args:  [OperationAtom('retrieval', AgentCaller(metta, RetrievalAgent,  unwrap=True,*args), unwrap=False)], unwrap=False)
 
     chatGPTAgentAtom = OperationAtom('chat-gpt-agent',
         lambda *args: [OperationAtom('chat-gpt', AgentCaller(metta, ChatGPTAgent, *args), unwrap=False)],
