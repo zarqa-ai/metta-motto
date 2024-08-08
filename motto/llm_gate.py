@@ -167,6 +167,15 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                         ps = param.get_children()
                         params[repr(ps[0])] = ps[1]
                     agent = (agent, params)
+                elif name == 'Kwargs':
+                    params = {}
+                    for param in ch[1:]:
+                        ps = param.get_children()
+                        params[repr(ps[0])] = ps[1]
+                    if not isinstance(agent, tuple):
+                        agent = (agent, params)
+                    else:
+                        agent[1].update(params)
                 elif name == '=':
                     # We ignore equalities here: if a space is used to store messages,
                     # it can contain equalities as well (another approach would be to

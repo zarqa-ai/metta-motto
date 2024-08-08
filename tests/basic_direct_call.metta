@@ -25,5 +25,7 @@ user Pong")
 user Pong
 assistant Catch")
 
-
-!((echo-agent)  (user_name "John")  (user "Test"))
+!(assertEqual
+  ((echo-agent) (Kwargs (user_name "John")) (user "Test"))
+"user Test
+your name is John")
