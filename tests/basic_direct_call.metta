@@ -24,3 +24,6 @@ user Pong")
 "system Ping
 user Pong
 assistant Catch")
+
+
+!((echo-agent)  (user_name "John")  (user "Test"))

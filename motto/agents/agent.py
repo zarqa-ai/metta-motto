@@ -38,8 +38,10 @@ class Agent:
 
 class EchoAgent(Agent):
 
-    def __call__(self, messages, functions=[]):
+    def __call__(self, messages, functions=[], user_name=[]):
         msg = list(map(lambda m: m['role'] + ' ' + m['content'], messages))
+        if user_name:
+            msg.append(f'your name is {user_name}')
         msg = '\n'.join(msg)
         fcall = [] if len(functions) > 0 else None
         # A mock function call processing for testing purposes
