@@ -2,7 +2,7 @@
     ((py-dot ((py-dot (get-langchain-agent-executor) invoke)(py-dict (("input" $message)))) get ) "output")
 )
 
-!(Response (respond (messages)))
+(= (response) (respond (messages)))
 
 
 

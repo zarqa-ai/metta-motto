@@ -1,6 +1,6 @@
 !(import! &self motto)
 
-; We can call ChatGPT Agent from MeTTa using generic llm function
+; We can call ChatGPT Agent from MeTTa
 ! ((chat-gpt-agent) (user "Hello"))
 ; With additional messages emulating the dialog history,
 ; the output will be different

@@ -48,8 +48,8 @@ Finally, to make our marketplace compliant with regulations without compromising
 (= (set_subgoal
      ("general question about platform")
      (Messages $history $prev-state-msg $user-msg))
-   (llm (compose-prompt platform-desc $history $user-msg))
-   ; (llm (append-expr $msgs (message platform-desc))
+   ((chat-gpt-agent) (compose-prompt platform-desc $history $user-msg))
+   ; ((chat-gpt-agent) (append-expr $msgs (message platform-desc))
 )
 
 ; Extracting components of input messages, ignoring $prev-state-msg and calling

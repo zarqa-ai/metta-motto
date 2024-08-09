@@ -1,5 +1,5 @@
 from .agent import Response, Agent, EchoAgent
-from .metta_agent import MettaScriptAgent, DialogAgent
+from .metta_agent import MettaScriptAgent, MettaAgent, DialogAgent
 from .gpt_agent import ChatGPTAgent
 import importlib.util
 if importlib.util.find_spec('tiktoken') is not None:
