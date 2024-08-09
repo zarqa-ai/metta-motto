@@ -24,3 +24,8 @@ user Pong")
 "system Ping
 user Pong
 assistant Catch")
+
+!(assertEqual
+  ((echo-agent) (Kwargs (user_name "John")) (user "Test"))
+"user Test
+your name is John")
