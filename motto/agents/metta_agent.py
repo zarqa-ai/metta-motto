@@ -111,6 +111,7 @@ class DialogAgent(MettaAgent):
         self.history = []
         super().__init__(path, code, atoms, include_paths)
         self.log = logging.getLogger(__name__ + '.' + type(self).__name__)
+        self.perform_canceling = False
 
     def _prepare(self, msgs_atom, additional_info=None):
         super()._prepare(msgs_atom, additional_info)
@@ -134,24 +135,31 @@ class DialogAgent(MettaAgent):
     def clear_history(self):
         self.history = []
 
-    def process_last_stream_response(self, cancel_processing):
-        last_response = self.history[-1]
+    def get_response_by_index(self, index, role=assistant_role):
+        last_response = self.history[index]
         if hasattr(last_response, "get_children"):
             children = last_response.get_children()
-            if len(children) == 2 and (children[0].get_name() == assistant_role):
+            if len(children) == 2 and (children[0].get_name() == role):
                 response = children[1].get_object().content
-                if isinstance(response, str):
-                    if not cancel_processing:
-                        yield response
-                else:
-                    stream = get_sentence_from_stream_response(response)
-                    self.history.pop()
-                    can_close = hasattr(response, "close")
-                    for i, sentence in enumerate(stream):
-                        if (i == 0) and cancel_processing:
-                            self.log.debug("Stream processing has been canceled")
-                            if can_close:
-                                response.close()
-                            break
-                        self.history += [E(S(assistant_role), G(ValueObject(sentence)))]
-                        yield sentence
+                return response
+        return None
+
+    def process_last_stream_response(self):
+        response = self.get_response_by_index(-1)
+        if response is None:
+            return
+        if isinstance(response, str):
+            if not self.perform_canceling:
+                yield response
+        else:
+            stream = get_sentence_from_stream_response(response)
+            self.history.pop()
+            can_close = hasattr(response, "close")
+            for i, sentence in enumerate(stream):
+                if (i == 0) and self.perform_canceling:
+                    self.log.debug("Stream processing has been canceled")
+                    if can_close:
+                        response.close()
+                    break
+                self.history += [E(S(assistant_role), G(ValueObject(sentence)))]
+                yield sentence
