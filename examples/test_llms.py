@@ -66,7 +66,7 @@ def test_open_router_stream_sentence():
         (= (respond)
             ((open-router-agent "openai/gpt-3.5-turbo" True) (messages))
         )
-        !(Response (respond))
+        (= (response) (respond))
     '''
     agent = MettaScriptAgent(code=code)
     v = agent('(Messages (system  "You are Grace, you are in London")(user "Who was the 22nd President of France?"))')
@@ -80,7 +80,7 @@ def test_chat_gpt_stream_sentence():
         (= (respond)
             ((chat-gpt-agent "gpt-3.5-turbo" True) (messages))
         )
-        !(Response (respond))
+          (= (response) (respond))
     '''
     agent = MettaScriptAgent(code=code)
     v = agent('(Messages (system  "You are Grace, you are in London")(user "Who was the 22nd President of France?"))')
