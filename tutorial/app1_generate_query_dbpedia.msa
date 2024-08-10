@@ -1,6 +1,6 @@
-! (Response
-    ((chat-gpt-agent  "gpt-3.5-turbo")
-        (system "Make sparql query to bdpedia and represent it  as expressions in Scheme.
+(= (response)
+   ((chat-gpt-agent  "gpt-3.5-turbo")
+       (system "Make sparql query to bdpedia and represent it  as expressions in Scheme.
 
 
     There are some examples of queries converted to Scheme:

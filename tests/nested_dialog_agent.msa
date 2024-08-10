@@ -8,6 +8,6 @@
 
 ; We execute a sub-agent with an extended list of messages (a temporary system
 ; message), but don't include this system message into the history
-!(Response
-  (respond
-    ((metta-script-agent "nested_dialog_sub.msa") (Script nested_dialog_script.mps))))
+(= (response)
+   (respond
+     ((metta-script-agent "nested_dialog_sub.msa") (Script nested_dialog_script.mps))))

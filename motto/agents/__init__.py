@@ -1,5 +1,5 @@
 from .agent import Response, Agent, EchoAgent
-from .metta_agent import MettaScriptAgent, DialogAgent
+from .metta_agent import MettaScriptAgent, MettaAgent, DialogAgent
 from .gpt_agent import ChatGPTAgent
 from .openrouter_agent import OpenRouterAgent
 import importlib.util

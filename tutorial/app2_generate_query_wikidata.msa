@@ -1,6 +1,6 @@
-! (Response
-    ((chat-gpt-agent "gpt-3.5-turbo")
-        (system "Make sparql query to wikidata and represent it as expressions in Scheme.
+(= (response)
+   ((chat-gpt-agent "gpt-3.5-turbo")
+       (system "Make sparql query to wikidata and represent it as expressions in Scheme.
         There are some examples of queries converted to Scheme:
 
         Get the names and places of birth of all Nobel laureates in literature over the past 10 years
