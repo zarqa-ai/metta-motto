@@ -2,6 +2,7 @@ import json
 
 from hyperon import MeTTa
 from motto.agents import MettaScriptAgent
+from motto import get_sentence_from_stream_response
 
 
 def test_stream_response():
@@ -59,3 +60,31 @@ def test_chat_gpt_media():
                                    ("model_name", "gpt-4o", 'String'), ("is_stream", False, 'Bool'), media]).content
         result = v[0].get_object().content
         assert "dove" in result.lower()
+
+def test_open_router_stream_sentence():
+    code = '''
+        (= (respond)
+            ((open-router-agent "openai/gpt-3.5-turbo" True) (messages))
+        )
+        (= (response) (respond))
+    '''
+    agent = MettaScriptAgent(code=code)
+    v = agent('(Messages (system  "You are Grace, you are in London")(user "Who was the 22nd President of France?"))')
+    stream = get_sentence_from_stream_response(v.content)
+    for chunk in stream:
+        print(chunk)
+        assert "president" in chunk.lower()
+
+def test_chat_gpt_stream_sentence():
+    code = '''
+        (= (respond)
+            ((chat-gpt-agent "gpt-3.5-turbo" True) (messages))
+        )
+          (= (response) (respond))
+    '''
+    agent = MettaScriptAgent(code=code)
+    v = agent('(Messages (system  "You are Grace, you are in London")(user "Who was the 22nd President of France?"))')
+    stream = get_sentence_from_stream_response(v.content)
+    for chunk in stream:
+        print(chunk)
+        assert "president" in chunk.lower()
