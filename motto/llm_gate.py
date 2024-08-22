@@ -320,6 +320,9 @@ def llmgate_atoms(metta):
         lambda *args: [OperationAtom('EchoAgent', AgentCaller(metta, EchoAgent, *args), unwrap=False)],
         unwrap=False)
     result[r"echo-agent"] = echoAgentAtom
+    result[r"open-router-agent"] = OperationAtom('open-router-agent',
+                        lambda *args: [OperationAtom('ora', AgentCaller(metta, OpenRouterAgent, *args), unwrap=False)],
+                        unwrap=False)
 
     return result
 
