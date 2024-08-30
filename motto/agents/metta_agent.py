@@ -1,5 +1,11 @@
+import logging
+
 from .agent import Agent, Response
 from hyperon import *
+from motto.utils import *
+
+assistant_role = 'assistant'
+
 
 class MettaAgent(Agent):
 
@@ -11,7 +17,7 @@ class MettaAgent(Agent):
         return repr(val)
 
     def __init__(self, path=None, code=None, atoms={}, include_paths=None):
-        if isinstance(path, ExpressionAtom): # A hack to pass code here from MeTTa
+        if isinstance(path, ExpressionAtom):  # A hack to pass code here from MeTTa
             code = path
             path = None
         path = self._try_unwrap(path)
@@ -19,7 +25,7 @@ class MettaAgent(Agent):
             with open(path, mode='r') as f:
                 code = f.read()
         self._code = code.get_children()[1] if isinstance(code, ExpressionAtom) else \
-                     self._try_unwrap(code)
+            self._try_unwrap(code)
         if self._code is None:
             raise RuntimeError(f"{self.__class__.__name__} requires either path or code")
         self._atoms = atoms
@@ -46,11 +52,11 @@ class MettaAgent(Agent):
 
     def _load_code(self):
         return self._metta.run(self._code) if isinstance(self._code, str) else \
-                   self._metta.space().add_atom(self._code)
+            self._metta.space().add_atom(self._code)
 
     def _create_metta(self):
         self._init_metta()
-        self._load_code() # TODO: check that the result contains only units
+        self._load_code()  # TODO: check that the result contains only units
 
     def _prepare(self, msgs_atom, additional_info=None):
         # The context space is recreated on each call
@@ -104,6 +110,8 @@ class DialogAgent(MettaAgent):
     def __init__(self, path=None, code=None, atoms={}, include_paths=None):
         self.history = []
         super().__init__(path, code, atoms, include_paths)
+        self.log = logging.getLogger(__name__ + '.' + type(self).__name__)
+        self.perform_canceling = False
 
     def _prepare(self, msgs_atom, additional_info=None):
         super()._prepare(msgs_atom, additional_info)
@@ -121,9 +129,37 @@ class DialogAgent(MettaAgent):
         # the history as well as to do other stuff
         result = super()._postproc(response)
         # TODO: 0 or >1 results, to expression?
-        self.history += [E(S('assistant'), result.content[0])]
+        self.history += [E(S(assistant_role), result.content[0])]
         return result
 
     def clear_history(self):
         self.history = []
 
+    def get_response_by_index(self, index, role=assistant_role):
+        last_response = self.history[index]
+        if hasattr(last_response, "get_children"):
+            children = last_response.get_children()
+            if len(children) == 2 and (children[0].get_name() == role):
+                response = children[1].get_object().content
+                return response
+        return None
+
+    def process_last_stream_response(self):
+        response = self.get_response_by_index(-1)
+        if response is None:
+            return
+        if isinstance(response, str):
+            if not self.perform_canceling:
+                yield response
+        else:
+            stream = get_sentence_from_stream_response(response)
+            self.history.pop()
+            can_close = hasattr(response, "close")
+            for i, sentence in enumerate(stream):
+                if (i == 0) and self.perform_canceling:
+                    self.log.debug("Stream processing has been canceled")
+                    if can_close:
+                        response.close()
+                    break
+                self.history += [E(S(assistant_role), G(ValueObject(sentence)))]
+                yield sentence

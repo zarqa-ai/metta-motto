@@ -1,6 +1,5 @@
 import os
 import sys
-import json
 from hyperon import *
 
 
@@ -42,7 +41,6 @@ def message2tuple(msg_atom):
             messages.append(process_inner(children))
     return messages
 
-
 def process_openrouter_stream(response):
     if response.status_code == 200:
         for chunk in response.iter_lines():
@@ -81,15 +79,16 @@ def get_token_from_stream_response(response):
 
 def get_sentence_from_stream_response(response):
     it  =  get_token_from_stream_response(response)
-    sentence = ""
-    for token in it:
-        sentence += token
+    if isinstance(it, str):
+        yield it
+    else:
+        sentence = ""
+        for token in it:
+            sentence += token
+            sentence_strip = sentence.strip()
+            if len(sentence_strip) > 0 and sentence_strip[-1] in ['.', '!', '?']:
+                yield sentence_strip
+                sentence = ""
         sentence_strip = sentence.strip()
-        if len(sentence_strip) > 0 and sentence_strip[-1] in ['.', '!', '?']:
+        if len(sentence_strip) > 0:
             yield sentence_strip
-            sentence = ""
-    sentence_strip = sentence.strip()
-    if len(sentence_strip) > 0:
-        yield sentence_strip
-
-
