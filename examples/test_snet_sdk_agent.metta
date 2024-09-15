@@ -1,5 +1,4 @@
 !(import! &self motto)
-!(import! &self  snet_io)
 !(bind! &agent1
     (
      snet-sdk-agent naint paraphrase-generation
