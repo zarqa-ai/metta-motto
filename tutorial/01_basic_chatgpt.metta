@@ -1,11 +1,11 @@
 !(import! &self motto)
 
 ; We can call ChatGPT Agent from MeTTa
-((chat-gpt-agent) (user "Hello"))
+!((chat-gpt-agent) (user "Hello"))
 ; With additional messages emulating the dialog history,
 ; the output will be different
 !((chat-gpt-agent)
-  (Messages (system "Do not greet if you already have say 'Hello'") (assistant "Hello") (user "Hello")))
+  (Messages (assistant "Hello") (user "Hello")))
 
 ; We can also pass function call to ChatGPT from MeTTa.
 ; It is done via providing a function doc in a special format.
