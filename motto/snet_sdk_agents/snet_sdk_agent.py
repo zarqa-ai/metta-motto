@@ -68,7 +68,6 @@ class SnetSDKAgent(Agent):
             args.append(S(get_string_value(v)))
         # call the method of service with initialised (query)
         response = self._metta.run(f'!{E(*args)}')
-        print(self._metta.space().get_atoms())
         return self._postproc(response[0])
 
     def _postproc(self, response):
