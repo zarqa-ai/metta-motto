@@ -1,5 +1,4 @@
 from motto.agents import ChatGPTAgent, MettaAgent
-from motto.llm_gate import agent_atom
 from hyperon import MeTTa
 import re
 
@@ -50,7 +49,7 @@ agent_code = '''
 # However, MettaAgent is more efficient, since its code will
 # be loaded only once
 agentM = MettaAgent(code=agent_code,
-                    atoms={"logic-agent": agent_atom(MeTTa(), LogicAgent, 'logic')})
+                    atoms={"logic-agent": LogicAgent.agent_creator_atom(MeTTa())})
 
 print(agentM('(user "Who is mortal?")').content)
 print(agentM('(user "Who is human?")').content)

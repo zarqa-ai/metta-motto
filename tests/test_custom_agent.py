@@ -1,6 +1,5 @@
 from hyperon import MeTTa, ValueAtom
 from motto.agents import Agent, Response
-from motto.llm_gate import agent_atom
 
 class CustomSplitAgent(Agent):
     def __init__(self, word=None):
@@ -17,7 +16,7 @@ class CustomSplitAgent(Agent):
 
 def test_custom_agent():
     m = MeTTa()
-    m.register_atom('split-agent', agent_atom(m, CustomSplitAgent, 'split'))
+    m.register_atom('split-agent', CustomSplitAgent.agent_creator_atom(m))
     m.run("!(import! &self motto)")
     assert m.run('''
         !((split-agent) (user "Hello"))

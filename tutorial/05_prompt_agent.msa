@@ -5,7 +5,7 @@
 ; the agent is called. Its space is not kept between calls.
 
 ; We can define a function expected by the prompt template
-; after importing it, because the template will be evaluated by `llm`
+; after importing it, because the template will be evaluated by the agent
 (= (topic)
    (let (user $topic) (messages)
         (user ("Compose a short description for adventure on " $topic))))

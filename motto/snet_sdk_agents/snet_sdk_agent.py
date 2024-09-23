@@ -4,7 +4,6 @@ from motto.agents import Agent
 from hyperon import ExpressionAtom, OperationAtom, ValueAtom, E, S, V, MeTTa, Environment, GroundingSpaceRef, G
 from hyperon.ext import register_atoms
 from hyperon.exts import snet_io
-from motto.llm_gate import AgentCaller
 from motto.agents import Response
 
 
@@ -42,8 +41,6 @@ class SnetSDKAgent(Agent):
         self.service_space = sp[0]
         self._metta.space().add_atom(self.service_space)
 
-
-
     def _prepare(self, msgs_atom):
         # The context space is recreated on each call
         if self._context_space is not None:
@@ -77,10 +74,6 @@ class SnetSDKAgent(Agent):
 
 @register_atoms(pass_metta=True)
 def snet_sdk_atoms(metta):
-    sdkAtom= OperationAtom('snet-sdk-agent',
-      lambda *args: [
-          OperationAtom('snet-sdk-agnt', AgentCaller(metta, SnetSDKAgent, unwrap=False, *args),  unwrap=False)], unwrap=False)
     return {
-        r"snet-sdk-agent": sdkAtom,
-
+        r"snet-sdk-agent": SnetSDKAgent.agent_creator_atom(metta, unwrap=False),
     }
