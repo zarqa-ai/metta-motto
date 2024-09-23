@@ -1,24 +1,28 @@
 from hyperon import MeTTa, ValueAtom
 from motto.agents import Agent, Response
+from motto.llm_gate import agent_atom
 
 class CustomSplitAgent(Agent):
-    def __call__(self, msgs, functions, word=None):
-        if word is None:
+    def __init__(self, word=None):
+        super().__init__()
+        self.word = word
+
+    def __call__(self, msgs, functions):
+        if self.word is None:
             return Response("I need a word to search")
-        if word in msgs[0]['content']:
-            return Response(msgs[0]['content'].split(word)[-1])
+        if self.word in msgs[0]['content']:
+            return Response(msgs[0]['content'].split(self.word)[-1])
         return Response("Fail")
 
 
 def test_custom_agent():
-    agent = CustomSplitAgent()
     m = MeTTa()
-    m.register_atom('&agent', ValueAtom(agent))
+    m.register_atom('split-agent', agent_atom(m, CustomSplitAgent, 'split'))
     m.run("!(import! &self motto)")
     assert m.run('''
-        !(llm (Agent &agent) (user "Hello"))
-        !(llm (Agent &agent (word "name is ")) (user "My name is Name"))
-        !(llm (Agent &agent (word "abracadabra")) (user "My name is Name"))
+        !((split-agent) (user "Hello"))
+        !((split-agent "name is ") (user "My name is Name"))
+        !((split-agent "abracadabra") (user "My name is Name"))
     ''') == [
         [ValueAtom("I need a word to search")],
         [ValueAtom("Name")],

@@ -9,8 +9,6 @@ import importlib.util
 import logging
 logger = logging.getLogger(__name__)
 
-__default_agent = None
-
 def to_nested_expr(xs):
     if isinstance(xs, list):
         return E(*list(map(to_nested_expr, xs)))
@@ -140,7 +138,7 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                     if is_space(ch[1]):
                         # FIXME? This will overwrites the current prompt_space if it is set.
                         # It is convenient to have it here to successfully execute
-                        # (llm &prompt (Functions fn)), when fn is defined in &prompt.
+                        # (agent &prompt (Functions fn)), when fn is defined in &prompt.
                         # But (Function fn) can also be put in &prompt directly.
                         # Depending on what is more convenient, this overriding can be changed.
                         prompt_space = ch[1].get_object()
@@ -229,14 +227,7 @@ def llm(metta: MeTTa, *args):
         logger.error(e)
         # return [E(S("Error"), ValueAtom(str(e)))]
         raise e
-    if agent is None:
-        agent = __default_agent
-        params = {}
-    else:
-        (agent, params) = agent
-    if isinstance(agent, str):
-        # NOTE: We could pass metta here, but it is of no use atm
-        agent = MettaScriptAgent(agent)
+    (agent, params) = agent
     if not isinstance(agent, Agent):
         raise TypeError(f"Agent {agent} should be of Agent type. Got {type(agent)}")
     if not isinstance(agent, MettaAgent):
@@ -264,11 +255,14 @@ class AgentCaller:
     def __call__(self, *args):
         return llm(self.metta, E(S('Agent'), self.agent_atom), *args)
 
+def agent_atom(metta, klass, name, unwrap=True):
+    return OperationAtom(name+'-agent',
+        lambda *args: [OperationAtom(name, AgentCaller(metta, klass, *args, unwrap=unwrap),
+                                     unwrap=False)],
+        unwrap=False)
 
 @register_atoms(pass_metta=True)
 def llmgate_atoms(metta):
-    global __default_agent
-    __default_agent = ChatGPTAgent()
     llmAtom = OperationAtom('llm', lambda *args: llm(metta, *args), unwrap=False)
     # Just a helper function if one needs to print from a metta-script
     # the message converted from expression to text
@@ -291,39 +285,18 @@ def llmgate_atoms(metta):
 
     }
     if importlib.util.find_spec('anthropic') is not None:
-        result[r"anthropic-agent"] = OperationAtom('anthropic',
-        lambda *args: [OperationAtom('anthropic-agent', AgentCaller(metta, AnthropicAgent, *args), unwrap=False)],
-        unwrap=False)
+        result[r"anthropic-agent"] = agent_atom(metta, AnthropicAgent, 'anthropic')
     if importlib.util.find_spec('tiktoken') is not None:
         if (importlib.util.find_spec('bs4') is not None) \
                 and (importlib.util.find_spec('markdown') is not None):
-            result[r"retrieval-agent"] = OperationAtom('retrieval-agent',
-        lambda *args:  [OperationAtom('retrieval', AgentCaller(metta, RetrievalAgent,  unwrap=True,*args), unwrap=False)], unwrap=False)
-
-    chatGPTAgentAtom = OperationAtom('chat-gpt-agent',
-        lambda *args: [OperationAtom('chat-gpt', AgentCaller(metta, ChatGPTAgent, *args), unwrap=False)],
-        unwrap=False)
-    result[r"chat-gpt-agent"] = chatGPTAgentAtom
-    meTTaScriptAtom = OperationAtom('metta-script-agent',
-        lambda *args: [OperationAtom('msa', AgentCaller(metta, MettaScriptAgent, unwrap=False, *args), unwrap=False)],
-        unwrap=False)
+            result[r"retrieval-agent"] = agent_atom(metta, RetrievalAgent, 'retrieval')
+    result[r"chat-gpt-agent"] = agent_atom(metta, ChatGPTAgent, 'chat-gpt')
+    meTTaScriptAtom = agent_atom(metta, MettaScriptAgent, 'metta-script', unwrap=False)
     result[r"metta-script-agent"] = meTTaScriptAtom
-    meTTaAgentAtom = OperationAtom('metta-agent',
-        lambda *args: [OperationAtom('ma', AgentCaller(metta, MettaAgent, unwrap=False, *args), unwrap=False)],
-        unwrap=False)
-    result[r"metta-agent"] = meTTaAgentAtom
-    dialogAgentAtom = OperationAtom('dialog-agent',
-        lambda *args: [OperationAtom('mda', AgentCaller(metta, DialogAgent, unwrap=False, *args), unwrap=False)],
-        unwrap=False)
-    result[r"dialog-agent"] = dialogAgentAtom
-    echoAgentAtom = OperationAtom('echo-agent',
-        lambda *args: [OperationAtom('EchoAgent', AgentCaller(metta, EchoAgent, *args), unwrap=False)],
-        unwrap=False)
-    result[r"echo-agent"] = echoAgentAtom
-    result[r"open-router-agent"] = OperationAtom('open-router-agent',
-                        lambda *args: [OperationAtom('ora', AgentCaller(metta, OpenRouterAgent, *args), unwrap=False)],
-                        unwrap=False)
-
+    result[r"metta-agent"] = agent_atom(metta, MettaAgent, 'metta', unwrap=False)
+    result[r"dialog-agent"] = agent_atom(metta, DialogAgent, 'dialog', unwrap=False)
+    result[r"echo-agent"] = agent_atom(metta, EchoAgent, 'echo')
+    result[r"open-router-agent"] = agent_atom(metta, OpenRouterAgent, 'open-router')
     return result
 
 def str_find_all(str, values):
