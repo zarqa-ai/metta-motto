@@ -1,9 +1,49 @@
 from hyperon import *
 import json
-import importlib.util
 
 import logging
 logger = logging.getLogger(__name__)
+
+class AgentObject:
+
+    _name = None
+
+    @classmethod
+    def get_agent_atom(cls, metta, *args, unwrap=True):
+        if unwrap:
+            # a hacky way to unwrap args
+            agent_atom = OperationAtom("_", cls).get_object().execute(*args)[0]
+            agent = agent_atom.get_object().content
+        else:
+            agent = cls(*args)
+        if metta is not None:
+            agent._metta = metta
+        agent._unwrap = unwrap
+        return [OperationAtom(cls.name(),
+            lambda *agent_args: agent.__metta_call__(*agent_args), unwrap=False)]
+
+    @classmethod
+    def agent_creator_atom(cls, metta=None, unwrap=True):
+        return OperationAtom(cls.name()+'-agent',
+            lambda *args: cls.get_agent_atom(metta, *args, unwrap=unwrap),
+            unwrap=False)
+
+    @classmethod
+    def name(cls):
+        return cls._name if cls._name is not None else str(cls)
+
+    def __init__(self):
+        self._metta = None
+        self._unwrap = None
+
+    def __call__(self):
+        raise NotImplementedError(
+            f"__call__ for {self.__class__.__name__} should be defined"
+        )
+
+    def __metta_call__(self, *args):
+        self(*args)
+
 
 def to_nested_expr(xs):
     if isinstance(xs, list):
@@ -246,39 +286,10 @@ class Response:
     def __repr__(self):
         return f"Response(content: {self.content}, tool_calls: {self.tool_calls})"
 
-class Agent:
+class Agent(AgentObject):
 
-    _name = None
-
-    @classmethod
-    def get_agent_atom(cls, metta, *args, unwrap=True):
-        if unwrap:
-            # a hacky way to unwrap args
-            agent_atom = OperationAtom("_", cls).get_object().execute(*args)[0]
-            agent = agent_atom.get_object().content
-        else:
-            agent = cls(*args)
-        return [OperationAtom(cls.name(),
-            lambda *llm_args: llm(metta, agent, *llm_args, unwrap=unwrap),
-                                         unwrap=False)]
-
-    @classmethod
-    def agent_creator_atom(cls, metta, unwrap=True):
-        return OperationAtom(cls.name()+'-agent',
-            lambda *args: cls.get_agent_atom(metta, *args, unwrap=unwrap),
-            unwrap=False)
-
-    @classmethod
-    def name(cls):
-        return cls._name if cls._name is not None else str(cls)
-
-    def __init__(self):
-        pass
-
-    def __call__(self, messages, functions):
-        raise NotImplementedError(
-            f"__call__(self, messages, functions) for {self.__class__.__name__} should be defined"
-        )
+    def __metta_call__(self, *args):
+        return llm(self._metta, self, *args, unwrap=self._unwrap)
 
 
 class EchoAgent(Agent):

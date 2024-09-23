@@ -33,8 +33,8 @@ def llmgate_atoms(metta):
             result[r"retrieval-agent"] = RetrievalAgent.agent_creator_atom(metta)
     result[r"chat-gpt-agent"] = ChatGPTAgent.agent_creator_atom(metta)
     result[r"metta-script-agent"] = MettaScriptAgent.agent_creator_atom(metta, unwrap=False)
-    result[r"metta-agent"] = MettaAgent.agent_creator_atom(metta, unwrap=False)
-    result[r"dialog-agent"] = DialogAgent.agent_creator_atom(metta, unwrap=False)
+    result[r"metta-agent"] = MettaAgent.agent_creator_atom(unwrap=False)
+    result[r"dialog-agent"] = DialogAgent.agent_creator_atom(unwrap=False)
     result[r"echo-agent"] = EchoAgent.agent_creator_atom(metta)
     result[r"open-router-agent"] = OpenRouterAgent.agent_creator_atom(metta)
     return result
