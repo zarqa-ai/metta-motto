@@ -89,23 +89,22 @@ def is_space(atom):
 
 
 def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
-    agent = None
     messages = []
     functions = []
+    params = {}
     msg_atoms = []
-    def __msg_update(ag, m, f, a):
-        nonlocal agent, messages, functions, msg_atoms
-        if ag is not None:
-            agent = ag
+    def __msg_update(m, f, p, a):
+        nonlocal messages, functions, params, msg_atoms
         messages += m
         functions += f
+        params.update(p)
         msg_atoms += [a]
 
     for atom in args:
         # We first interpret the atom argument in the context of the main metta space.
         # If the prompt template is in a separate file and contains some external
         # symbols like (user-query), they will be resolved here.
-        # It is useful for messages, agents, as well as arbitrary code, which relies
+        # It is useful for messages as well as arbitrary code, which relies
         # on information from the agent.
         # TODO: we may want to do something special with equalities
         #arg = interpret(metta.space(), atom)
@@ -147,29 +146,10 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                             m.run(f.read())
                         prompt_space = m.space()
                     __msg_update(*get_llm_args(metta, prompt_space, *prompt_space.get_atoms()))
-                elif name == 'Agent':
-                    agent = ch[1]
-                    # The agent can be a Python object or a string (filename)
-                    if isinstance(agent, GroundedAtom):
-                        agent = agent.get_object().content
-                    elif isinstance(agent, SymbolAtom):
-                        agent = agent.get_name()
-                    else:
-                        raise TypeError(f"Agent {agent} is not identified")
-                    params = {}
-                    for param in ch[2:]:
-                        ps = param.get_children()
-                        params[repr(ps[0])] = ps[1]
-                    agent = (agent, params)
                 elif name == 'Kwargs':
-                    params = {}
                     for param in ch[1:]:
                         ps = param.get_children()
                         params[repr(ps[0])] = ps[1]
-                    if not isinstance(agent, tuple):
-                        agent = (agent, params)
-                    else:
-                        agent[1].update(params)
                 elif name == '=':
                     # We ignore equalities here: if a space is used to store messages,
                     # it can contain equalities as well (another approach would be to
@@ -185,10 +165,10 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
             raise RuntimeError("Unrecognized argument: " + repr(arg))
     # Do not wrap a single message into Message (necessary to avoid double
     # wrapping of single Message argument)
-    return agent, messages, functions, \
+    return messages, functions, params, \
         msg_atoms[0] if len(msg_atoms) == 1 else E(S('Messages'), *msg_atoms)
 
-def get_response(metta,agent,  response, functions, msgs_atom):
+def get_response(metta, agent, response, functions, msgs_atom):
     if not hasattr(response, "tool_calls"):
         # if response is stream
         return [ValueAtom(response)]
@@ -216,15 +196,14 @@ def get_response(metta,agent,  response, functions, msgs_atom):
     return response.content if isinstance(response.content, list) else \
         [ValueAtom(response.content)]
 
-def llm(metta: MeTTa, *args, unwrap=True):
+def llm(metta: MeTTa, agent, *args, unwrap=True):
     try:
-        agent, messages, functions, msgs_atom= get_llm_args(metta, None, *args)
+        messages, functions, params, msgs_atom = get_llm_args(metta, None, *args)
     except Exception as e:
         # NOTE: we put the error into the log since it can be ignored by the caller
         logger.error(e)
         # return [E(S("Error"), ValueAtom(str(e)))]
         raise e
-    (agent, params) = agent
     if not isinstance(agent, Agent):
         raise TypeError(f"Agent {agent} should be of Agent type. Got {type(agent)}")
     if unwrap:
@@ -238,7 +217,7 @@ def llm(metta: MeTTa, *args, unwrap=True):
     except Exception as e:
         logger.error(e)
         raise e
-    return get_response(metta, agent, response, functions, msgs_atom )
+    return get_response(metta, agent, response, functions, msgs_atom)
 
 
 class Function:
@@ -274,11 +253,13 @@ class Agent:
     @classmethod
     def get_agent_atom(cls, metta, *args, unwrap=True):
         if unwrap:
+            # a hacky way to unwrap args
             agent_atom = OperationAtom("_", cls).get_object().execute(*args)[0]
+            agent = agent_atom.get_object().content
         else:
-            agent_atom = OperationAtom(str(cls), cls(*args))
+            agent = cls(*args)
         return [OperationAtom(cls.name(),
-            lambda *llm_args: llm(metta, E(S('Agent'), agent_atom), *llm_args, unwrap=unwrap),
+            lambda *llm_args: llm(metta, agent, *llm_args, unwrap=unwrap),
                                          unwrap=False)]
 
     @classmethod
