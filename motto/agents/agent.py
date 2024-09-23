@@ -17,6 +17,8 @@ class AgentObject:
         else:
             agent = cls(*args)
         if metta is not None:
+            if hasattr(agent, '_metta') and agent._metta is not None:
+                raise RuntimeError(f"MeTTa is already defined for {agent}")
             agent._metta = metta
         agent._unwrap = unwrap
         return [OperationAtom(cls.name(),
@@ -236,30 +238,6 @@ def get_response(metta, agent, response, functions, msgs_atom):
     return response.content if isinstance(response.content, list) else \
         [ValueAtom(response.content)]
 
-def llm(metta: MeTTa, agent, *args, unwrap=True):
-    try:
-        messages, functions, params, msgs_atom = get_llm_args(metta, None, *args)
-    except Exception as e:
-        # NOTE: we put the error into the log since it can be ignored by the caller
-        logger.error(e)
-        # return [E(S("Error"), ValueAtom(str(e)))]
-        raise e
-    if not isinstance(agent, Agent):
-        raise TypeError(f"Agent {agent} should be of Agent type. Got {type(agent)}")
-    if unwrap:
-        for p in params.keys():
-            if not isinstance(params[p], GroundedAtom):
-                raise TypeError(f"GroundedAtom is expected as input to a non-MeTTa agent. Got type({params[p]})={type(params[p])}")
-            params[p] = params[p].get_object().value
-    try:
-        response = agent(msgs_atom if not unwrap else messages,
-                        functions, **params)
-    except Exception as e:
-        logger.error(e)
-        raise e
-    return get_response(metta, agent, response, functions, msgs_atom)
-
-
 class Function:
     def __init__(self, name, arguments, format=""):
         self.name = name
@@ -289,7 +267,24 @@ class Response:
 class Agent(AgentObject):
 
     def __metta_call__(self, *args):
-        return llm(self._metta, self, *args, unwrap=self._unwrap)
+        try:
+            messages, functions, params, msgs_atom = get_llm_args(self._metta, None, *args)
+        except Exception as e:
+            logger.error(e)
+            # return [E(S("Error"), ValueAtom(str(e)))]
+            raise e
+        if self._unwrap:
+            for p in params.keys():
+                if not isinstance(params[p], GroundedAtom):
+                    raise TypeError(f"GroundedAtom is expected as input to a non-MeTTa agent. Got type({params[p]})={type(params[p])}")
+                params[p] = params[p].get_object().value
+        try:
+            response = self(msgs_atom if not self._unwrap else messages,
+                            functions, **params)
+        except Exception as e:
+            logger.error(e)
+            raise e
+        return get_response(self._metta, self, response, functions, msgs_atom)
 
 
 class EchoAgent(Agent):
