@@ -24,5 +24,5 @@ class LangchainAgent(DialogAgent):
 @register_atoms(pass_metta=True)
 def langchaingate_atoms(metta):
     return {
-        r"langchain-agent": LangchainAgent.agent_creator_atom(metta, unwrap=False),
+        r"langchain-agent": LangchainAgent.agent_creator_atom(unwrap=False),
     }
