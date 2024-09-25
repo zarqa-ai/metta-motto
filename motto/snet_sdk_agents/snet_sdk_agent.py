@@ -26,14 +26,13 @@ class SnetSDKAgent(Agent):
         self._metta = metta
 
     def __init__(self, org_id, service_id, method_args, kwargs=None, include_paths=None):
-
         self.history = []
-        self.org_id = get_string_value(org_id)
-        self.service_id = get_string_value(service_id)
+        self.org_id = org_id #get_string_value(org_id)
+        self.service_id = service_id #get_string_value(service_id)
         self._include_paths = include_paths
         self._init_metta()
         self._context_space = None
-        self.method_args = method_args.get_object().value
+        self.method_args = method_args #method_args.get_object().value
         # create create_service_client and space with methods generated for given service
         wrapper = snet_io.SNetSDKWrapper()
         wrapper.init_sdk()
@@ -75,5 +74,5 @@ class SnetSDKAgent(Agent):
 @register_atoms(pass_metta=True)
 def snet_sdk_atoms(metta):
     return {
-        r"snet-sdk-agent": SnetSDKAgent.agent_creator_atom(metta, unwrap=False),
+        r"snet-sdk-agent": SnetSDKAgent.agent_creator_atom(),
     }
