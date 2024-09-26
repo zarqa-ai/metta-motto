@@ -87,6 +87,10 @@ class MettaAgent(Agent):
         response = self._metta.run('!(response)')
         return self._postproc(response[0])
 
+    def get_state(self, state_name):
+        response = self._metta.run(f'!(get-state {state_name})', flat=True)
+        return repr(response[0])
+
 
 class MettaScriptAgent(MettaAgent):
 
