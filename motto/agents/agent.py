@@ -10,6 +10,9 @@ class AgentObject:
 
     @classmethod
     def get_agent_atom(cls, metta, *args, unwrap=True):
+        # metta and unwrap are not passed to __init__, because
+        # they are needed only for __metta_call__, so children
+        # classes do not need to pass them to super().__init__
         if unwrap:
             # a hacky way to unwrap args
             agent_atom = OperationAtom("_", cls).get_object().execute(*args)[0]
@@ -34,9 +37,54 @@ class AgentObject:
     def name(cls):
         return cls._name if cls._name is not None else str(cls)
 
-    def __init__(self):
-        self._metta = None
-        self._unwrap = None
+    def _try_unwrap(self, val):
+        if val is None or isinstance(val, str):
+            return val
+        if isinstance(val, GroundedAtom):
+            return str(val.get_object().content)
+        return repr(val)
+
+    def __init__(self, path=None, atoms={}, include_paths=None, code=None):
+        # The first argument is either path or code when called from MeTTa
+        if isinstance(path, ExpressionAtom):# and path != E():
+            code = path
+        elif path is not None:
+            path = self._try_unwrap(path)
+            with open(path, mode='r') as f:
+                code = f.read()
+        # _code can remain None if the agent uses parent runner (when called from MeTTa)
+        self._code = code.get_children()[1] if isinstance(code, ExpressionAtom) else \
+            self._try_unwrap(code)
+        self._atoms = atoms
+        self._include_paths = include_paths
+        self._context_space = None
+        self._create_metta()
+
+    def _create_metta(self):
+        if self._code is None:
+            return None
+        self._init_metta()
+        self._load_code()  # TODO: check that the result contains only units
+
+    def _init_metta(self):
+        ### =========== Creating MeTTa runner ===========
+        # NOTE: each MeTTa agent uses its own space and runner,
+        # which are not inherited from the caller agent. Thus,
+        # the caller space is not directly accessible as a context,
+        # except the case when _metta is set via get_agent_atom with parent MeTTa
+        if self._include_paths is not None:
+            env_builder = Environment.custom_env(include_paths=self._include_paths)
+            metta = MeTTa(env_builder=env_builder)
+        else:
+            metta = MeTTa()
+        # Externally passed atoms for registrations
+        for k, v in self._atoms.items():
+            metta.register_atom(k, v)
+        self._metta = metta
+
+    def _load_code(self):
+        return self._metta.run(self._code) if isinstance(self._code, str) else \
+            self._metta.space().add_atom(self._code)
 
     def __call__(self):
         raise NotImplementedError(

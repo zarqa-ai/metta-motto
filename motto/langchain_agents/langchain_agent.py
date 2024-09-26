@@ -12,11 +12,11 @@ from hyperon.ext import register_atoms
 
 class LangchainAgent(DialogAgent):
 
-    def __init__(self, model, path=None, code=None, atoms={}, include_paths=None):
+    def __init__(self, model, path=None, atoms={}, include_paths=None, code=None):
 
         self.history = []
         self.model = model
-        super().__init__(path, code, atoms, include_paths)
+        super().__init__(path, atoms, include_paths, code)
         self._metta.space().add_atom(E(S('='), E(S('langchain-model')),
                                  self.model))
 
