@@ -25,7 +25,7 @@ class SnetSDKAgent(MettaAgent):
         self.service_space = sp[0]
         self._metta.space().add_atom(self.service_space)
 
-    def _prepare(self, msgs_atom):
+    def _prepare(self, msgs_atom, additional_info=None):
         super()._prepare(None)
         message = ""
         #add user message to "(query)"
@@ -35,7 +35,7 @@ class SnetSDKAgent(MettaAgent):
         context_space = self._context_space.get_object()
         context_space.add_atom(E(S('='), E(S('query')), ValueAtom(message)))
 
-    def __call__(self, msgs_atom, functions=[]):
+    def __call__(self, msgs_atom, functions=[], additional_info=None):
         # TODO: support {'role': , 'content': } dict input
         if isinstance(msgs_atom, str):
             msgs_atom = self._metta.parse_single(msgs_atom)
