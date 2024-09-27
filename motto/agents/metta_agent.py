@@ -21,7 +21,8 @@ class MettaAgent(Agent):
         self._context_space = G(GroundingSpaceRef())
         self._metta.space().add_atom(self._context_space)
         context_space = self._context_space.get_object()
-        context_space.add_atom(E(S('='), E(S('messages')), msgs_atom))
+        if msgs_atom is not None:
+            context_space.add_atom(E(S('='), E(S('messages')), msgs_atom))
         # what to do if need to set some variables from python?
         if additional_info is not None:
             for val in additional_info:
