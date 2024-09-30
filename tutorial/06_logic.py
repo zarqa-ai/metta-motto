@@ -1,5 +1,5 @@
 from motto.agents import ChatGPTAgent, MettaAgent
-from hyperon import ValueAtom
+from hyperon import MeTTa
 import re
 
 # NOTE: This is a PoC example of LLM-MeTTa interoperability.
@@ -41,7 +41,7 @@ agent_code = '''
 (= (human Socrates) True)
 (= (human Plato) True)
 (= (mortal $x) (human $x))
-(= (response) (_eval (llm (Agent LogicAgent) (messages))))
+(= (response) (_eval ((logic-agent) (messages))))
 '''
 # When the agent doesn't change its space and needs the changes
 # to preserve between calls and doesn't execute commands at
@@ -49,7 +49,7 @@ agent_code = '''
 # However, MettaAgent is more efficient, since its code will
 # be loaded only once
 agentM = MettaAgent(code=agent_code,
-                    atoms={"LogicAgent": ValueAtom(agentL)})
+                    atoms={"logic-agent": LogicAgent.agent_creator_atom(MeTTa())})
 
 print(agentM('(user "Who is mortal?")').content)
 print(agentM('(user "Who is human?")').content)

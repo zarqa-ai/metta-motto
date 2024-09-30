@@ -16,29 +16,29 @@ def test_bioaiagent():
     os.chdir(pwd)
     m = MeTTa()
     requests_str = [
-        '!(llm &bioaiagent (user "Find the transcripts of gene ENSG00000206014"))',
-        '!(llm &bioaiagent (user "Get properties of gene ENSG00000279139"))',
-        '!(llm &bioaiagent (user "What are the proteins that gene ENSG00000133710 codes for"))',
-        '!(llm &bioaiagent (user "Find the Gene Ontology (GO) categories associated with protein Q13461"))',
-        '!(llm &bioaiagent (user "Find the GO categories associated with gene ENSG00000186790"))',
-        '!(llm &bioaiagent (user "Find biological process GO categories associated with gene ENSG00000186790"))',
-        '!(llm &bioaiagent (user "Find pathways that gene ENSG00000000938 is a subset of"))',
-        '''!(llm &bioaiagent (user
+        '!(&bioaiagent (user "Find the transcripts of gene ENSG00000206014"))',
+        '!(&bioaiagent (user "Get properties of gene ENSG00000279139"))',
+        '!(&bioaiagent (user "What are the proteins that gene ENSG00000133710 codes for"))',
+        '!(&bioaiagent (user "Find the Gene Ontology (GO) categories associated with protein Q13461"))',
+        '!(&bioaiagent (user "Find the GO categories associated with gene ENSG00000186790"))',
+        '!(&bioaiagent (user "Find biological process GO categories associated with gene ENSG00000186790"))',
+        '!(&bioaiagent (user "Find pathways that gene ENSG00000000938 is a subset of"))',
+        '''!(&bioaiagent (user
             "Find pathways that gene F13A1 is a subset of (use the gene HGNC symbol instead of ensembl id)"))''',
-        '''!(llm &bioaiagent (user
+        '''!(&bioaiagent (user
             "Find parent pathways of the pathways that FGR  
             gene is a subset of (use the gene HGNC symbol instead of ensembl id)"))''',
-        '!(llm &bioaiagent (user "What variants have eqtl association with gene HBM"))',
-        '''!(llm &bioaiagent (user
+        '!(&bioaiagent (user "What variants have eqtl association with gene HBM"))',
+        '''!(&bioaiagent (user
             "What variants have eqtl association with gene HBM and return the properties of the association"))''',
-        '!(llm &bioaiagent (user "Get properties of gene SNORD39"))',
-        '!(llm &bioaiagent (user "Find the transcripts of gene LINC01409"))',
-        '''!(llm &bioaiagent (user 
+        '!(&bioaiagent (user "Get properties of gene SNORD39"))',
+        '!(&bioaiagent (user "Find the transcripts of gene LINC01409"))',
+        '''!(&bioaiagent (user 
             "What variants have eqtl association with gene ENSG00000206177 and return the properties of the association"))''',
-        '!(llm &bioaiagent (user "Find parent pathways of the pathways that ENSG00000000938 gene is a subset of"))',
-        '''!(llm  &bioaiagent (user "What variants have 
+        '!(&bioaiagent (user "Find parent pathways of the pathways that ENSG00000000938 gene is a subset of"))',
+        '''!(&bioaiagent (user "What variants have 
             eqtl association with gene ENSG00000206177 and return the biological context of the association"))''',
-      '''!(llm &bioaiagent (user 
+      '''!(&bioaiagent (user 
          "What genes have eqtl association with  variant rs547895390, return the properties of the association"))'''
     ]
 
@@ -54,7 +54,7 @@ def test_bioaiagent():
                "(p_value (eqtl (sequence_variant rs547895390) (gene ENSG00000206177)) 0.573386)"]
     # m.load_module_at_path('motto:sparql_gate')
     m.run("!(import! &self motto)")
-    m.run(f'!(bind! &bioaiagent (Agent bio_ai/bio_ai_agent.msa))')
+    m.run(f'!(bind! &bioaiagent (metta-script-agent "bio_ai/bio_ai_agent.msa"))')
     for i in range(len(requests_str)):
         result = m.run(requests_str[i], True)
         assert is_result_correct(result, results[i]), f"Incorrect result for {requests_str[i]}"

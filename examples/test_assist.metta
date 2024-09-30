@@ -58,7 +58,7 @@ Finally, to make our marketplace compliant with regulations without compromising
 (= (set_subgoal
      ("search for particular service")
      (Messages $history $prev-state-msg $user-msg))
-   (llm
+   ((chat-gpt-agent)
      (compose-prompt service-list $history $user-msg)
      (Functions describe_service))
 )
@@ -66,7 +66,7 @@ Finally, to make our marketplace compliant with regulations without compromising
 ; In this example, we just append the list of messages with the new system message
 ; for further elaboration on the service.
 (= (describe_service ($args) $msgs)
-   (llm
+   ((chat-gpt-agent)
       (append-expr $msgs (system ("You selected the service " $args " Please describe it.")))))
 (= (doc describe_service)
    (Doc
@@ -91,7 +91,7 @@ Finally, to make our marketplace compliant with regulations without compromising
 ; TODO? Assuming that $user-msg is not wrapped into (user ...) is convenient
 ; for the first call, but not convenient for using `respond` from functional calls
 (= (respond $state $history $user-msg)
-   (llm
+   ((chat-gpt-agent)
      (compose-prompt $state $history (user $user-msg))
      (compose-functions $state)
     ))

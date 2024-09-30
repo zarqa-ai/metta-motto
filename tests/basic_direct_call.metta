@@ -1,6 +1,6 @@
 !(import! &self motto)
 
-; Testing parsing of arguments of `llm` using EchoAgent,
+; Testing parsing of arguments for EchoAgent,
 ; which is passed explicitly as one of the arguments
 
 ; Messages can be wrapped into `Messages` constructor
