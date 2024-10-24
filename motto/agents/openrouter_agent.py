@@ -31,6 +31,7 @@ class OpenRouterAgent(Agent):
     '''
 
     def __init__(self, model="openai/gpt-3.5-turbo", stream=False):
+        super().__init__()
         self._model = model
         self.stream_response = stream
 

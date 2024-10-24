@@ -17,6 +17,7 @@ if importlib.util.find_spec('anthropic') is not None:
     class AnthropicAgent(Agent):
 
         def __init__(self, model="claude-3-opus-20240229"):
+            super().__init__()
             self._model = model
             self.log = logging.getLogger(__name__ + '.' + type(self).__name__)
 

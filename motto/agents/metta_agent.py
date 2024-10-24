@@ -9,54 +9,10 @@ assistant_role = 'assistant'
 
 class MettaAgent(Agent):
 
-    def _try_unwrap(self, val):
-        if val is None or isinstance(val, str):
-            return val
-        if isinstance(val, GroundedAtom):
-            return str(val.get_object().content)
-        return repr(val)
-
-    def __init__(self, path=None, code=None, atoms={}, include_paths=None):
-        if isinstance(path, ExpressionAtom):  # A hack to pass code here from MeTTa
-            code = path
-            path = None
-        path = self._try_unwrap(path)
-        if path is not None:
-            with open(path, mode='r') as f:
-                code = f.read()
-        self._code = code.get_children()[1] if isinstance(code, ExpressionAtom) else \
-            self._try_unwrap(code)
-        if self._code is None:
-            raise RuntimeError(f"{self.__class__.__name__} requires either path or code")
-        self._atoms = atoms
-        self._include_paths = include_paths
-        self._create_metta()
-        self._context_space = None
-
     def _init_metta(self):
-        ### =========== Creating MeTTa runner ===========
-        # NOTE: each MeTTa agent uses its own space and runner,
-        # which are not inherited from the caller agent. Thus,
-        # the caller space is not directly accessible as a context.
-        if self._include_paths is not None:
-            env_builder = Environment.custom_env(include_paths=self._include_paths)
-            metta = MeTTa(env_builder=env_builder)
-        else:
-            metta = MeTTa()
+        super()._init_metta()
         # TODO: assert
-        metta.run("!(import! &self motto)")
-        # Externally passed atoms for registrations
-        for k, v in self._atoms.items():
-            metta.register_atom(k, v)
-        self._metta = metta
-
-    def _load_code(self):
-        return self._metta.run(self._code) if isinstance(self._code, str) else \
-            self._metta.space().add_atom(self._code)
-
-    def _create_metta(self):
-        self._init_metta()
-        self._load_code()  # TODO: check that the result contains only units
+        self._metta.run("!(import! &self motto)")
 
     def _prepare(self, msgs_atom, additional_info=None):
         # The context space is recreated on each call
@@ -65,7 +21,8 @@ class MettaAgent(Agent):
         self._context_space = G(GroundingSpaceRef())
         self._metta.space().add_atom(self._context_space)
         context_space = self._context_space.get_object()
-        context_space.add_atom(E(S('='), E(S('messages')), msgs_atom))
+        if msgs_atom is not None:
+            context_space.add_atom(E(S('='), E(S('messages')), msgs_atom))
         # what to do if need to set some variables from python?
         if additional_info is not None:
             for val in additional_info:
@@ -107,9 +64,9 @@ class MettaScriptAgent(MettaAgent):
 
 class DialogAgent(MettaAgent):
 
-    def __init__(self, path=None, code=None, atoms={}, include_paths=None):
+    def __init__(self, path=None, atoms={}, include_paths=None, code=None):
         self.history = []
-        super().__init__(path, code, atoms, include_paths)
+        super().__init__(path, atoms, include_paths, code)
         self.log = logging.getLogger(__name__ + '.' + type(self).__name__)
         self.perform_canceling = False
 

@@ -18,7 +18,7 @@ class RetrievalAgent(Agent):
     max_length = 2270
 
     def __init__(self, data_source, chunk_token_size, docs_count, data_dir):
-
+        super().__init__()
         if not (os.path.isfile(data_source) or os.path.isdir(data_source)):
             raise AttributeError("data_source should be file or folder")
 

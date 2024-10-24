@@ -18,6 +18,7 @@ class ChatGPTAgent(Agent):
     '''
 
     def __init__(self, model="gpt-3.5-turbo", stream=False, cut_history=False,  timeout=15, max_response_tokens=512):
+        super().__init__()
         self._model = model
         self.stream_response = stream
         self.timeout = timeout
@@ -26,6 +27,9 @@ class ChatGPTAgent(Agent):
 
     def __call__(self, messages, functions=[]):
         messages = self.messages_processor.process_messages(messages)
+
+        if client is None:
+            raise RuntimeError("Specify OPENAI_API_KEY environment variable to use OpenAI agents")
 
         if functions == []:
             response = client.chat.completions.create(model=self._model,
