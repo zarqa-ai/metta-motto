@@ -11,7 +11,7 @@ class ListeningAgent(AgentObject):
         self.messages = Queue()
         self.running = False
         self.daemon = True
-        self.cancel_processing = False
+        self.cancel_processing_var = False
         if isinstance(path, ExpressionAtom):# and path != E():
             self.dialog_agent = DialogAgent(code=path)
             path = None
@@ -33,11 +33,10 @@ class ListeningAgent(AgentObject):
     def stop(self):
         self.running = False
     def input(self, msg):
-        if str(msg).lower() != "cancel":
-            self.cancel_processing = False
+            self.cancel_processing_var = False
             self.messages.put(msg)
-        else:
-            self.cancel_processing = True
+    def cancel_processing(self):
+        self.cancel_processing_var = True
 
 
     def process_stream_response(self, response):
@@ -51,7 +50,7 @@ class ListeningAgent(AgentObject):
             self.dialog_agent.history.pop()
             can_close = hasattr(response, "close")
             for i, sentence in enumerate(stream):
-                if (i == 0) and self.cancel_processing:
+                if (i == 0) and self.cancel_processing_var:
                     #self.log.debug("Stream processing has been canceled")
                     if can_close:
                         response.close()
@@ -65,9 +64,9 @@ print(m.run('''
   ! (&a1)
   ! (println! "Agent is running") 
   ! (&a1 .input "who is the 6 president of France")
-    ! ((py-atom time.sleep) 2)
+  ! ((py-atom time.sleep) 2)
   ! (&a1 .input "who is John Lennon?")
-  ! (&a1 .input "cancel")
+  ! (&a1 .cancel_processing)
   ! ((py-atom time.sleep) 2)
   ! (&a1 .stop)
 '''))
