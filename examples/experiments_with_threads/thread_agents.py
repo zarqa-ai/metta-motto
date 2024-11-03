@@ -1,30 +1,46 @@
 from hyperon import *
-from hyperon.exts.agents import AgentObject
+from hyperon.exts.agents.agent_base import StreamMethod
 from motto.agents import DialogAgent
 from queue import Queue
 from time import sleep
 from motto import get_sentence_from_stream_response
-class ListeningAgent(AgentObject):
-    def __init__(self, path):
-        if path is None and code is None:
-            return
+class ListeningAgent(DialogAgent):
+    def __init__(self, path=None, atoms={}, include_paths=None, code=None):
+        super().__init__(path, atoms, include_paths, code)
         self.messages = Queue()
         self.running = False
         self.daemon = True
         self.cancel_processing_var = False
-        if isinstance(path, ExpressionAtom):# and path != E():
-            self.dialog_agent = DialogAgent(code=path)
-            path = None
-        else:
-            self.dialog_agent = DialogAgent(path=path)
-    def __call__(self, additional_info=None):
+
+
+    def __metta_call__(self, *args):
+        call = True
+        method = super().__metta_call__
+        if len(args) > 0:
+            if isinstance(args[0], SymbolAtom):
+                n = args[0].get_name()
+                if n[0] == '.' and hasattr(self, n[1:]):
+                    method = getattr(self, n[1:])
+                    args = args[1:]
+                    call = False
+                    if self._unwrap:
+                        method = OperationObject(f"{method}", method).execute
+        st = StreamMethod(method, args)
+        st.start()
+        if call and self.is_daemon():
+            return [E()]
+        return st
+
+
+
+    def __call__(self, functions=[], additional_info=None):
         self.running = True
         cnt = 0
         while self.running:
             if not self.messages.empty():
                 m = self.messages.get()
                 self.output = []
-                response = self.dialog_agent(f"(Messages (user \"{m}\"))", additional_info=additional_info).content
+                response = super().__call__(f"(Messages (user \"{m}\"))", functions, additional_info).content
                 for resp in self.process_stream_response(response):
                     self.output.append(resp)
                 if len(self.output) > 0:
@@ -47,7 +63,7 @@ class ListeningAgent(AgentObject):
                 yield response
         else:
             stream = get_sentence_from_stream_response(response)
-            self.dialog_agent.history.pop()
+            self.history.pop()
             can_close = hasattr(response, "close")
             for i, sentence in enumerate(stream):
                 if (i == 0) and self.cancel_processing_var:
@@ -55,7 +71,7 @@ class ListeningAgent(AgentObject):
                     if can_close:
                         response.close()
                     break
-                self.dialog_agent.history += [E(S("assistant"), G(ValueObject(sentence)))]
+                self.history += [E(S("assistant"), G(ValueObject(sentence)))]
                 yield sentence
 m = MeTTa()
 m.register_atom('agnt', ListeningAgent.agent_creator_atom())
