@@ -2,10 +2,12 @@ from hyperon import *
 from motto.agents import DialogAgent
 from motto import get_sentence_from_stream_response
 from hyperon.ext import register_atoms
+from hyperon.exts.agents import BaseListeningAgent
 
-class ListeningAgent(DialogAgent):
+class ListeningAgent(DialogAgent, BaseListeningAgent):
     def __init__(self, path=None, atoms={}, include_paths=None, code=None):
-        super().__init__(path, atoms, include_paths, code)
+        BaseListeningAgent.__init__(self)
+        DialogAgent.__init__(self, path, atoms, include_paths, code)
         self.cancel_processing_var = False
 
     def __metta_call__(self, *args):

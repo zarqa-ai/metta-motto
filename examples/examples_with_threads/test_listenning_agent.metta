@@ -6,5 +6,5 @@
 ! ((py-atom time.sleep) 2)
 ! (&a1 .input "who is John Lennon?")
 ;! (&a1 .cancel_processing)
-! ((py-atom time.sleep) 2)
+! ((py-atom time.sleep) 3)
 ! (&a1 .stop)
