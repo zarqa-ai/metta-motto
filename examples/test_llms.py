@@ -99,7 +99,7 @@ def test_canceling():
 
     agent('(Messages (system  "Who made significant advancements in the fields of electromagnetism?"))')
     assert not isinstance(resp, str)
-    agent.perform_canceling = True
+    agent.cancel_processing()
     res = []
     for v in agent.process_last_stream_response():
         res.append(v)
