@@ -4,7 +4,7 @@ from hyperon.ext import register_atoms
 
 
 class ListeningAgent(DialogAgent):
-    # this method will be calld via start in separate thread
+    # this method will be called via start in separate thread
     def message_processor(self, message, functions=[], additional_info=None):
         output = []
         response = super().__call__(f"(Messages (user {message}))", functions, additional_info).content

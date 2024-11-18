@@ -136,5 +136,6 @@ class DialogAgent(MettaAgent):
         yield from self.process_stream_response(response)
 
     def cancel_processing(self):
-        self.cancel_processing_var = True
+        with self.lock:
+            self.cancel_processing_var = True
         return []
