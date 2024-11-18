@@ -10,17 +10,19 @@ class ListeningAgent(DialogAgent):
         response = super().__call__(f"(Messages (user {message}))", functions, additional_info).content
         for resp in self.process_stream_response(response):
             output.append(resp)
-        if len(output) > 0:
-            print(' '.join(output))
         return output
 
     def __call__(self, msgs_atom=None, functions=[], additional_info=None):
         return self.start(functions, additional_info)
 
     def input(self, msg):
-        self.cancel_processing_var = False
+        with self.lock:
+            self.cancel_processing_var = False
         super().input(msg)
         return []
+
+    def get_output(self):
+        return [ValueAtom(" ".join(self._output))]
 
 
 @register_atoms(pass_metta=True)
@@ -38,9 +40,11 @@ if __name__ == '__main__':
       ! (&a1)
       ! (println! "Agent is running") 
       ! (&a1 .input "who is the 6 president of France")
-      ! ((py-atom time.sleep) 2)
+      ! ((py-atom time.sleep) 3)
+      ! (&a1 .get_output)
       ! (&a1 .input "who is John Lennon?")
       ! (&a1 .cancel_processing)
       ! ((py-atom time.sleep) 2)
+      ! (&a1 .get_output)
       ! (&a1 .stop)
     '''))
