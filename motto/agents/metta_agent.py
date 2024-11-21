@@ -56,6 +56,10 @@ class MettaAgent(Agent):
         response = self._metta.run('!(response)')
         return self._postproc(response[0])
 
+    def get_state(self, state_name):
+        response = self._metta.run(f'!(get-state {state_name})', flat=True)
+        return repr(response[0])
+
 
 class MettaScriptAgent(MettaAgent):
 
@@ -135,7 +139,7 @@ class DialogAgent(MettaAgent):
         response = self.get_response_by_index(-1)
         yield from self.process_stream_response(response)
 
-    def cancel_processing(self):
+    def set_canceling_variable(self, value):
         with self.lock:
-            self.cancel_processing_var = True
+            self.cancel_processing_var = value
         return []

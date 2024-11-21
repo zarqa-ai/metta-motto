@@ -71,9 +71,9 @@ def get_token_from_stream_response(response):
     if isinstance(response, str):
         return response
     if isinstance(response, list):
-        response = response[0]
+        return get_token_from_stream_response(response[0])
     if isinstance(response, GroundedAtom):
-        response = response.get_object().content
+        return get_token_from_stream_response(response.get_object().content)
     if hasattr(response, "status_code"):
         return process_openrouter_stream(response)
     return process_openai_stream(response)
