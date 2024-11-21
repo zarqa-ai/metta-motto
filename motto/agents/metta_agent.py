@@ -8,6 +8,18 @@ assistant_role = 'assistant'
 
 
 class MettaAgent(Agent):
+    def __metta_call__(self, *args):
+        if len(args) > 0:
+            if isinstance(args[0], SymbolAtom):
+                # support fot calls like (&a1 .input "who is the 6 president of France")
+                n = args[0].get_name()
+                if n[0] == '.' and hasattr(self, n[1:]):
+                    method = getattr(self, n[1:])
+                    args = args[1:]
+                    if self._unwrap:
+                        method = OperationObject(f"{method}", method).execute
+                    return method(*args)
+        return super().__metta_call__(*args)
 
     def _init_metta(self):
         super()._init_metta()
@@ -44,6 +56,10 @@ class MettaAgent(Agent):
         response = self._metta.run('!(response)')
         return self._postproc(response[0])
 
+    def get_state(self, state_name):
+        response = self._metta.run(f'!(get-state {state_name})', flat=True)
+        return repr(response[0])
+
 
 class MettaScriptAgent(MettaAgent):
 
@@ -63,12 +79,11 @@ class MettaScriptAgent(MettaAgent):
 
 
 class DialogAgent(MettaAgent):
-
     def __init__(self, path=None, atoms={}, include_paths=None, code=None):
         self.history = []
         super().__init__(path, atoms, include_paths, code)
         self.log = logging.getLogger(__name__ + '.' + type(self).__name__)
-        self.perform_canceling = False
+        self.cancel_processing_var = False
 
     def _prepare(self, msgs_atom, additional_info=None):
         super()._prepare(msgs_atom, additional_info)
@@ -101,22 +116,30 @@ class DialogAgent(MettaAgent):
                 return response
         return None
 
-    def process_last_stream_response(self):
-        response = self.get_response_by_index(-1)
+    def process_stream_response(self, response):
         if response is None:
             return
         if isinstance(response, str):
-            if not self.perform_canceling:
+            if not self.cancel_processing_var:
                 yield response
         else:
             stream = get_sentence_from_stream_response(response)
             self.history.pop()
             can_close = hasattr(response, "close")
             for i, sentence in enumerate(stream):
-                if (i == 0) and self.perform_canceling:
+                if (i == 0) and self.cancel_processing_var:
                     self.log.debug("Stream processing has been canceled")
                     if can_close:
                         response.close()
                     break
                 self.history += [E(S(assistant_role), G(ValueObject(sentence)))]
                 yield sentence
+
+    def process_last_stream_response(self):
+        response = self.get_response_by_index(-1)
+        yield from self.process_stream_response(response)
+
+    def set_canceling_variable(self, value):
+        with self.lock:
+            self.cancel_processing_var = value
+        return []

@@ -1,5 +1,5 @@
 from hyperon import *
-from hyperon.exts.agents import AgentObject
+from hyperon.exts.agents import BaseListeningAgent
 import json
 
 import logging
@@ -223,7 +223,7 @@ class Response:
     def __repr__(self):
         return f"Response(content: {self.content}, tool_calls: {self.tool_calls})"
 
-class Agent(AgentObject):
+class Agent(BaseListeningAgent):
 
     def __metta_call__(self, *args):
         try:
