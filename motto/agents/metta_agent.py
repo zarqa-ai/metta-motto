@@ -84,6 +84,7 @@ class DialogAgent(MettaAgent):
         super().__init__(path, atoms, include_paths, code)
         self.log = logging.getLogger(__name__ + '.' + type(self).__name__)
         self.cancel_processing_var = False
+        self.interrupt_processing = False
 
     def _prepare(self, msgs_atom, additional_info=None):
         super()._prepare(msgs_atom, additional_info)
