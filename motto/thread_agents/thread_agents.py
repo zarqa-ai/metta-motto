@@ -1,8 +1,8 @@
 import time
-
 from hyperon import *
 from motto.agents import DialogAgent
 from hyperon.ext import register_atoms
+from hyperon.atoms import GroundedAtom
 
 class AgentArgs:
     def __init__(self, message, functions=[], additional_info=None):
@@ -15,16 +15,18 @@ class ListeningAgent(DialogAgent):
     # this method will be called via start in separate thread
     def __init__(self, path=None, atoms={}, include_paths=None, code=None):
         self.speech_start = None
-        self.processing =  True
+        self.processing = False
         super().__init__(path, atoms, include_paths, code)
 
     def message_processor(self, input: AgentArgs):
         output = []
         response = super().__call__(f"(Messages (user \"{input.message}\"))", input.functions, input.additional_info).content
-        self.processing = True
+        with self.lock:
+            self.processing = True
         for resp in self.process_stream_response(response):
             output.append(resp)
-        self.processing = False
+        with self.lock:
+            self.processing = False
         return output
 
     def __call__(self, msgs_atom=None, functions=[], additional_info=None):
@@ -33,12 +35,16 @@ class ListeningAgent(DialogAgent):
     def input(self, msg):
         if isinstance(msg, GroundedAtom):
             msg = msg.get_object().content
-            if isinstance(msg, str):
-                msg = {"message": msg}
+        if isinstance(msg, str):
+            msg = {"message": msg}
         super().input(AgentArgs(**msg))
         return []
 
-    def handle_event(self, event_type, data):
+    def handle_event(self, event_type, data=None):
+        if isinstance(event_type, GroundedAtom):
+            event_type = event_type.get_object().content
+        if isinstance(data, GroundedAtom):
+            data = data.get_object().content
         if event_type == 'speechstart':
             self.speech_start = time.time()
             with self.lock:
@@ -53,6 +59,7 @@ class ListeningAgent(DialogAgent):
             self.input(data["text"])
             with self.lock:
                 self.cancel_processing_var = self.processing
+        return []
 
 
     def get_output(self):
