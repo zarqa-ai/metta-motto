@@ -4,6 +4,7 @@ import time
 
 from hyperon import MeTTa
 from motto.agents import MettaScriptAgent, DialogAgent
+from motto.thread_agents import ListeningAgent
 from motto import get_sentence_from_stream_response
 
 def test_stream_response():
@@ -68,7 +69,7 @@ def thread1(agent: DialogAgent):
     time.sleep(1)
     agent.perform_canceling = True
 
-
+'todo replace with test for stream'
 def test_canceling_with_thread():
     agent = DialogAgent(code='''
         (= (respond)((chat-gpt-agent "gpt-3.5-turbo" True True) (Messages (history)  (messages))) )
@@ -84,26 +85,21 @@ def test_canceling_with_thread():
 
 
 def test_canceling():
-    agent = DialogAgent(code='''
+    agent = ListeningAgent(code='''
         (= (respond)((chat-gpt-agent "gpt-3.5-turbo" True True) (Messages (history)  (messages))) )
         (= (response) (respond))
     ''')
     agent('(Messages (system  "Who made significant advancements in the fields of electromagnetism?"))')
-
-    res = []
-    resp = agent.get_response_by_index(-1)
-    assert not isinstance(resp, str)
-    for v in agent.process_last_stream_response():
-        res.append(v)
-    assert len(res) > 0
+    time.sleep(3)
+    agent.stop()
+    assert agent.has_output()
 
     agent('(Messages (system  "Who made significant advancements in the fields of electromagnetism?"))')
-    assert not isinstance(resp, str)
+
     agent.set_canceling_variable(True)
-    res = []
-    for v in agent.process_last_stream_response():
-        res.append(v)
-    assert len(res) == 0
+    time.sleep(3)
+    agent.stop()
+    assert (not agent.has_output())
 
 def test_open_router_stream_sentence():
     code = '''
