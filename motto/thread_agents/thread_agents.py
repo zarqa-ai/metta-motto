@@ -129,18 +129,14 @@ class ListeningAgent(DialogAgent):
         print(event_type)
         return []
 
-    def say_all(self):
+    def say(self):
         respond = []
         while not self._output.empty():
-            respond.append(self._output.get())
-        return [ValueAtom(" ".join(respond))]
-
-    def say(self):
-        if not self._output.empty():
             with self.lock:
                 self.said = True
-            return [ValueAtom(self._output.get())]
-        return []
+                respond.append(self._output.get())
+        return [ValueAtom(" ".join(respond))]
+
 
     def has_output(self):
         return not self._output.empty()

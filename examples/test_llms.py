@@ -70,18 +70,15 @@ def thread1(agent: DialogAgent):
     agent.perform_canceling = True
 
 'todo replace with test for stream'
-def test_canceling_with_thread():
+def test_stream_response_processer():
     agent = DialogAgent(code='''
         (= (respond)((chat-gpt-agent "gpt-3.5-turbo" True True) (Messages (history)  (messages))) )
         (= (response) (respond))
     ''')
-    thread = threading.Thread(target=thread1, args=(agent,))
-    thread.start()
     agent('(Messages (system  "Who made significant advancements in the fields of electromagnetism?"))')
 
     for v in agent.process_last_stream_response():
         print(v)
-    thread.join()
 
 
 def test_canceling():
