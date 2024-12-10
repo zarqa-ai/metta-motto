@@ -69,7 +69,6 @@ def thread1(agent: DialogAgent):
     time.sleep(1)
     agent.perform_canceling = True
 
-'todo replace with test for stream'
 def test_stream_response_processer():
     agent = DialogAgent(code='''
         (= (respond)((chat-gpt-agent "gpt-3.5-turbo" True True) (Messages (history)  (messages))) )
