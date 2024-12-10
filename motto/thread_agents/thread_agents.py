@@ -79,13 +79,16 @@ class ListeningAgent(DialogAgent):
         resp = None
         for resp in self.process_stream_response(response):
             self.handle_event()
+            #cancel processing of the current message and return the message to the input
             if self.cancel_processing_var:
+                self.input(input.message)
                 break
             if self.interrupt_processing_var:
                 resp = "..."
 
             self.history += [E(S(assistant_role), G(ValueObject(resp)))]
             yield resp
+            #interrupt processing
             if self.interrupt_processing_var:
                 break
         print("message_processor finish:", resp)

@@ -16,4 +16,7 @@
 ! (&a1 .set_event "speechstart")
 ! ((py-atom time.sleep) 3)
 ! (&a1 .say)
+! (&a1 .set_event "speech" (py-dict (("text" "Which songs did he write?"))))
+! ((py-atom time.sleep) 5)
+! (&a1 .say)
 ! (&a1 .stop)
