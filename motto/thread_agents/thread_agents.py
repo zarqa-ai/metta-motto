@@ -6,12 +6,14 @@ from hyperon.atoms import GroundedAtom
 from queue import Queue
 import threading
 from motto.utils import *
+import logging
 
 class AgentArgs:
-    def __init__(self, message, functions=[], additional_info=None):
+    def __init__(self, message, functions=[], additional_info=None, language=None):
         self.message = get_grounded_atom_value(message)
         self.additional_info = get_grounded_atom_value(additional_info)
         self.functions = get_grounded_atom_value(functions)
+        self.language = language
 
 class Event:
     def __init__(self, event_type, data=None):
@@ -24,6 +26,7 @@ class Event:
 class ListeningAgent(DialogAgent):
     # this method will be called via start in separate thread
     def __init__(self, path=None, atoms={}, include_paths=None, code=None):
+        self.log = logging.getLogger(__name__ + '.' + type(self).__name__)
         self.events = Queue()
         self.cancel_processing_var = False
         self.interrupt_processing_var = False
@@ -67,7 +70,6 @@ class ListeningAgent(DialogAgent):
         '''
         Takes a single message and provides a response if no canceling event has occurred.
         '''
-        print("message_processor start:", input.message)
         message = input.message if str(input.message).startswith("(") and  str(input.message).endswith(")") \
             else f"(Messages (user \"{input.message}\"))"
         response = super().__call__(message, input.functions, input.additional_info).content
@@ -79,17 +81,19 @@ class ListeningAgent(DialogAgent):
             self.handle_event()
             #cancel processing of the current message and return the message to the input
             if self.cancel_processing_var:
+                self.log.info(f"message_processor:cancel processing for message {message}")
                 self.input(input.message)
                 break
             if self.interrupt_processing_var:
+                self.log.info(f"message_processor:interrupt processing for message {message}")
                 resp = "..."
 
             self.history += [E(S(assistant_role), G(ValueObject(resp)))]
-            yield resp
+            self.log.info(f"message_processor:get response for message {message} : {resp}")
+            yield resp if input.language is None else (resp, input.language)
             #interrupt processing
             if self.interrupt_processing_var:
                 break
-        print("message_processor finish:", resp)
         with self.lock:
             self.processing = False
 
@@ -126,7 +130,6 @@ class ListeningAgent(DialogAgent):
         '''Adds a new event to the events queue.'''
         with self.lock:
             self.events.put(Event(event_type, data))
-        print(event_type)
         return []
 
     def say(self):
@@ -134,8 +137,8 @@ class ListeningAgent(DialogAgent):
         while not self._output.empty():
             with self.lock:
                 self.said = True
-                respond.append(self._output.get())
-        return [ValueAtom(" ".join(respond))]
+                respond.append(ValueAtom(self._output.get()))
+        return respond
 
 
     def has_output(self):
