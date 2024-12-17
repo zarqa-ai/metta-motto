@@ -4,6 +4,10 @@ import json
 from hyperon import *
 
 assistant_role = 'assistant'
+
+def get_grounded_atom_value(atom):
+    return atom.get_object().content if isinstance(atom, GroundedAtom) else atom
+
 def get_string_value(atom) -> str:
     item = repr(atom)
     if len(item) > 2 and (item[0] == '"' and item[-1] == '"'):

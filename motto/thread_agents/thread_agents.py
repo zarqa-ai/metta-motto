@@ -9,16 +9,14 @@ from motto.utils import *
 
 class AgentArgs:
     def __init__(self, message, functions=[], additional_info=None):
-        self.message = message.get_object().content if isinstance(message, GroundedAtom) else message
-        self.additional_info = additional_info.get_object().content if isinstance(additional_info, GroundedAtom) else additional_info
-        self.functions = functions.get_object().content if isinstance(functions, GroundedAtom) else functions
+        self.message = get_grounded_atom_value(message)
+        self.additional_info = get_grounded_atom_value(additional_info)
+        self.functions = get_grounded_atom_value(functions)
 
 class Event:
     def __init__(self, event_type, data=None):
-        if isinstance(event_type, GroundedAtom):
-            event_type = event_type.get_object().content
-        if isinstance(data, GroundedAtom):
-            data = data.get_object().content
+        event_type = get_grounded_atom_value(event_type)
+        data = get_grounded_atom_value(data)
         self.event_type = event_type
         self.data = data
         self.time =  time.time()
@@ -102,8 +100,7 @@ class ListeningAgent(DialogAgent):
         return self.start()
 
     def input(self, msg):
-        if isinstance(msg, GroundedAtom):
-            msg = msg.get_object().content
+        msg = get_grounded_atom_value(msg)
         if isinstance(msg, str):
             msg = {"message": msg}
         super().input(AgentArgs(**msg))
