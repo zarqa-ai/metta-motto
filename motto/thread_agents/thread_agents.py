@@ -70,8 +70,12 @@ class ListeningAgent(DialogAgent):
         '''
         Takes a single message and provides a response if no canceling event has occurred.
         '''
-        message = input.message if str(input.message).startswith("(") and  str(input.message).endswith(")") \
-            else f"(Messages (user \"{input.message}\"))"
+        if input.message  == '' or input.message is None:
+            message = None
+        elif str(input.message).startswith("(") and  str(input.message).endswith(")"):
+            message = input.message
+        else :
+            message = f"(Messages (user \"{input.message}\"))"
         response = super().__call__(message, input.functions, input.additional_info).content
         with self.lock:
             self.processing = True
