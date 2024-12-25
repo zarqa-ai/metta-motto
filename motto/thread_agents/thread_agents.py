@@ -2,7 +2,7 @@ import time
 from hyperon import *
 from motto.agents import DialogAgent, MettaAgent
 from hyperon.ext import register_atoms
-from hyperon.atoms import GroundedAtom
+from hyperon.atoms import GroundedAtom,  ExpressionAtom
 from queue import Queue
 import threading
 from motto.utils import *
@@ -66,19 +66,37 @@ class ListeningAgent(DialogAgent):
             self.interrupt_processing_var = value
         return []
 
+    def set_processing_val(self, val):
+        with self.lock:
+            self.processing = val
+
+    def is_empty_message(self, message):
+        if isinstance(message, ExpressionAtom):
+            children = message.get_children()
+            if len(children) > 1 and  str(get_grounded_atom_value(children[-1])).strip() == "":
+                return True
+        elif isinstance(message, str) and message.strip() == "":
+            return True
+        if message is None:
+            return True
+
+        return False
+
     def message_processor(self, input: AgentArgs):
         '''
         Takes a single message and provides a response if no canceling event has occurred.
         '''
-        if input.message  == '' or input.message is None:
+        if  self.is_empty_message(input.message):
             message = None
         elif str(input.message).startswith("(") and  str(input.message).endswith(")"):
             message = input.message
         else :
             message = f"(Messages (user \"{input.message}\"))"
+        if( message is None) and (input.additional_info is None):
+            self.set_processing_val(False)
+            return
         response = super().__call__(message, input.functions, input.additional_info).content
-        with self.lock:
-            self.processing = True
+        self.set_processing_val(True)
         self.handle_event()
         resp = None
         for resp in self.process_stream_response(response):
@@ -88,18 +106,18 @@ class ListeningAgent(DialogAgent):
                 self.log.info(f"message_processor:cancel processing for message {message}")
                 self.input(input.message)
                 break
+
             if self.interrupt_processing_var:
                 self.log.info(f"message_processor:interrupt processing for message {message}")
                 resp = "..."
 
             self.history += [E(S(assistant_role), G(ValueObject(resp)))]
-            self.log.info(f"message_processor:get response for message {message} : {resp}")
+            self.log.info(f"message_processor: return response for message {message} : {resp}")
             yield resp if input.language is None else (resp, input.language)
             #interrupt processing
             if self.interrupt_processing_var:
                 break
-        with self.lock:
-            self.processing = False
+        self.set_processing_val(False)
 
 
     def __call__(self, msgs_atom=None, functions=[], additional_info=None):
