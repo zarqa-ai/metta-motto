@@ -6,12 +6,14 @@ import time
 import importlib.util
 
 # FIXME: A more flexible was to setup proxy?
-proxy = os.environ.get('OPENAI_PROXY')
-if importlib.util.find_spec('anthropic') is not None:
-    import anthropic
+from motto.utils import get_ai_client
 
-    client = anthropic.Anthropic() if proxy is None else \
-        anthropic.Anthropic(http_client=httpx.Client(proxies=proxy))
+proxy = os.environ.get('OPENAI_PROXY')
+if importlib.util.find_spec('anthropic') is None:
+    raise RuntimeError("Install anthropic library to use anthropic agents")
+else:
+    import anthropic
+    client = get_ai_client(anthropic.Anthropic, proxy)
 
 
     class AnthropicAgent(Agent):

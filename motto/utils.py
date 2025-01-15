@@ -1,5 +1,4 @@
-import os
-import sys
+import inspect
 import json
 from hyperon import *
 
@@ -97,3 +96,29 @@ def get_sentence_from_stream_response(response):
         sentence_strip = sentence.strip()
         if len(sentence_strip) > 0:
             yield sentence_strip
+
+
+def has_argument(func, arg_name):
+    """
+    Checks if a function has a given argument.
+
+    :param func: The function to check.
+    :param arg_name: The name of the argument to check for.
+    :return: True if the argument exists, otherwise False.
+    """
+    try:
+        signature = inspect.signature(func)
+        return arg_name in signature.parameters
+    except (TypeError, ValueError):
+        return False
+
+def get_ai_client(client_constructor, proxy):
+    import httpx
+    if proxy is not None:
+        if has_argument(httpx.Client, "proxies"):
+            client = client_constructor(http_client=httpx.Client(proxies=proxy))
+        else:
+            client = client_constructor(http_client=httpx.Client(proxy=proxy))
+    else:
+        client = client_constructor()
+    return client

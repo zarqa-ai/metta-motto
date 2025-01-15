@@ -1,5 +1,8 @@
+import importlib.util
 import os
 from abc import abstractmethod
+
+from motto.utils import get_ai_client
 
 
 class AbstractEmbeddings:
@@ -15,11 +18,13 @@ class AbstractEmbeddings:
 class OpenAIEmbeddings(AbstractEmbeddings):
 
     def __init__(self, model="text-embedding-ada-002"):
-        from openai import OpenAI
-        import httpx
-        proxy=os.environ.get('OPENAI_PROXY')
-        self.client = OpenAI() if proxy is None else \
-            OpenAI(http_client=httpx.Client(proxies=proxy))
+        if importlib.util.find_spec('openai') is not None:
+            from openai import OpenAI
+        else:
+            raise RuntimeError("Install OpenAI library to use OpenAI agents")
+
+        proxy = os.environ.get('OPENAI_PROXY')
+        self.client = get_ai_client(OpenAI, proxy)
         self.model = model
 
     def get_embeddings(self, text):

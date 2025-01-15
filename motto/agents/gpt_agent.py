@@ -1,16 +1,23 @@
-from openai import OpenAI
+import importlib.util
+if importlib.util.find_spec('openai') is not None:
+    from openai import OpenAI
+else:
+    raise RuntimeError("Install OpenAI library to use OpenAI agents")
+
 from .metta_agent import Agent
-import httpx
+
 import os
-import json
 from .messages_processor import MessagesProcessor
+from motto.utils import get_ai_client
 
 # FIXME: A more flexible was to setup proxy?
 proxy = os.environ.get('OPENAI_PROXY')
 key = os.environ.get('OPENAI_API_KEY')
+client = None
 if key is not None:
-    client = OpenAI() if proxy is None else \
-        OpenAI(http_client=httpx.Client(proxies=proxy))
+    client = get_ai_client(OpenAI, proxy)
+else:
+    raise RuntimeError("Specify OPENAI_API_KEY environment variable to use OpenAI agents")
 
 class ChatGPTAgent(Agent):
     '''
@@ -31,7 +38,7 @@ class ChatGPTAgent(Agent):
         if client is None:
             raise RuntimeError("Specify OPENAI_API_KEY environment variable to use OpenAI agents")
 
-        if functions == []:
+        if not functions:
             response = client.chat.completions.create(model=self._model,
                                                       messages=messages,
                                                       temperature=0,
@@ -41,9 +48,7 @@ class ChatGPTAgent(Agent):
             return response.choices[0].message if not self.stream_response else response
         tools = []
         for func in functions:
-            dict_values = {}
-            dict_values["type"] = "function"
-            dict_values["function"] = func
+            dict_values = {"type": "function", "function": func}
             tools.append(dict_values)
         response = client.chat.completions.create(model=self._model,
                                                   messages=messages,
