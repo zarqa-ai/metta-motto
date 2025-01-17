@@ -132,7 +132,7 @@ class RdfHelper:
 
     def filter(self, atom):
         result = RdfHelper.__filter_inner(atom)
-        return [ValueAtom(f"filter ({result})")]
+        return [ValueAtom(f"filter ({result})", 'String')]
 
     def fields(self, atom):
         result = ""
@@ -144,11 +144,11 @@ class RdfHelper:
                     result += f"{child}" + " "
         else:
             result = f"{atom}"
-        return [ValueAtom(f"{result.strip()}")]
+        return [ValueAtom(f"{result.strip()}", 'String')]
 
     def having(self, atom):
         result = RdfHelper.__filter_inner(atom)
-        return [ValueAtom(f"having ({result})")]
+        return [ValueAtom(f"having ({result})", 'String')]
 
     @staticmethod
     def repr_children(atom):
@@ -161,7 +161,7 @@ class RdfHelper:
         conditions, _ = self.__get_conditions_from_children(atom)
         result = "WHERE{\n" if function == "where" else "{\n"
         result += " .\n".join(conditions) + "}"
-        return [ValueAtom(result)]
+        return [ValueAtom(result, 'String')]
 
     def service(self, atom):
         result = ""
@@ -173,7 +173,7 @@ class RdfHelper:
                 result += f" {condition} "
             else:
                 result += f"{{{condition}}}"
-        return [ValueAtom(result)]
+        return [ValueAtom(result, 'String')]
 
     def __get_conditions_from_children(self, atom):
         '''
@@ -201,18 +201,18 @@ class RdfHelper:
         if hasattr(atom, 'get_children'):
             conditions, is_simple = self.__get_conditions_from_children(atom)
             if function == "sparql_union":
-                return [ValueAtom("{{" + "} UNION {".join(conditions) + "}}")]
+                return [ValueAtom("{{" + "} UNION {".join(conditions) + "}}", 'String')]
             # if function is limit, order by, offset, ...
             elif function in RdfHelper.output_options_functions:
-                return [ValueAtom(f"{function} " + " ".join(conditions))]
+                return [ValueAtom(f"{function} " + " ".join(conditions), 'String')]
             joiner = " .\n" if not is_simple else " "
-            return [ValueAtom(f"{function} {{" + (joiner.join(conditions)) + "}")]
+            return [ValueAtom(f"{function} {{" + (joiner.join(conditions)) + "}", 'String')]
         # order by desc
         elif function == 'order by desc':
-            return [ValueAtom(f"{function}({atom})")]
+            return [ValueAtom(f"{function}({atom})", 'String')]
         # limit, group by
         elif function in RdfHelper.output_options_functions:
-            return [ValueAtom(f"{function} {atom}")]
+            return [ValueAtom(f"{function} {atom}", 'String')]
         return []
 
     def execute_query(self, query_atom, function, distinct=False):

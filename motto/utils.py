@@ -7,11 +7,20 @@ assistant_role = 'assistant'
 def get_grounded_atom_value(atom):
     return atom.get_object().content if isinstance(atom, GroundedAtom) else atom
 
-def get_string_value(atom) -> str:
-    item = repr(atom)
+def get_string(atom) -> str:
+    item = str(atom)
     if len(item) > 2 and (item[0] == '"' and item[-1] == '"'):
         item = item[1:-1]
     return item
+
+def get_string_value(atom) -> str:
+    if isinstance(atom, str):
+        return atom
+    if isinstance(atom, GroundedAtom) and atom.get_grounded_type() == S('String'):
+        return atom.get_object().content
+    if isinstance(atom, SymbolAtom):
+        return atom.get_name()
+    return str(atom)
 
 
 def contains_str(value, substring) -> bool:
