@@ -25,6 +25,6 @@ setup(
        python_requires='>=3.8',
        install_requires=[
         # List your project's dependencies here.
-        'hyperon>=0.2.1'
+        'hyperon>=0.2.2'
         ]
    )
