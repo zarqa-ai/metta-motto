@@ -3,6 +3,7 @@ from hyperon.ext import register_atoms
 from .agents import *
 from .utils import *
 import importlib.util
+from .utils import create_media_message
 
 @register_atoms(pass_metta=True)
 def llmgate_atoms(metta):
@@ -13,6 +14,7 @@ def llmgate_atoms(metta):
     containsStrAtom = OperationAtom('contains-str', lambda a, b: [ValueAtom(contains_str(a, b))], unwrap=False)
     concatStrAtom = OperationAtom('concat-str', lambda a, b: [ValueAtom(concat_str(a, b))], unwrap=False)
     message2tupleAtom = OperationAtom('message2tuple', lambda a: [ValueAtom(message2tuple(a))], unwrap=False)
+
     result = {
         r"atom2msg": msgAtom,
         # FIXME: We add this function here, so we can explicitly evaluate results of LLMs, but
@@ -22,7 +24,7 @@ def llmgate_atoms(metta):
                                 unwrap=False),
         r"contains-str": containsStrAtom,
         r"concat-str": concatStrAtom,
-        r"message2tuple": message2tupleAtom
+        r"message2tuple": message2tupleAtom,
 
     }
     if importlib.util.find_spec('anthropic') is not None:
@@ -37,6 +39,8 @@ def llmgate_atoms(metta):
     result[r"dialog-agent"] = DialogAgent.agent_creator_atom(unwrap=False)
     result[r"echo-agent"] = EchoAgent.agent_creator_atom(metta)
     result[r"open-router-agent"] = OpenRouterAgent.agent_creator_atom(metta)
+    get_media_message = OperationAtom('get-media-message', lambda a: [ValueAtom(create_media_message(a))], unwrap=False)
+    result[r"get-media-message"] = get_media_message
     return result
 
 def str_find_all(str, values):

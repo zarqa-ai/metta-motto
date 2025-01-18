@@ -1,5 +1,3 @@
-import os
-import sys
 import json
 from hyperon import *
 
@@ -97,3 +95,25 @@ def get_sentence_from_stream_response(response):
         sentence_strip = sentence.strip()
         if len(sentence_strip) > 0:
             yield sentence_strip
+
+def encode_image(image_path):
+    import base64
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
+
+def create_media_message(image_path):
+    image_path = get_string_value(image_path)
+    base64_image = encode_image(image_path)
+    media_messages = {
+        "role": "user",
+        "content": [
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/jpeg;base64,{base64_image}",
+                    "detail": "low"
+                }
+            },
+        ],
+    }
+    return json.dumps(media_messages)

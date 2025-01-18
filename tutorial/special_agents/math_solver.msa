@@ -122,4 +122,4 @@ Step 2: Conclusion
 
 "))
 (= (response)
-   ((chat-gpt-agent) (Messages (context) (history) (messages))))
+   ((chat-gpt-agent "gpt-4o") (Messages (context) (history)  (messages))))

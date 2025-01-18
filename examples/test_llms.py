@@ -1,11 +1,11 @@
 import json
-import threading
 import time
 
 from hyperon import MeTTa
 from motto.agents import MettaScriptAgent, DialogAgent
 from motto.thread_agents import ListeningAgent
 from motto import get_sentence_from_stream_response
+from motto.utils import encode_image
 
 def test_stream_response():
     m = MeTTa()
@@ -30,12 +30,6 @@ def test_chat_gpt_additional_info():
                                ("media_msg", "", 'String')]).content
     result = v[0].get_object().content
     assert "meow" in result.lower()
-
-
-def encode_image(image_path):
-    import base64
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode('utf-8')
 
 
 def test_chat_gpt_media():
