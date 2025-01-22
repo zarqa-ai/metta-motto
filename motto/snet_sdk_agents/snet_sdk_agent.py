@@ -1,11 +1,14 @@
 from motto import get_string_value
 
 from motto.agents import MettaAgent
-from hyperon import ExpressionAtom, OperationAtom, ValueAtom, E, S, V, MeTTa, Environment, GroundingSpaceRef, G
+from hyperon import ValueAtom, E, S
 from hyperon.ext import register_atoms
-from hyperon.exts import snet_io
 from motto.agents import Response
+from motto.agents.api_importer import AIImporter
 
+ai_importer = AIImporter(agent_name='SnetSDKAgent', requirements=['snet', 'snet.sdk'])
+if not ai_importer.has_errors():
+    from hyperon.exts import snet_io
 
 class SnetSDKAgent(MettaAgent):
 
@@ -19,6 +22,8 @@ class SnetSDKAgent(MettaAgent):
         self._context_space = None
         self.method_args = method_args #method_args.get_object().value
         # create create_service_client and space with methods generated for given service
+        if ai_importer.has_errors():
+            return
         wrapper = snet_io.SNetSDKWrapper()
         wrapper.init_sdk()
         sp = wrapper.create_service_space(self.org_id, self.service_id, **kwargs) if kwargs is not None else wrapper.create_service_space(self.org_id, self.service_id)
@@ -36,16 +41,21 @@ class SnetSDKAgent(MettaAgent):
         context_space.add_atom(E(S('='), E(S('query')), ValueAtom(message)))
 
     def __call__(self, msgs_atom, functions=[], additional_info=None):
-        # TODO: support {'role': , 'content': } dict input
-        if isinstance(msgs_atom, str):
-            msgs_atom = self._metta.parse_single(msgs_atom)
-        self._prepare(msgs_atom)
-        args = []
-        for k, v in self.method_args.items():
-            args.append(S(get_string_value(v)))
-        # call the method of service with initialised (query)
-        response = self._metta.run(f'!{E(*args)}')
-        return self._postproc(response[0])
+        try:
+            ai_importer.check_errors()
+            # TODO: support {'role': , 'content': } dict input
+            if isinstance(msgs_atom, str):
+                msgs_atom = self._metta.parse_single(msgs_atom)
+            self._prepare(msgs_atom)
+            args = []
+            for k, v in self.method_args.items():
+                args.append(S(get_string_value(v)))
+            # call the method of service with initialised (query)
+            response = self._metta.run(f'!{E(*args)}')
+            return self._postproc(response[0])
+        except Exception as e:
+            return Response(f"Error: {e}")
+
 
     def _postproc(self, response):
         # No postprocessing is needed here

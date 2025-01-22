@@ -1,8 +1,6 @@
-import importlib.util
-import os
 from abc import abstractmethod
 
-from motto.utils import get_ai_client
+from motto.agents.api_importer import AIImporter
 
 
 class AbstractEmbeddings:
@@ -18,13 +16,9 @@ class AbstractEmbeddings:
 class OpenAIEmbeddings(AbstractEmbeddings):
 
     def __init__(self, model="text-embedding-ada-002"):
-        if importlib.util.find_spec('openai') is not None:
-            from openai import OpenAI
-        else:
-            raise RuntimeError("Install OpenAI library to use OpenAI agents")
-
-        proxy = os.environ.get('OPENAI_PROXY')
-        self.client = get_ai_client(OpenAI, proxy)
+        self.ai_importer = self.ai_importer = AIImporter('ChatGPTAgent', 'OPENAI_API_KEY', requirements=['openai'],
+                                                         client_constructor='openai.OpenAI', proxy='OPENAI_PROXY')
+        self.client = self.ai_importer.get_ai_client()
         self.model = model
 
     def get_embeddings(self, text):

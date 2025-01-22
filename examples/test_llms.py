@@ -1,7 +1,6 @@
 import json
 import threading
 import time
-
 from hyperon import MeTTa
 from motto.agents import MettaScriptAgent, DialogAgent
 from motto.thread_agents import ListeningAgent

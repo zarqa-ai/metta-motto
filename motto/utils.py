@@ -120,14 +120,3 @@ def has_argument(func, arg_name):
         return arg_name in signature.parameters
     except (TypeError, ValueError):
         return False
-
-def get_ai_client(client_constructor, proxy):
-    import httpx
-    if proxy is not None:
-        if has_argument(httpx.Client, "proxies"):
-            client = client_constructor(http_client=httpx.Client(proxies=proxy))
-        else:
-            client = client_constructor(http_client=httpx.Client(proxy=proxy))
-    else:
-        client = client_constructor()
-    return client

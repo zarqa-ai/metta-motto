@@ -5,5 +5,4 @@ from .utils import get_string_value, get_token_from_stream_response, get_sentenc
 from .langchain_agents import langchaingate_atoms
 import importlib.util
 from .thread_agents.thread_agents import listening_gate_atoms
-if (importlib.util.find_spec('snet') is not None) and importlib.util.find_spec('snet.sdk') is not None:
-    from .snet_sdk_agents import snet_sdk_atoms
+from .snet_sdk_agents import snet_sdk_atoms
