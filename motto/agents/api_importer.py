@@ -7,6 +7,17 @@ from motto.utils import has_argument
 
 agents_with_keys = ["ChatGPTAgent", "AnthropicAgent", 'RetrievalAgent', 'OpenRouterAgent']
 class AIImporter:
+    def save_errors(self, req):
+        if '.' not in req:
+            if importlib.util.find_spec(req) is None:
+                self.errors.append(RuntimeError(f"Install {req} library to use {self.agent_name}"))
+        else:
+            libs = str(req).split('.')
+            for lib in libs:
+                if importlib.util.find_spec(lib) is None:
+                    self.errors.append(RuntimeError(f"Install {req} library to use {self.agent_name}"))
+                    break
+
     def __init__(self, agent_name, key=None, requirements=None, client_constructor=None, proxy=None):
         if requirements is None:
             requirements = []
@@ -14,8 +25,7 @@ class AIImporter:
         self.errors = []
         self.requirements = requirements
         for req in self.requirements:
-            if importlib.util.find_spec(req) is None:
-                self.errors.append(RuntimeError(f"Install {req} library to use {self.agent_name}"))
+            self.save_errors(req)
 
         if agent_name in agents_with_keys:
             self.key = os.environ.get(key)

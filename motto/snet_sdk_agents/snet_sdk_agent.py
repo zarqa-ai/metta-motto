@@ -1,12 +1,11 @@
 from motto import get_string_value
-
 from motto.agents import MettaAgent
 from hyperon import ValueAtom, E, S
 from hyperon.ext import register_atoms
 from motto.agents import Response
 from motto.agents.api_importer import AIImporter
 
-ai_importer = AIImporter(agent_name='SnetSDKAgent', requirements=['snet', 'snet.sdk'])
+ai_importer = AIImporter(agent_name='SnetSDKAgent', requirements=['snet.sdk'])
 if not ai_importer.has_errors():
     from hyperon.exts import snet_io
 

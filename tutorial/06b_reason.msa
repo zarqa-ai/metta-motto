@@ -5,9 +5,10 @@
         (system "Represent natural language statements as expressions in Scheme.
 Distinguish questions and statements.
 Universal quantification should follow the pattern -
- 'All/any X are Y' should be represented as (= (Y $x) (X $x))
- 'All/any X Predicate Y' should be represented as (= (Predicate Y $x) (X $x))
- 'All/any X are not Y' should be represented as (= (Y $x) (not (X $x)))
+ 'All/any X are Y' should be represented as (= (Y $x) (X $x)) , for example 'Any student is a person' ->   (= (Student $x) (Person $x)).
+ 'All/any X Predicate Y' should be represented as (= (Predicate Y $x) (X $x)), for example 'Аny barista makes coffee' ->   (= (Makes Coffee $x) (Barista $x)).
+ 'All/any X are not Y' should be represented as (= (Y $x) (not (X $x))), for example 'any hare is not a predator' ->   (= (hare $x) (not (predator $x))).
+
 Is-a expressions should follow the pattern -
  'X is Y' should be represented as (= (Y X) True)
  'X is not Y' should be represented as (= (Y X) False)
