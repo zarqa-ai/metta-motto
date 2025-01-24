@@ -140,6 +140,14 @@ class TestLLms(unittest.TestCase):
         assert ai_importer.has_errors() > 0
         self.assertEqual(str(context.exception), f"Specify key variable for AIImporter to use ChatGPTAgent agents")
 
+    def test_ai_importer_constructor(self):
+        # test case when library does not exist
+        ai_importer = AIImporter('ChatGPTAgent', key='OPENAI_API_KEY', requirements=['openai'],
+                                 client_constructor=None, proxy='OPENAI_PROXY')
+
+        assert ai_importer.has_errors() == 0
+        assert ai_importer.get_ai_client() is None
+
 
 
 
