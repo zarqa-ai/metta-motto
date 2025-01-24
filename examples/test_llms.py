@@ -132,7 +132,7 @@ class TestLLms(unittest.TestCase):
         self.assertEqual(str(context.exception), f"Install openai_ library to use ChatGPTAgent")
 
     def test_ai_importer_key(self):
-        # test case when library does not exist
+        # test case when api key does not exist
         ai_importer = AIImporter('ChatGPTAgent', key=None, requirements=['openai'],
                                  client_constructor='openai.OpenAI', proxy='OPENAI_PROXY')
         with self.assertRaises(RuntimeError) as context:
@@ -141,7 +141,6 @@ class TestLLms(unittest.TestCase):
         self.assertEqual(str(context.exception), f"Specify key variable for AIImporter to use ChatGPTAgent agents")
 
     def test_ai_importer_constructor(self):
-        # test case when library does not exist
         ai_importer = AIImporter('ChatGPTAgent', key='OPENAI_API_KEY', requirements=['openai'],
                                  client_constructor=None, proxy='OPENAI_PROXY')
 
