@@ -27,10 +27,14 @@ class AIImporter:
         for req in self.requirements:
             self.save_errors(req)
 
+
         if agent_name in agents_with_keys:
-            self.key = os.environ.get(key)
-            if self.key is None:
-                self.errors.append(RuntimeError(f"Specify {key} environment variable to use {self.agent_name} agents"))
+            if key is None:
+                self.errors.append(RuntimeError(f"Specify key variable for AIImporter to use {self.agent_name} agents"))
+            else:
+                self.key = os.environ.get(key)
+                if self.key is None:
+                    self.errors.append(RuntimeError(f"Specify {key} environment variable to use {self.agent_name} agents"))
         if proxy is not None:
             self.proxy = os.environ.get(proxy)
         self.client_constructor = client_constructor
