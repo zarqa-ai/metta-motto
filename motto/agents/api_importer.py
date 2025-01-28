@@ -38,6 +38,7 @@ class AIImporter:
         if proxy is not None:
             self.proxy = os.environ.get(proxy)
         self.client_constructor = client_constructor
+        self._client = None
 
     def import_library(self):
         for req in self.requirements:
@@ -54,7 +55,13 @@ class AIImporter:
         if self.has_errors():
             raise self.errors[0]
 
-    def get_ai_client(self):
+    @property
+    def client(self):
+        if self._client is None:
+            self._client = self._get_ai_client()
+        return self._client
+
+    def _get_ai_client(self):
         self.check_errors()
 
         self.import_library()

@@ -2,14 +2,14 @@ from motto.agents.api_importer import AIImporter
 from .agent import Agent, Response
 import logging
 import time
+ai_importer = AIImporter('anthropic', key='ANTHROPIC_API_KEY', requirements=['anthropic'],
+                                      client_constructor='anthropic.Anthropic', proxy='OPENAI_PROXY')
 
 # FIXME: A more flexible was to setup proxy?
 class AnthropicAgent(Agent):
 
     def __init__(self, model="claude-3-opus-20240229"):
         super().__init__()
-        self.ai_importer = AIImporter('anthropic', key='ANTHROPIC_API_KEY', requirements=['anthropic'],
-                                      client_constructor='anthropic.Anthropic', proxy='OPENAI_PROXY')
         self._model = model
         self.log = logging.getLogger(__name__ + '.' + type(self).__name__)
         self.client = None
@@ -28,7 +28,7 @@ class AnthropicAgent(Agent):
 
     def __call__(self, messages, functions=[]):
         try:
-            self.client = self.ai_importer.get_ai_client()
+            self.client = ai_importer.client
             if not functions:
                 response = self.run_insists(model=self._model,
                                             messages=get_messages_no_system(messages),

@@ -1,7 +1,8 @@
 from .metta_agent import Agent
 from .messages_processor import MessagesProcessor
 from .api_importer import AIImporter
-
+ai_importer = AIImporter('ChatGPTAgent', 'OPENAI_API_KEY', requirements=['openai'],
+                                      client_constructor='openai.OpenAI', proxy='OPENAI_PROXY')
 class ChatGPTAgent(Agent):
     '''
     GPT agent with a cut_history parameter to ensure the length of the current context window stays within the model's allowed limit
@@ -10,8 +11,7 @@ class ChatGPTAgent(Agent):
     def __init__(self, model="gpt-3.5-turbo", stream=False, cut_history=False,  timeout=15, max_response_tokens=512):
         super().__init__()
         # agent_name, key=None, requirements=None, client_constructor=None, proxy=None
-        self.ai_importer = AIImporter('ChatGPTAgent', 'OPENAI_API_KEY', requirements=['openai'],
-                                      client_constructor='openai.OpenAI', proxy='OPENAI_PROXY')
+
         self._model = model
         self.stream_response = stream
         self.timeout = timeout
@@ -21,7 +21,7 @@ class ChatGPTAgent(Agent):
     def __call__(self, messages, functions=[]):
         try:
             messages = self.messages_processor.process_messages(messages)
-            client = self.ai_importer.get_ai_client()
+            client = ai_importer.client
             if not functions:
                 response = client.chat.completions.create(model=self._model,
                                                           messages=messages,

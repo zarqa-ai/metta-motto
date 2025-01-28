@@ -1,7 +1,8 @@
 from abc import abstractmethod
 
 from motto.agents.api_importer import AIImporter
-
+ai_importer = AIImporter('ChatGPTAgent', 'OPENAI_API_KEY', requirements=['openai'],
+                                                         client_constructor='openai.OpenAI', proxy='OPENAI_PROXY')
 
 class AbstractEmbeddings:
     @abstractmethod
@@ -16,9 +17,8 @@ class AbstractEmbeddings:
 class OpenAIEmbeddings(AbstractEmbeddings):
 
     def __init__(self, model="text-embedding-ada-002"):
-        self.ai_importer = self.ai_importer = AIImporter('ChatGPTAgent', 'OPENAI_API_KEY', requirements=['openai'],
-                                                         client_constructor='openai.OpenAI', proxy='OPENAI_PROXY')
-        self.client = self.ai_importer.get_ai_client()
+
+        self.client = ai_importer.client
         self.model = model
 
     def get_embeddings(self, text):

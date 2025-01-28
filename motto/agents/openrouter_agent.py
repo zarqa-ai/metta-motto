@@ -3,7 +3,7 @@ from .metta_agent import Agent
 import os
 import requests
 import json
-
+ai_importer = AIImporter('OpenRouterAgent', key='OPENROUTER_API_KEY')
 
 class Function:
     def __init__(self, name, arguments):
@@ -32,13 +32,13 @@ class OpenRouterAgent(Agent):
 
     def __init__(self, model="openai/gpt-3.5-turbo", stream=False):
         super().__init__()
-        self.ai_importer = AIImporter('OpenRouterAgent', key='OPENROUTER_API_KEY')
+
         self._model = model
         self.stream_response = stream
 
     def __call__(self, messages, functions=[]):
         try:
-            self.ai_importer.check_errors()
+            ai_importer.check_errors()
             data = {
                 "model": self._model,
                 "messages": messages,
@@ -58,7 +58,7 @@ class OpenRouterAgent(Agent):
             response = requests.post(
                 url="https://openrouter.ai/api/v1/chat/completions",
                 headers={
-                    "Authorization": f"Bearer {self.ai_importer.key}",
+                    "Authorization": f"Bearer {ai_importer.key}",
                 },
                 data=json.dumps(data)
             )
