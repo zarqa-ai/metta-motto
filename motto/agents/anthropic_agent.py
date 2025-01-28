@@ -2,7 +2,7 @@ from motto.agents.api_importer import AIImporter
 from .agent import Agent, Response
 import logging
 import time
-ai_importer = AIImporter('anthropic', key='ANTHROPIC_API_KEY', requirements=['anthropic'],
+ai_importer = AIImporter('AnthropicAgent', key='ANTHROPIC_API_KEY', requirements=['anthropic'],
                                       client_constructor='anthropic.Anthropic', proxy='HTTP_PROXY')
 
 # FIXME: A more flexible was to setup proxy?
