@@ -2,7 +2,7 @@ from .metta_agent import Agent
 from .messages_processor import MessagesProcessor
 from .api_importer import AIImporter
 ai_importer = AIImporter('ChatGPTAgent', 'OPENAI_API_KEY', requirements=['openai'],
-                                      client_constructor='openai.OpenAI', proxy='OPENAI_PROXY')
+                                      client_constructor='openai.OpenAI', proxy='HTTP_PROXY')
 class ChatGPTAgent(Agent):
     '''
     GPT agent with a cut_history parameter to ensure the length of the current context window stays within the model's allowed limit
