@@ -1,40 +1,35 @@
+from motto.agents.api_importer import AIImporter
 from .agent import Agent, Response
-import httpx
-import os
 import logging
 import time
-import importlib.util
+ai_importer = AIImporter('anthropic', key='ANTHROPIC_API_KEY', requirements=['anthropic'],
+                                      client_constructor='anthropic.Anthropic', proxy='OPENAI_PROXY')
 
 # FIXME: A more flexible was to setup proxy?
-proxy = os.environ.get('OPENAI_PROXY')
-if importlib.util.find_spec('anthropic') is not None:
-    import anthropic
+class AnthropicAgent(Agent):
 
-    client = anthropic.Anthropic() if proxy is None else \
-        anthropic.Anthropic(http_client=httpx.Client(proxies=proxy))
+    def __init__(self, model="claude-3-opus-20240229"):
+        super().__init__()
+        self._model = model
+        self.log = logging.getLogger(__name__ + '.' + type(self).__name__)
+        self.client = None
 
+    def run_insists(self, **kwargs):
+        response = None
+        while response is None:
+            try:
+                response = self.client.messages.create(**kwargs)
+            except Exception as e:
+                self.log.debug(f"Error: {e}")
+                self.log.debug(f"Error: {type(e)}")
+                self.log.debug("RETRY!")
+                time.sleep(1)
+        return response
 
-    class AnthropicAgent(Agent):
-
-        def __init__(self, model="claude-3-opus-20240229"):
-            super().__init__()
-            self._model = model
-            self.log = logging.getLogger(__name__ + '.' + type(self).__name__)
-
-        def run_insists(self, **kwargs):
-            response = None
-            while response is None:
-                try:
-                    response = client.messages.create(**kwargs)
-                except anthropic.RateLimitError as e:
-                    self.log.debug(f"Error: {e}")
-                    self.log.debug(f"Error: {type(e)}")
-                    self.log.debug("RETRY!")
-                    time.sleep(10)
-            return response
-
-        def __call__(self, messages, functions=[]):
-            if functions == []:
+    def __call__(self, messages, functions=[]):
+        try:
+            self.client = ai_importer.client
+            if not functions:
                 response = self.run_insists(model=self._model,
                                             messages=get_messages_no_system(messages),
                                             system=get_system(messages),
@@ -44,7 +39,8 @@ if importlib.util.find_spec('anthropic') is not None:
             else:
                 raise Exception("We do not support functional calls with Anthropic models")
             return Response(response.content[0].text)
-
+        except Exception as e:
+            return Response(f"Error: {e}")
 
 
 def get_system(messages):

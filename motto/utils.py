@@ -1,5 +1,4 @@
-import os
-import sys
+import inspect
 import json
 from hyperon import *
 
@@ -8,11 +7,20 @@ assistant_role = 'assistant'
 def get_grounded_atom_value(atom):
     return atom.get_object().content if isinstance(atom, GroundedAtom) else atom
 
-def get_string_value(atom) -> str:
-    item = repr(atom)
+def get_string(atom) -> str:
+    item = str(atom)
     if len(item) > 2 and (item[0] == '"' and item[-1] == '"'):
         item = item[1:-1]
     return item
+
+def get_string_value(atom) -> str:
+    if isinstance(atom, str):
+        return atom
+    if isinstance(atom, GroundedAtom) and atom.get_grounded_type() == S('String'):
+        return atom.get_object().content
+    if isinstance(atom, SymbolAtom):
+        return atom.get_name()
+    return str(atom)
 
 
 def contains_str(value, substring) -> bool:
@@ -97,3 +105,18 @@ def get_sentence_from_stream_response(response):
         sentence_strip = sentence.strip()
         if len(sentence_strip) > 0:
             yield sentence_strip
+
+
+def has_argument(func, arg_name):
+    """
+    Checks if a function has a given argument.
+
+    :param func: The function to check.
+    :param arg_name: The name of the argument to check for.
+    :return: True if the argument exists, otherwise False.
+    """
+    try:
+        signature = inspect.signature(func)
+        return arg_name in signature.parameters
+    except (TypeError, ValueError):
+        return False

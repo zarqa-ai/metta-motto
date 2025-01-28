@@ -5,7 +5,13 @@ import concurrent.futures
 
 from .agent import Agent
 from .agent import Response
-from .data_processors import OpenAIEmbeddings, DocProcessor
+from .api_importer import AIImporter
+
+ai_importer = AIImporter(agent_name='RetrievalAgent', key='OPENAI_API_KEY',
+                         requirements=['openai', 'markdown', 'tiktoken', 'bs4'])
+
+if not ai_importer.has_errors():
+    from .data_processors import OpenAIEmbeddings, DocProcessor
 
 
 def fix_for_chromabd(ex):
@@ -14,11 +20,14 @@ def fix_for_chromabd(ex):
         import sys
         sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
+
 class RetrievalAgent(Agent):
     max_length = 2270
 
     def __init__(self, data_source, chunk_token_size, docs_count, data_dir):
         super().__init__()
+        if ai_importer.has_errors():
+            return
         if not (os.path.isfile(data_source) or os.path.isdir(data_source)):
             raise AttributeError("data_source should be file or folder")
 
@@ -89,27 +98,31 @@ class RetrievalAgent(Agent):
             raise RuntimeError(f"RetrievalAgent.__load_docs error: {ex}")
 
     def __call__(self, messages, functions=[], doc_name=[]):
-        if isinstance(messages, str):
-            text = messages
-        else:
-            try:
-                text = list(map(lambda m: m['content'], messages))
-                text = '\n'.join(text)
-            except Exception as ex:
-                raise TypeError(f"Incorrect argument for retrieval-agent: {ex}")
-        embeddings_values = self.embeddings_getter.get_embeddings(text)
-        if not doc_name:
-            context = self.collection.query(query_embeddings=embeddings_values, n_results=self.docs_count)
-        else:
-            if self.data_source not in doc_name:
-                doc_name = os.path.join(self.data_source, doc_name)
-            context = self.collection.query(query_embeddings=embeddings_values, n_results=self.docs_count,
-                                            where={"source": doc_name})
-        docs = context["documents"][0]
-        res = ""
-        for doc in docs:
-            next = doc.replace('"', "'")
-            if next not in res:
-                res += next + "\n"
+        try:
+            ai_importer.check_errors()
+            if isinstance(messages, str):
+                text = messages
+            else:
+                try:
+                    text = list(map(lambda m: m['content'], messages))
+                    text = '\n'.join(text)
+                except Exception as ex:
+                    raise TypeError(f"Incorrect argument for retrieval-agent: {ex}")
+            embeddings_values = self.embeddings_getter.get_embeddings(text)
+            if not doc_name:
+                context = self.collection.query(query_embeddings=embeddings_values, n_results=self.docs_count)
+            else:
+                if self.data_source not in doc_name:
+                    doc_name = os.path.join(self.data_source, doc_name)
+                context = self.collection.query(query_embeddings=embeddings_values, n_results=self.docs_count,
+                                                where={"source": doc_name})
+            docs = context["documents"][0]
+            res = ""
+            for doc in docs:
+                next = doc.replace('"', "'")
+                if next not in res:
+                    res += next + "\n"
 
-        return Response(f"\"{res}\"", None)
+            return Response(f"\"{res}\"", None)
+        except Exception as e:
+            return Response(f"Error: {e}")
