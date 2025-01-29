@@ -2,7 +2,7 @@ from abc import abstractmethod
 
 from motto.agents.api_importer import AIImporter
 ai_importer = AIImporter('ChatGPTAgent', 'OPENAI_API_KEY', requirements=['openai'],
-                                                         client_constructor='openai.OpenAI', proxy='OPENAI_PROXY')
+                                                         client_constructor='openai.OpenAI', proxy='HTTP_PROXY')
 
 class AbstractEmbeddings:
     @abstractmethod

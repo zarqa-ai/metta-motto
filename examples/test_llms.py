@@ -127,7 +127,7 @@ class TestLLms(unittest.TestCase):
         ai_importer = AIImporter('ChatGPTAgent', 'OPENAI_API_KEY', requirements=['openai_'],
                                  client_constructor='openai.OpenAI', proxy='OPENAI_PROXY')
         with self.assertRaises(RuntimeError) as context:
-            ai_importer.get_ai_client()
+            cl = ai_importer.client
         assert ai_importer.has_errors() > 0
         self.assertEqual(str(context.exception), f"Install openai_ library to use ChatGPTAgent")
 
@@ -136,7 +136,7 @@ class TestLLms(unittest.TestCase):
         ai_importer = AIImporter('ChatGPTAgent', key=None, requirements=['openai'],
                                  client_constructor='openai.OpenAI', proxy='OPENAI_PROXY')
         with self.assertRaises(RuntimeError) as context:
-            ai_importer.get_ai_client()
+            cl = ai_importer.client
         assert ai_importer.has_errors() > 0
         self.assertEqual(str(context.exception), f"Specify key variable for AIImporter to use ChatGPTAgent agents")
 
@@ -145,7 +145,7 @@ class TestLLms(unittest.TestCase):
                                  client_constructor=None, proxy='OPENAI_PROXY')
 
         assert ai_importer.has_errors() == 0
-        assert ai_importer.get_ai_client() is None
+        assert ai_importer.client is None
 
 
 
