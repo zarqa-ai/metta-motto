@@ -25,11 +25,13 @@ class Event:
         self.time =  time.time()
 
 class ListeningAgent(DialogAgent):
+    stop_message = "_stop_"
     # this method will be called via start in separate thread
     def __init__(self, path=None, atoms={}, include_paths=None, code=None, event_bus=None):
         self.log = logging.getLogger(__name__ + '.' + type(self).__name__)
         self.cancel_processing_var = False
         self.interrupt_processing_var = False
+        self.processing = False
 
         atoms['handle-speechstart'] = OperationAtom('queue-subscription', self.handle_speechstart, unwrap=False)
         atoms['handle-speechcont'] = OperationAtom('handle-speechcont', self.handle_speechcont, unwrap=False)
@@ -105,6 +107,8 @@ class ListeningAgent(DialogAgent):
         while self.running:
             # TODO? func can be a Python function?
             message = self.messages.get()
+            if message.message == self.stop_message:
+                break
             resp = self.message_processor(message)
 
             for r in resp:
@@ -153,13 +157,13 @@ class ListeningAgent(DialogAgent):
             super().input(AgentArgs(msgs_atom, functions, additional_info))
         return self.start()
 
-    def handle_speechstart(self):
+    def handle_speechstart(self, arg):
         if self.processing:
             self.set_canceling_variable(not self.said)
-        self.speech_start = event.time
+        self.speech_start = get_grounded_atom_value(arg)
         return []
 
-    def handle_speechcont(self):
+    def handle_speechcont(self, arg):
         if self.processing and self.said and (time.time() - self.speech_start) > 0.5:
             self.set_interrupt_variable(True)
         return []
@@ -168,17 +172,15 @@ class ListeningAgent(DialogAgent):
         self.set_canceling_variable(False)
         self.set_interrupt_variable(False)
         data = get_grounded_atom_value(data)
-        data = data["data"]
+        data = data["text"]
         if isinstance(data, str):
             data = {"message": data}
         self.messages.put(AgentArgs(**data))
         return []
 
-    def set_event(self, event_type, data=None):
-        '''Adds a new event to the events queue.'''
-
-        self.events.put(Event(event_type, data))
-        return []
+    def stop(self):
+        super().stop()
+        self.messages.put(AgentArgs(message=self.stop_message))
 
     def say(self):
         respond = []
