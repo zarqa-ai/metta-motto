@@ -5,7 +5,7 @@
 
 !(bind! &a1 (listening-agent "examples/examples_with_threads/simple_call.msa"  &events))
 !(&a1 .start)
-!(publish-event &events "speech" (py-dict (("text" "who is the 6 president of France"))))
+!(publish-event &events "speech" (py-dict (("data" "who is the 6 president of France"))))
 ;! (&a1 .set_event "speech" (py-dict (("text" "who is the 6 president of France"))))
 ! ((py-atom time.sleep) 5)
 ! (&a1 .say)

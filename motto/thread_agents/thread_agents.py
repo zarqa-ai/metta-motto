@@ -30,15 +30,18 @@ class ListeningAgent(DialogAgent):
         self.log = logging.getLogger(__name__ + '.' + type(self).__name__)
         self.cancel_processing_var = False
         self.interrupt_processing_var = False
+
+        atoms['handle-speechstart'] = OperationAtom('queue-subscription', self.handle_speechstart, unwrap=False)
+        atoms['handle-speechcont'] = OperationAtom('handle-speechcont', self.handle_speechcont, unwrap=False)
+        atoms['handle-speech'] = OperationAtom('handle-speech', self.handle_speech, unwrap=False)
+
         if isinstance(atoms, GroundedAtom):
             atoms = atoms.get_object().content
         super().__init__(path, atoms, include_paths, code, event_bus=event_bus)
         self.lock = threading.RLock()
         self.messages = Queue()
 
-        atoms['handle-speechstart'] = OperationAtom('queue-subscription', self.handle_speechstart, unwrap=False)
-        atoms['handle-speechcont'] = OperationAtom('handle-speechcont', self.handle_speechcont, unwrap=False)
-        atoms['handle-speech'] = OperationAtom('handle-speech', self.handle_speech, unwrap=False)
+
 
     def _postproc(self, response):
         # do not need to save history here so the method from MettaAgent is used
@@ -164,7 +167,11 @@ class ListeningAgent(DialogAgent):
     def handle_speech(self, data):
         self.set_canceling_variable(False)
         self.set_interrupt_variable(False)
-        self.messages.put(data["data"])
+        data = get_grounded_atom_value(data)
+        data = data["data"]
+        if isinstance(data, str):
+            data = {"message": data}
+        self.messages.put(AgentArgs(**data))
         return []
 
     def set_event(self, event_type, data=None):

@@ -13,8 +13,7 @@ class MettaAgent(Agent):
                 if n[0] == '.' and hasattr(self, n[1:]):
                     method = getattr(self, n[1:])
                     args = args[1:]
-                    if self._unwrap:
-                        method = OperationObject(f"{method}", method).execute
+                    method = OperationObject(f"{method}", method).execute
                     return method(*args)
         return super().__metta_call__(*args)
 
