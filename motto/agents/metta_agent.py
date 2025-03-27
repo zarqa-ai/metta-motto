@@ -76,9 +76,9 @@ class MettaScriptAgent(MettaAgent):
 
 
 class DialogAgent(MettaAgent):
-    def __init__(self, path=None, atoms={}, include_paths=None, code=None):
+    def __init__(self, path=None, atoms={}, include_paths=None, code=None,event_bus=None):
         self.history = []
-        super().__init__(path, atoms, include_paths, code)
+        super().__init__(path, atoms, include_paths, code, event_bus)
         self.log = logging.getLogger(__name__ + '.' + type(self).__name__)
 
 
