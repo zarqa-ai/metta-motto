@@ -35,8 +35,6 @@ class ListeningAgent(DialogAgent):
         self.lock = threading.RLock()
         self.messages = Queue()
 
-
-
     def _postproc(self, response):
         # do not need to save history here so the method from MettaAgent is used
         result = MettaAgent._postproc(self, response)
@@ -150,7 +148,6 @@ class ListeningAgent(DialogAgent):
         if isinstance(msg, str):
             msg = {"message": msg}
         self.messages.put(AgentArgs(**msg))
-        return []
 
     def handle_speechstart(self, arg):
         self.speech_start = get_grounded_atom_value(arg)
