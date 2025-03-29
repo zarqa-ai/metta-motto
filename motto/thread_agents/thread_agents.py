@@ -1,13 +1,12 @@
 import time
-from hyperon import *
 from motto.agents import DialogAgent, MettaAgent
 from hyperon.ext import register_atoms
 from hyperon.exts.agents.agent_base import StreamMethod
-from hyperon.atoms import GroundedAtom,  ExpressionAtom
 from queue import Queue
 import threading
 from motto.utils import *
 import logging
+
 
 class AgentArgs:
     def __init__(self, message, functions=[], additional_info=None, language=None):
@@ -16,8 +15,10 @@ class AgentArgs:
         self.functions = get_grounded_atom_value(functions)
         self.language = language
 
+
 class ListeningAgent(DialogAgent):
     stop_message = "_stop_"
+
     # this method will be called via start in separate thread
     def __init__(self, path=None, atoms={}, include_paths=None, code=None, event_bus=None):
         self.log = logging.getLogger(__name__ + '.' + type(self).__name__)
@@ -47,19 +48,18 @@ class ListeningAgent(DialogAgent):
         if response is None:
             return
         if isinstance(response, str):
-            if not  self.cancel_processing_var:
+            if not self.cancel_processing_var:
                 yield response
         else:
             stream = get_sentence_from_stream_response(response)
             can_close = hasattr(response, "close")
             for i, sentence in enumerate(stream):
-                if (i == 0) and  (self.cancel_processing_var or self.interrupt_processing_var):
+                if (i == 0) and (self.cancel_processing_var or self.interrupt_processing_var):
                     self.log.debug("Stream processing has been canceled")
                     if can_close:
                         response.close()
                     break
                 yield sentence
-
 
     def set_canceling_variable(self, value):
         with self.lock:
@@ -76,7 +76,7 @@ class ListeningAgent(DialogAgent):
     def is_empty_message(self, message):
         if isinstance(message, ExpressionAtom):
             children = message.get_children()
-            if len(children) > 1 and  str(get_grounded_atom_value(children[-1])).strip() == "":
+            if len(children) > 1 and str(get_grounded_atom_value(children[-1])).strip() == "":
                 return True
         elif isinstance(message, str) and message.strip() == "":
             return True
@@ -98,6 +98,8 @@ class ListeningAgent(DialogAgent):
             if message.message == self.stop_message:
                 break
             self.said = False
+            self.set_canceling_variable(False)
+            self.set_interrupt_variable(False)
             for r in self.message_processor(message):
                 self.outputs.put(r)
 
@@ -105,19 +107,20 @@ class ListeningAgent(DialogAgent):
         '''
         Takes a single message and provides a response if no canceling event has occurred.
         '''
-        if  self.is_empty_message(input.message):
+        if self.is_empty_message(input.message):
             message = None
-        elif str(input.message).startswith("(") and  str(input.message).endswith(")"):
+        elif str(input.message).startswith("(") and str(input.message).endswith(")"):
             message = input.message
-        else :
+        else:
             message = f"(Messages (user \"{input.message}\"))"
-        if( message is None) and (input.additional_info is None):
+        if (message is None) and (input.additional_info is None):
             self.set_processing_val(False)
+            return
 
-        response = super().__call__(message, input.functions, input.additional_info).content
         self.set_processing_val(True)
+        response = super().__call__(message, input.functions, input.additional_info).content
         for resp in self.process_stream_response(response):
-            #cancel processing of the current message and return the message to the input
+            # cancel processing of the current message and return the message to the input
             if self.cancel_processing_var:
                 self.log.info(f"message_processor:cancel processing for message {message}\n")
                 self.input(input.message)
@@ -130,11 +133,10 @@ class ListeningAgent(DialogAgent):
             self.history += [E(S(assistant_role), G(ValueObject(resp)))]
             self.log.info(f"message_processor: return response for message {message} : {resp}")
             yield resp if input.language is None else (resp, input.language)
-            #interrupt processing
+            # interrupt processing
             if self.interrupt_processing_var:
                 break
         self.set_processing_val(False)
-
 
     def __call__(self, msgs_atom=None, functions=[], additional_info=None):
         if msgs_atom is not None:
@@ -156,13 +158,11 @@ class ListeningAgent(DialogAgent):
         return []
 
     def handle_speechcont(self, arg):
-        if self.processing and self.said and( (time.time() - self.speech_start) > 0.5):
+        if self.processing and self.said and ((time.time() - self.speech_start) > 0.5):
             self.set_interrupt_variable(True)
         return []
 
     def handle_speech(self, data):
-        self.set_canceling_variable(False)
-        self.set_interrupt_variable(False)
         self.input(data)
         return []
 
@@ -178,15 +178,18 @@ class ListeningAgent(DialogAgent):
                 respond.append(ValueAtom(self.outputs.get()))
         return respond
 
-
     def has_output(self):
         return not self.outputs.empty()
+
 
 @register_atoms(pass_metta=True)
 def listening_gate_atoms(metta):
     return {
         r"listening-agent": OperationAtom('listening-agent',
-                  lambda path=None, event_bus=None:ListeningAgent.get_agent_atom(None, unwrap=False,
-                                                                              path=path,
-                                                                              event_bus=event_bus), unwrap=False),
+                                          lambda path=None, event_bus=None:
+                                          ListeningAgent.get_agent_atom(None,
+                                                                      unwrap=False,
+                                                                      path=path,
+                                                                      event_bus=event_bus),
+                                          unwrap=False),
     }

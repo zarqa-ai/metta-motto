@@ -85,7 +85,7 @@ class TestLLms(unittest.TestCase):
         agent = ListeningAgent(code='''
             (= (respond)((chat-gpt-agent "gpt-3.5-turbo" True True) (Messages (history)  (messages))) )
             (= (response) (respond))
-            
+
             !(queue-subscription speech handle-speech)
             !(queue-subscription speechstart handle-speechstart)
             !(queue-subscription speechcont handle-speechcont)
@@ -97,8 +97,10 @@ class TestLLms(unittest.TestCase):
         agent.outputs = Queue()
 
         node.publish("speech", "who is the 6 president of France?")
+        start = time.time()
         while not agent.processing:
-            pass
+            if start - time.time() > 7:
+                break
         agent.set_canceling_variable(True)
         time.sleep(3)
         agent.stop()
