@@ -2,7 +2,7 @@ import time
 from hyperon import *
 from motto.agents import DialogAgent, MettaAgent
 from hyperon.ext import register_atoms
-from hyperon.exts.agents import StreamMethod
+from hyperon.exts.agents.agent_base import StreamMethod
 from hyperon.atoms import GroundedAtom,  ExpressionAtom
 from queue import Queue
 import threading
@@ -15,14 +15,6 @@ class AgentArgs:
         self.additional_info = get_grounded_atom_value(additional_info)
         self.functions = get_grounded_atom_value(functions)
         self.language = language
-
-class Event:
-    def __init__(self, event_type, data=None):
-        event_type = get_grounded_atom_value(event_type)
-        data = get_grounded_atom_value(data)
-        self.event_type = event_type
-        self.data = data
-        self.time =  time.time()
 
 class ListeningAgent(DialogAgent):
     stop_message = "_stop_"
@@ -74,12 +66,10 @@ class ListeningAgent(DialogAgent):
     def set_canceling_variable(self, value):
         with self.lock:
             self.cancel_processing_var = value
-        return []
 
     def set_interrupt_variable(self, value):
         with self.lock:
             self.interrupt_processing_var = value
-        return []
 
     def set_processing_val(self, val):
         with self.lock:
@@ -109,9 +99,8 @@ class ListeningAgent(DialogAgent):
             message = self.messages.get()
             if message.message == self.stop_message:
                 break
-            resp = self.message_processor(message)
-
-            for r in resp:
+            self.said = False
+            for r in self.message_processor(message):
                 self.outputs.put(r)
 
     def message_processor(self, input: AgentArgs):
@@ -126,21 +115,18 @@ class ListeningAgent(DialogAgent):
             message = f"(Messages (user \"{input.message}\"))"
         if( message is None) and (input.additional_info is None):
             self.set_processing_val(False)
-            return
+
         response = super().__call__(message, input.functions, input.additional_info).content
         self.set_processing_val(True)
-        #self.handle_event()
-        resp = None
         for resp in self.process_stream_response(response):
-            #self.handle_event()
             #cancel processing of the current message and return the message to the input
             if self.cancel_processing_var:
-                self.log.info(f"message_processor:cancel processing for message {message}")
+                self.log.info(f"message_processor:cancel processing for message {message}\n")
                 self.input(input.message)
                 break
 
             if self.interrupt_processing_var:
-                self.log.info(f"message_processor:interrupt processing for message {message}")
+                self.log.info(f"message_processor:interrupt processing for message {message}\n")
                 resp = "..."
 
             self.history += [E(S(assistant_role), G(ValueObject(resp)))]
@@ -154,28 +140,33 @@ class ListeningAgent(DialogAgent):
 
     def __call__(self, msgs_atom=None, functions=[], additional_info=None):
         if msgs_atom is not None:
-            super().input(AgentArgs(msgs_atom, functions, additional_info))
+            self.messages.put(AgentArgs(msgs_atom, functions, additional_info))
         return self.start()
 
+    def input(self, msg):
+        msg = get_grounded_atom_value(msg)
+        if 'text' in msg:
+            msg = msg['text']
+        if isinstance(msg, str):
+            msg = {"message": msg}
+        self.messages.put(AgentArgs(**msg))
+        return []
+
     def handle_speechstart(self, arg):
+        self.speech_start = get_grounded_atom_value(arg)
         if self.processing:
             self.set_canceling_variable(not self.said)
-        self.speech_start = get_grounded_atom_value(arg)
         return []
 
     def handle_speechcont(self, arg):
-        if self.processing and self.said and (time.time() - self.speech_start) > 0.5:
+        if self.processing and self.said and( (time.time() - self.speech_start) > 0.5):
             self.set_interrupt_variable(True)
         return []
 
     def handle_speech(self, data):
         self.set_canceling_variable(False)
         self.set_interrupt_variable(False)
-        data = get_grounded_atom_value(data)
-        data = data["text"]
-        if isinstance(data, str):
-            data = {"message": data}
-        self.messages.put(AgentArgs(**data))
+        self.input(data)
         return []
 
     def stop(self):
