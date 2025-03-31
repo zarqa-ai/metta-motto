@@ -28,7 +28,7 @@ class ListeningAgent(DialogAgent):
 
         atoms['handle-speechstart'] = OperationAtom('queue-subscription', self.handle_speechstart, unwrap=False)
         atoms['handle-speechcont'] = OperationAtom('handle-speechcont', self.handle_speechcont, unwrap=False)
-        atoms['handle-speech'] = OperationAtom('handle-speech', self.handle_speech, unwrap=False)
+        atoms['process_messages'] = OperationAtom('process_messages', self.process_messages, unwrap=False)
 
         if isinstance(atoms, GroundedAtom):
             atoms = atoms.get_object().content
@@ -41,8 +41,6 @@ class ListeningAgent(DialogAgent):
         result = MettaAgent._postproc(self, response)
         return result
 
-    def _input(self, msg):
-        self.messages.put(msg)
 
     def process_stream_response(self, response):
         if response is None:
@@ -85,28 +83,20 @@ class ListeningAgent(DialogAgent):
 
         return False
 
-    def start(self, *args):
-        super().start(*args)
-        st = StreamMethod(self.messages_processor, args)
-        st.start()
+    def process_messages(self, arg):
+        input = self.getAgentArgs(arg)
+        for resp in self.process_message(input):
+            self.outputs.put(resp)
+        return []
 
-    def messages_processor(self, *args):
-        # `*args` received on `start`
-        while self.running:
-            # TODO? func can be a Python function?
-            message = self.messages.get()
-            if message.message == self.stop_message:
-                break
-            self.said = False
-            self.set_canceling_variable(False)
-            self.set_interrupt_variable(False)
-            for r in self.message_processor(message):
-                self.outputs.put(r)
-
-    def message_processor(self, input: AgentArgs):
+    def process_message(self, input):
         '''
         Takes a single message and provides a response if no canceling event has occurred.
         '''
+
+        self.said = False
+        self.set_canceling_variable(False)
+        self.set_interrupt_variable(False)
         if self.is_empty_message(input.message):
             message = None
         elif str(input.message).startswith("(") and str(input.message).endswith(")"):
@@ -122,12 +112,12 @@ class ListeningAgent(DialogAgent):
         for resp in self.process_stream_response(response):
             # cancel processing of the current message and return the message to the input
             if self.cancel_processing_var:
-                self.log.info(f"message_processor:cancel processing for message {message}\n")
-                self.input(input.message)
+                print(f"message_processor:cancel processing for message {message}\n")
+                self.event_bus.publish("speech", arg)
                 break
 
             if self.interrupt_processing_var:
-                self.log.info(f"message_processor:interrupt processing for message {message}\n")
+                print(f"message_processor:interrupt processing for message {message}\n")
                 resp = "..."
 
             self.history += [E(S(assistant_role), G(ValueObject(resp)))]
@@ -138,18 +128,17 @@ class ListeningAgent(DialogAgent):
                 break
         self.set_processing_val(False)
 
+
     def __call__(self, msgs_atom=None, functions=[], additional_info=None):
-        if msgs_atom is not None:
-            self.messages.put(AgentArgs(msgs_atom, functions, additional_info))
         return self.start()
 
-    def input(self, msg):
+    def getAgentArgs(self, msg) -> AgentArgs:
         msg = get_grounded_atom_value(msg)
         if 'text' in msg:
             msg = msg['text']
         if isinstance(msg, str):
             msg = {"message": msg}
-        self.messages.put(AgentArgs(**msg))
+        return AgentArgs(**msg)
 
     def handle_speechstart(self, arg):
         self.speech_start = get_grounded_atom_value(arg)
@@ -162,9 +151,7 @@ class ListeningAgent(DialogAgent):
             self.set_interrupt_variable(True)
         return []
 
-    def handle_speech(self, data):
-        self.input(data)
-        return []
+
 
     def stop(self):
         super().stop()
