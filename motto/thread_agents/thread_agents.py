@@ -41,9 +41,6 @@ class ListeningAgent(DialogAgent):
         result = MettaAgent._postproc(self, response)
         return result
 
-    def _input(self, msg):
-        self.messages.put(msg)
-
     def process_stream_response(self, response):
         if response is None:
             return
@@ -139,8 +136,6 @@ class ListeningAgent(DialogAgent):
         self.set_processing_val(False)
 
     def __call__(self, msgs_atom=None, functions=[], additional_info=None):
-        if msgs_atom is not None:
-            self.messages.put(AgentArgs(msgs_atom, functions, additional_info))
         return self.start()
 
     def input(self, msg):
