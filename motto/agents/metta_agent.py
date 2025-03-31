@@ -13,8 +13,7 @@ class MettaAgent(Agent):
                 if n[0] == '.' and hasattr(self, n[1:]):
                     method = getattr(self, n[1:])
                     args = args[1:]
-                    if self._unwrap:
-                        method = OperationObject(f"{method}", method).execute
+                    method = OperationObject(f"{method}", method).execute
                     return method(*args)
         return super().__metta_call__(*args)
 
@@ -76,9 +75,9 @@ class MettaScriptAgent(MettaAgent):
 
 
 class DialogAgent(MettaAgent):
-    def __init__(self, path=None, atoms={}, include_paths=None, code=None):
+    def __init__(self, path=None, atoms={}, include_paths=None, code=None,event_bus=None):
         self.history = []
-        super().__init__(path, atoms, include_paths, code)
+        super().__init__(path, atoms, include_paths, code, event_bus)
         self.log = logging.getLogger(__name__ + '.' + type(self).__name__)
 
 

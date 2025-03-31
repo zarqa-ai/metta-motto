@@ -1,2 +1,6 @@
 (= (respond)((chat-gpt-agent "gpt-3.5-turbo" True True) (Messages (history)  (messages)) ) )
 (= (response) (respond))
+
+!(queue-subscription speech handle-speech)
+!(queue-subscription speechstart handle-speechstart)
+!(queue-subscription speechcont handle-speechcont)

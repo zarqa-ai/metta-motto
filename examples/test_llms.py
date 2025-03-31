@@ -1,11 +1,14 @@
 import json
-import threading
 import time
 from hyperon import MeTTa
+from hyperon.exts.agents.events.basic_bus import BasicEventBus
+
 from motto.agents import MettaScriptAgent, DialogAgent
 from motto.agents.api_importer import AIImporter
 from motto.thread_agents import ListeningAgent
 from motto import get_sentence_from_stream_response
+from queue import Queue
+
 
 import unittest
 class TestLLms(unittest.TestCase):
@@ -78,21 +81,31 @@ class TestLLms(unittest.TestCase):
 
 
     def test_canceling(self):
+        node = BasicEventBus()
         agent = ListeningAgent(code='''
             (= (respond)((chat-gpt-agent "gpt-3.5-turbo" True True) (Messages (history)  (messages))) )
             (= (response) (respond))
-        ''')
-        agent('(Messages (system  "Who made significant advancements in the fields of electromagnetism?"))')
-        time.sleep(3)
-        agent.stop()
+
+            !(queue-subscription speech handle-speech)
+            !(queue-subscription speechstart handle-speechstart)
+            !(queue-subscription speechcont handle-speechcont)
+        ''', event_bus=node)
+        agent.start()
+        node.publish("speech",  "Who made significant advancements in the fields of electromagnetism?")
+        time.sleep(5)
         assert agent.has_output()
+        agent.outputs = Queue()
 
-        agent('(Messages (system  "Who made significant advancements in the fields of electromagnetism?"))')
-
+        node.publish("speech", "who is the 6 president of France?")
+        start = time.time()
+        while not agent.processing:
+            if start - time.time() > 7:
+                break
         agent.set_canceling_variable(True)
         time.sleep(3)
         agent.stop()
-        assert (not agent.has_output())
+        val = not agent.has_output()
+        assert val
 
     def test_open_router_stream_sentence(self):
         code = '''
