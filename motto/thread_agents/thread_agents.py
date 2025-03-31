@@ -135,9 +135,6 @@ class ListeningAgent(DialogAgent):
                 break
         self.set_processing_val(False)
 
-    def __call__(self, msgs_atom=None, functions=[], additional_info=None):
-        return self.start()
-
     def input(self, msg):
         msg = get_grounded_atom_value(msg)
         if 'text' in msg:
