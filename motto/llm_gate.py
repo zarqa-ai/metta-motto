@@ -10,8 +10,11 @@ def llmgate_atoms(metta):
     # the message converted from expression to text
     msgAtom = OperationAtom('atom2msg',
                     lambda atom: [ValueAtom(atom2msg(atom))], unwrap=False)
-    containsStrAtom = OperationAtom('contains-str', lambda a, b: [ValueAtom(contains_str(a, b))], unwrap=False)
-    concatStrAtom = OperationAtom('concat-str', lambda a, b: [ValueAtom(concat_str(a, b))], unwrap=False)
+    containsStrAtom = OperationAtom('contains-str', lambda a, b: [ValueAtom(contains_str(a, b))],
+                                    type_names=['%Undefined%', '%Undefined%', 'Bool'], unwrap=False)
+    concatStrAtom = OperationAtom('concat-str', lambda a, b: [ValueAtom(concat_str(a, b))],
+                                  type_names=['%Undefined%', '%Undefined%', 'Bool'], unwrap=False)
+
     message2tupleAtom = OperationAtom('message2tuple', lambda a: [ValueAtom(message2tuple(a))], unwrap=False)
     result = {r"atom2msg": msgAtom, r"_eval": OperationAtom("_eval",
                                                             lambda atom: metta.run("! " + atom.get_object().value)[0],
