@@ -56,6 +56,7 @@ class ListeningAgent(DialogAgent):
                     if can_close:
                         response.close()
                     break
+                print(sentence)
                 yield sentence
 
     def set_canceling_variable(self, value):
