@@ -23,8 +23,8 @@ image_handler = None
 
 node = BasicEventBus()
 stt = MockSTT(node)
-tts_waci = MockTTSInterfaceWACI(node)
-auto_history = MockAutoConvHistory(node)
+#tts_waci = MockTTSInterfaceWACI(node)
+#auto_history = MockAutoConvHistory(node)
 
 # After this point your can use mock environment
 # You should use three classes:

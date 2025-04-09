@@ -25,11 +25,9 @@ class MottoChitChatAgent(ListeningAgent):
 
         # todo  how about /command_topic
         super().__init__(path, atoms, include_paths, code, event_bus=event_bus)
-        #atoms['handle-speech'] = OperationAtom('handle-speech', self.recv_callback_sentence, unwrap=False)
+        # atoms['handle-speech'] = OperationAtom('handle-speech', self.recv_callback_sentence, unwrap=False)
         if isinstance(atoms, GroundedAtom):
             atoms = atoms.get_object().content
-
-
 
         self.tts_waci = MockTTSInterfaceWACI(event_bus)
         self.auto_history = MockAutoConvHistory(event_bus)
@@ -94,7 +92,6 @@ class MottoChitChatAgent(ListeningAgent):
         else:
             self.log.warning(f"WARNING! {u} UNKNOWN COMMAND! It will be ignored!")
 
-
     def process_system_command(self, command):
         if command.body == "clear":
             self.clear_history()
@@ -119,9 +116,7 @@ class MottoChitChatAgent(ListeningAgent):
         if (message is None) and (additional_info is None):
             return None
 
-        return super().__call__(message, additional_info=additional_info).content,  self.args_getter.model_name
-
-
+        return super().__call__(message, additional_info=additional_info).content, self.args_getter.model_name
 
     def get_stream_for_command(self, command):
         if command.command_type == "simple_say":
@@ -139,7 +134,9 @@ class MottoChitChatAgent(ListeningAgent):
             return
         try:
             stream, tag = self.get_stream_for_command(command)
+            i = 0
             for response in self.process_stream_response(stream):
+                i = i + 1
                 if not self.tts_waci.say_if_not_canceled(response, current_lang, tag):
                     self.log.debug(f"PROCESSING HAS BEEN CANCELED 3 cycle={i}!!!!")
                     return
@@ -191,24 +188,20 @@ class MottoChitChatAgent(ListeningAgent):
                 self.try_put_command_back_to_global_command(command)
             self.tts_waci.wait_stop_speaking_or_canceled()
 
-
     def stop(self):
         super().stop()
         self.hard_stop()
         self.sentence_queue.put(None)
 
 
-
-
-
 @register_atoms(pass_metta=True)
 def listening_gate_atoms(metta):
     return {
         r"motto-chitchat-agent": OperationAtom('motto-chitchat-agent',
-                                          lambda path=None, event_bus=None:
-                                          MottoChitChatAgent.get_agent_atom(None,
-                                                                      unwrap=False,
-                                                                      path=path,
-                                                                      event_bus=event_bus),
-                                          unwrap=False),
+                                               lambda path=None, event_bus=None:
+                                               MottoChitChatAgent.get_agent_atom(None,
+                                                                                 unwrap=False,
+                                                                                 path=path,
+                                                                                 event_bus=event_bus),
+                                               unwrap=False),
     }
