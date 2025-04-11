@@ -18,7 +18,7 @@ class AIImporter:
                     self.errors.append(RuntimeError(f"Install {req} library to use {self.agent_name}"))
                     break
 
-    def __init__(self, agent_name, key=None, requirements=None, client_constructor=None, proxy=None):
+    def __init__(self, agent_name, key=None, requirements=None, client_constructor=None, proxy=None, static_client=None):
         if requirements is None:
             requirements = []
         self.agent_name = agent_name
@@ -39,14 +39,25 @@ class AIImporter:
             self.proxy = os.environ.get(proxy)
         self.client_constructor = client_constructor
         self._client = None
+        self._static_client = None
+        self._static_client_name = static_client
+
+    def load_class(self, name):
+        if  "." in name:
+            module_name, class_name = name.rsplit(".", 1)
+            parent_module = importlib.import_module(module_name)
+            return getattr(parent_module, class_name)
+
+        return importlib.import_module(name)
 
     def import_library(self):
         for req in self.requirements:
             importlib.import_module(req)
         if isinstance(self.client_constructor, str):
-            module_name, class_name = self.client_constructor.rsplit(".", 1)
-            parent_module = importlib.import_module(module_name)
-            self.client_constructor = getattr(parent_module, class_name)
+            self.client_constructor = self.load_class(self.client_constructor)
+        elif isinstance(self._static_client_name, str):
+            self._static_client = self.load_class(self._static_client_name)
+
 
     def has_errors(self):
         return len(self.errors) > 0
@@ -63,8 +74,11 @@ class AIImporter:
 
     def _get_ai_client(self):
         self.check_errors()
-
         self.import_library()
+
+        if self._static_client is not None:
+            return self._static_client
+
         if self.client_constructor is None:
             return None
 

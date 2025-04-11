@@ -98,6 +98,10 @@ class TestLLms(unittest.TestCase):
 
         node.publish("speech", "who is the 6 president of France?")
         start = time.time()
+        while agent.processing:
+            if start - time.time() > 7:
+                break
+        start = time.time()
         while not agent.processing:
             if start - time.time() > 7:
                 break
