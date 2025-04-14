@@ -118,7 +118,7 @@ class CallerArgsGetter:
             else:
                 full_direction = self.permantent_response_direction + "\n" + direction
         # todo I am not sure  about this trimmer
-        history_messages = history #self.messages_processsor.cut_dialog_history(history)
+        history_messages = self.messages_processsor.cut_dialog_history(history)
         media_messages, messages = self.get_messages(history_messages, full_direction)
 
         return messages, [("system_msg", full_system, "String"),

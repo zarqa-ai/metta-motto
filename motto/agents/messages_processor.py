@@ -41,18 +41,31 @@ class MessagesProcessor:
 
         return new_messages
 
-    def num_tokens_for_single_message(self, m):
+    def num_tokens_for_single_message(self, m, include_system):
         tokens_per_message = 3  # every message follows <|start|>{role/name}\n{content}<|end|>\n
         num_tokens = tokens_per_message
-        if ('role' in m) and m['role'] == 'media':
+        if self.is_system_or_media(m, include_system):
             return num_tokens
-        for key, value in m.items():
-            num_tokens += len(self.encoder.encode(value))
+        if isinstance(m, dict):
+            for key, value in m.items():
+                num_tokens += len(self.encoder.encode(value))
+        if isinstance(m, tuple):
+            num_tokens += len(self.encoder.encode(m[1]))
         return num_tokens
 
-    def cut_dialog_history(self, messages):
+    def is_system_or_media(self, m, include_system):
+        if isinstance(m, dict):
+            if ('role' in m) and (m['role'] == 'media' or (include_system and m['role'] == 'system')):
+                return True
+        if isinstance(m, tuple):
+            if m[0] == 'media' or (include_system and m[0] == 'system'):
+                return True
+        return False
+
+
+    def cut_dialog_history(self, messages, include_system=True):
         # remove old history in order to fit into the prompt
-        lines_tokens = [self.num_tokens_for_single_message(m) for m in messages]
+        lines_tokens = [self.num_tokens_for_single_message(m, include_system) for m in messages]
         sum_tokens = 0
         i_cut = 0
         for i in reversed(range(len(lines_tokens))):
@@ -65,7 +78,7 @@ class MessagesProcessor:
             # do not cut media files
             for m in messages[:i_cut]:
                 # do not cut media information
-                if ('role' in m) and m['role'] == 'media':
+                if self.is_system_or_media(m, include_system):
                     new_messages.append(m)
             return new_messages
         return messages

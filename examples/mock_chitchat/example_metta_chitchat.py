@@ -43,8 +43,6 @@ metta_agent = MottoChitChatAgent(path="simple_call_.msa", event_bus=node,
 
 metta_agent.start()
 
-
-
 while True:
     s = input().strip()
     if s.startswith(":"): # it is command, we publish it immediatly
