@@ -1,0 +1,5 @@
+(= (respond) ((chat-gpt-agent (model_name) (is_stream) False)
+              (Messages (system (system_msg)) (media (media_msg)) (messages))))
+(= (response) (respond))
+
+!(queue-subscription "/stt/sentence_topic" handle-speech)
