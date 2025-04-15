@@ -1,9 +1,7 @@
 from motto.agents.api_importer import AIImporter
 from .metta_agent import Agent
-import os
-import requests
 import json
-ai_importer = AIImporter('OpenRouterAgent', key='OPENROUTER_API_KEY')
+ai_importer = AIImporter('OpenRouterAgent', key='OPENROUTER_API_KEY', requirements=['requests'], static_client='requests')
 
 class Function:
     def __init__(self, name, arguments):
@@ -55,7 +53,7 @@ class OpenRouterAgent(Agent):
             else:
                 data["stream"] = self.stream_response
 
-            response = requests.post(
+            response = ai_importer.client.post(
                 url="https://openrouter.ai/api/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {ai_importer.key}",
