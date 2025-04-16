@@ -31,7 +31,7 @@ and MeTTa extention
 !(import! &self motto)
 ```
 
-Please, refer to the [tutorial](tutorial) and [examples](examples). [Tests](tests) can also be considered in addition.
+Please, refer to the [tutorial](https://github.com/zarqa-ai/metta-motto/tree/main/tutorial) and [examples](https://github.com/zarqa-ai/metta-motto/tree/main/examples). [Tests](https://github.com/zarqa-ai/metta-motto/tree/main/tests) can also be considered in addition.
 
 ## Tests
 
