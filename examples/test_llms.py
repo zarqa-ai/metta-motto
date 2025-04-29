@@ -164,6 +164,35 @@ class TestLLms(unittest.TestCase):
         assert ai_importer.has_errors() == 0
         assert ai_importer.client is None
 
+    def test_langchain_llm(self):
+        script = '''
+            !(import! &self motto)
+            (= (doc multiply)
+              (Doc
+                (description "Multiplies a and b")
+                (properties
+                  (a
+                    (title 'A')
+                    (type 'integer')
+                  )
+                   (b
+                    (title 'B')
+                    (type 'integer')
+                  )
+                )
+                 (type 'object')
+                 (required a)
+                 (required b)
+              )
+            )   
+            
+            (= (multiply ($a $b) $msgs)
+               (* $a $b)
+            )
+            !((langhcian-llm-agent) (user "What is  2 * 3 ") (Tool multiply))
+        '''
 
+        res = MeTTa().run(script, True)
+        assert repr(res[1]) == "6"
 
 

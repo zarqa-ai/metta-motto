@@ -27,7 +27,8 @@ def llmgate_atoms(metta):
               r"metta-agent": MettaAgent.agent_creator_atom(unwrap=False),
               r"dialog-agent": DialogAgent.agent_creator_atom(unwrap=False),
               r"echo-agent": EchoAgent.agent_creator_atom(metta),
-              r"open-router-agent": OpenRouterAgent.agent_creator_atom(metta)}
+              r"open-router-agent": OpenRouterAgent.agent_creator_atom(metta),
+              r"langhcian-llm-agent": LangChainLLmAgent.agent_creator_atom(metta)}
 
     return result
 

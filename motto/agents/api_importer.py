@@ -13,19 +13,26 @@ class AIImporter:
                 self.errors.append(RuntimeError(f"Install {req} library to use {self.agent_name}"))
         else:
             libs = str(req).split('.')
+            lb = ''
             for lib in libs:
-                if importlib.util.find_spec(lib) is None:
+                lb += lib
+                if importlib.util.find_spec(lb) is None:
                     self.errors.append(RuntimeError(f"Install {req} library to use {self.agent_name}"))
                     break
+                lb += '.'
 
-    def __init__(self, agent_name, key=None, requirements=None, client_constructor=None, proxy=None, static_client=None):
+    def __init__(self, agent_name, key=None, requirements=None, client_constructor=None, proxy=None):
         if requirements is None:
             requirements = []
         self.agent_name = agent_name
+        self.proxy = None
         self.errors = []
         self.requirements = requirements
+        self.imported_modules = {}
         for req in self.requirements:
             self.save_errors(req)
+            if self.has_errors():
+                break
 
 
         if agent_name in agents_with_keys:
@@ -37,10 +44,9 @@ class AIImporter:
                     self.errors.append(RuntimeError(f"Specify {key} environment variable to use {self.agent_name} agents"))
         if proxy is not None:
             self.proxy = os.environ.get(proxy)
+
         self.client_constructor = client_constructor
         self._client = None
-        self._static_client = None
-        self._static_client_name = static_client
 
     def load_class(self, name):
         if  "." in name:
@@ -52,11 +58,10 @@ class AIImporter:
 
     def import_library(self):
         for req in self.requirements:
-            importlib.import_module(req)
+            self.imported_modules[req] = importlib.import_module(req)
         if isinstance(self.client_constructor, str):
             self.client_constructor = self.load_class(self.client_constructor)
-        elif isinstance(self._static_client_name, str):
-            self._static_client = self.load_class(self._static_client_name)
+
 
 
     def has_errors(self):
@@ -75,10 +80,6 @@ class AIImporter:
     def _get_ai_client(self):
         self.check_errors()
         self.import_library()
-
-        if self._static_client is not None:
-            return self._static_client
-
         if self.client_constructor is None:
             return None
 
