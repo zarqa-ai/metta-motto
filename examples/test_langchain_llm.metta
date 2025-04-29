@@ -46,3 +46,4 @@
    (+ $a $b)
 )
 !((langhcian-llm-agent) (user "What is  2 * 3? What is 2 + 5 ") (Tools multiply add))
+!((langhcian-llm-agent) (user "Who is John Lennon?") (Tools multiply add))

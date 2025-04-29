@@ -297,7 +297,7 @@ def correct_the_response(response_message):
 class Response:
     def __init__(self, content, functions=None, role=None):
         self.content = content
-        self.tool_calls = functions
+        self.tool_calls = functions if len(functions) > 0 else None
         self.role = role
 
     def __repr__(self):
