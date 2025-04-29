@@ -1,26 +1,8 @@
+from motto.agents.agent import correct_the_response, Response
 from motto.agents.api_importer import AIImporter
 from .metta_agent import Agent
 import json
-ai_importer = AIImporter('OpenRouterAgent', key='OPENROUTER_API_KEY', requirements=['requests'], static_client='requests')
-
-class Function:
-    def __init__(self, name, arguments):
-        self.name = name
-        self.arguments = arguments
-
-
-class ToolCalls:
-    def __init__(self, tool_id, call_type, function):
-        self.id = tool_id
-        self.type = call_type
-        self.function = function
-
-
-class MessageClass:
-    def __init__(self, role, content, tool_calls=None):
-        self.role = role
-        self.content = content
-        self.tool_calls = tool_calls
+ai_importer = AIImporter('OpenRouterAgent', key='OPENROUTER_API_KEY', requirements=['requests'])
 
 
 class OpenRouterAgent(Agent):
@@ -52,8 +34,8 @@ class OpenRouterAgent(Agent):
                 data["tools"] = tools
             else:
                 data["stream"] = self.stream_response
-
-            response = ai_importer.client.post(
+            ai_importer.import_library()
+            response = ai_importer.imported_modules['requests'].post(
                 url="https://openrouter.ai/api/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {ai_importer.key}",
@@ -67,13 +49,8 @@ class OpenRouterAgent(Agent):
             result = json.loads(response.content)
             response_message = result['choices'][0]['message']
             if not functions:
-                return MessageClass(response_message['role'], response_message['content'])
-            tool_calls = []
-            for tool in response_message['tool_calls']:
-                tool_calls.append(
-                    ToolCalls(tool['id'], tool['type'], Function(tool['function']['name'], tool['function']['arguments'])))
-
-            return MessageClass(response_message['role'], response_message['content'], tool_calls)
+                return Response(response_message['content'], role=response_message['role'])
+            return correct_the_response(response_message)
         except Exception as e:
-            return MessageClass("system", e)
+            return Response(e, role="system")
 
