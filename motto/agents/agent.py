@@ -3,6 +3,7 @@ from hyperon.exts.agents import EventAgent
 import json
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -12,6 +13,7 @@ def to_nested_expr(xs):
     if isinstance(xs, dict):
         return E(*[E(to_nested_expr(k), to_nested_expr(v)) for k, v in xs.items()])
     return xs if isinstance(xs, Atom) else ValueAtom(xs)
+
 
 def atom2msg(atom):
     if isinstance(atom, ExpressionAtom):
@@ -29,6 +31,64 @@ def atom2msg(atom):
             if isinstance(v, str):
                 return v.replace("\\n", "\n")
     return repr(atom)
+
+
+def process_func_params(p):
+    if hasattr(p, 'get_children'):
+        key = None
+        properties = {}
+        for val in p.get_children():
+            params = process_func_params(val)
+            if key is not None:
+                if key not in properties:
+                    properties[key] = params
+                else:
+                    if isinstance(params, dict) and isinstance(properties[key], dict):
+                        properties[key].update(params)
+                    else:
+                        pass
+            else:
+                key = params
+        return properties
+    value = atom2msg(p)
+    if ("'" == value[0]) and ("'" == value[-1]):
+        return value[1:-1]
+    return value
+
+
+def get_tool_def(fn, metta, prompt_space):
+    doc = None
+    if prompt_space is not None:
+        r = prompt_space.query(E(S('='), E(S('doc'), fn), V('r')))
+        if not r.is_empty():
+            doc = r[0]['r']
+    if doc is None:
+        # We use `match` here instead of direct `doc` evaluation
+        # to evoid non-reduced `doc`
+        doc = metta.run(f"! (match &self (= (doc {fn}) $r) $r)")
+        if len(doc) == 0 or len(doc[0]) == 0:
+            raise RuntimeError(f"No {fn} function description")
+        doc = doc[0][0]
+    # TODO: format is not checked
+    doc = doc.get_children()
+    properties = {}
+    key_for_required = 'required'
+    for par in doc[1:]:
+        res = process_func_params(par)
+        if isinstance(res, dict):
+            if (key_for_required in res) and key_for_required in properties:
+                properties[key_for_required] = [properties[key_for_required], res[key_for_required]]
+            else:
+                properties.update(res)
+
+    # FIXME: This function call format is due to ChatGPT. It seems like an excessive
+    # wrapper here and might be reduced (and extended in the gpt-agent itself).
+    result = {
+        "name": fn.get_name(),
+    }
+    result.update(properties)
+    return result
+
 
 def get_func_def(fn, metta, prompt_space):
     doc = None
@@ -60,7 +120,7 @@ def get_func_def(fn, metta, prompt_space):
         prop = {"type": "string",
                 "description": p[1].get_object().value,
                 "metta-type": 'String',
-               }
+                }
         if isinstance(p[0], ExpressionAtom):
             par_typ = p[0].get_children()
             if repr(par_typ[0]) != ':':
@@ -84,6 +144,7 @@ def get_func_def(fn, metta, prompt_space):
         }
     }
 
+
 def is_space(atom):
     return isinstance(atom, GroundedAtom) and \
            isinstance(atom.get_object(), SpaceRef)
@@ -94,6 +155,7 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
     functions = []
     params = {}
     msg_atoms = []
+
     def __msg_update(m, f, p, a):
         nonlocal messages, functions, params, msg_atoms
         messages += m
@@ -108,11 +170,11 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
         # It is useful for messages as well as arbitrary code, which relies
         # on information from the agent.
         # TODO: we may want to do something special with equalities
-        #arg = interpret(metta.space(), atom)
+        # arg = interpret(metta.space(), atom)
         arg = metta.evaluate_atom(atom)
         # NOTE: doesn't work now since Error inside other expressions is not passed through them
         #       but it can be needed in the future
-        #if isinstance(arg, ExpressionAtom) and repr(arg.get_children()[0]) == 'Error':
+        # if isinstance(arg, ExpressionAtom) and repr(arg.get_children()[0]) == 'Error':
         #    raise RuntimeError(repr(arg.get_children()[1]))
         arg = atom if len(arg) == 0 else arg[0]
         if is_space(arg):
@@ -129,6 +191,9 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                     msg_atoms += [arg]
                 elif name in ['Functions', 'Function']:
                     functions += [get_func_def(fn, metta, prompt_space)
+                                  for fn in ch[1:]]
+                elif name in ['Tools', 'Tool']:
+                    functions += [get_tool_def(fn, metta, prompt_space)
                                   for fn in ch[1:]]
                 elif name == 'Script':
                     if is_space(ch[1]):
@@ -167,7 +232,8 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
     # Do not wrap a single message into Message (necessary to avoid double
     # wrapping of single Message argument)
     return messages, functions, params, \
-        msg_atoms[0] if len(msg_atoms) == 1 else E(S('Messages'), *msg_atoms)
+           msg_atoms[0] if len(msg_atoms) == 1 else E(S('Messages'), *msg_atoms)
+
 
 def get_response(metta, agent, response, functions, msgs_atom):
     if not hasattr(response, "tool_calls"):
@@ -187,8 +253,9 @@ def get_response(metta, agent, response, functions, msgs_atom):
                 if func["name"] != fname:
                     continue
                 for k, v in args.items():
-                    if func["parameters"]["properties"][k]['metta-type'] == 'Atom':
-                        args[k] = metta.parse_single(v)
+                    if ("parameters" in func) and ("properties" in func["parameters"]):
+                        if func["parameters"]["properties"][k]['metta-type'] == 'Atom':
+                            args[k] = metta.parse_single(v)
             result.append(repr(E(fs, to_nested_expr(list(args.values())), msgs_atom)))
         res = f"({' '.join(result)})" if len(result) > 1 else result[0]
         val = metta.parse_single(res)
@@ -197,31 +264,45 @@ def get_response(metta, agent, response, functions, msgs_atom):
     return response.content if isinstance(response.content, list) else \
         [ValueAtom(response.content)]
 
+
 class Function:
     def __init__(self, name, arguments, format=""):
         self.name = name
-        self.forma = format
+        self.format = format
         self.arguments = arguments
 
+
 class ToolCall:
-    def __init__(self, id, function, type="function"):
+    def __init__(self, id, function, call_type="function"):
         self.id = id
         self.function = function
-        self.type = type
+        self.type = call_type
+
+
+def correct_the_response(response_message):
+    tool_calls = []
+    if isinstance(response_message, dict):
+        for tool in response_message['tool_calls']:
+            tool_calls.append(
+                ToolCall(tool['id'], Function(tool['function']['name'], tool['function']['arguments']), tool['type']))
+        return Response(response_message['content'], tool_calls, response_message['role'])
+    if hasattr(response_message, 'tool_calls') and (response_message.tool_calls is not None):
+        for tool in response_message.tool_calls:
+            tool_calls.append(
+                ToolCall(tool['id'], Function(tool['name'], tool['args']), tool['type']))
+        return Response(response_message.content, tool_calls)
+    return response_message
+
 
 class Response:
-    def __init__(self, content, functions=None):
+    def __init__(self, content, functions=None, role=None):
         self.content = content
-        self.tool_calls = None
-        if functions is not None:
-            k = 1
-            self.tool_calls = []
-            for f in functions:
-                self.tool_calls.append(ToolCall(k, f))
-                k =+ 1
+        self.tool_calls = functions if len(functions) > 0 else None
+        self.role = role
 
     def __repr__(self):
         return f"Response(content: {self.content}, tool_calls: {self.tool_calls})"
+
 
 class Agent(EventAgent):
 
@@ -235,7 +316,8 @@ class Agent(EventAgent):
         if self._unwrap:
             for p in params.keys():
                 if not isinstance(params[p], GroundedAtom):
-                    raise TypeError(f"GroundedAtom is expected as input to a non-MeTTa agent. Got type({params[p]})={type(params[p])}")
+                    raise TypeError(
+                        f"GroundedAtom is expected as input to a non-MeTTa agent. Got type({params[p]})={type(params[p])}")
                 params[p] = params[p].get_object().value
         try:
             response = self(msgs_atom if not self._unwrap else messages,
@@ -255,6 +337,7 @@ class EchoAgent(Agent):
         msg = '\n'.join(msg)
         fcall = [] if len(functions) > 0 else None
         # A mock function call processing for testing purposes
+        ind = 1
         for f in functions:
             vcall = None
             if f['description'] in msg:
@@ -264,5 +347,6 @@ class EchoAgent(Agent):
                         for v in prop[k]['enum']:
                             if prop[k]['description'] + v in msg:
                                 vcall = {k: v}
-                fcall.append(Function(f['name'], vcall))
+                fcall.append(ToolCall(ind, Function(f['name'], vcall)))
+                ind = ind + 1
         return Response(msg, fcall)
