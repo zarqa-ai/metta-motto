@@ -297,7 +297,7 @@ def correct_the_response(response_message):
 class Response:
     def __init__(self, content, tool_calls=None, role=None):
         self.content = content
-        self.tool_calls = tool_calls if  tool_calls is not None and len(tool_calls) > 0 else None
+        self.tool_calls = tool_calls if (tool_calls is not None) and len(tool_calls) > 0 else None
         self.role = role
 
     def __repr__(self):
