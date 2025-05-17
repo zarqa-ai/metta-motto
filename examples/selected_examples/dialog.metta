@@ -1,0 +1,5 @@
+!(import! &self motto)
+!(bind! &chat (dialog-agent selected_examples/dialog.msa))
+!(&chat (user "Hello! I am Sveta. Tell me about Gustav Klimt shortly."))
+!(&chat  (user "Where can I see his painting The Kiss?"))
+!(&chat (user "What is my name"))

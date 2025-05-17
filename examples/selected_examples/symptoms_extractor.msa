@@ -1,0 +1,30 @@
+;default model gpt-3.5-turbo
+(= (response)
+     (_eval (
+        (chat-gpt-agent)
+        (
+            system "Represent natural language statements as expressions in Scheme.
+                if someone says that person X has some symptom Y then return it in way (add_symptoms X (Y) )
+                or maybe there are many symptoms then return  (add_symptoms X (Y Z) ), for example,
+               for sentence 'Tom is experiencing fatigue and has a fever' you should return two triples
+               (add_symptoms Tom (fever fatigue))
+               the available symptoms are fever, cough, fatigue,rash.
+               the number of triples,  returned by you, should be equal to number of symptoms in text. More examples:
+
+               Today, Tom woke up and noticed a rash on his body  -> (add_symptoms Tom (rash))
+
+               Emma has been feeling extreme fatigue and developed a persistent cough -> (add_symptoms  Emma (cough fatigue))
+
+               Liam is running a high fever and has a blotchy rash on his arms -> (add_symptoms  Liam (fever rash))
+
+               After a long nap, Ava woke up coughing and feeling unusually tired -> (add_symptoms Ava (cough fatigue))
+
+               Noah started the day with a mild fever, but by noon he had a rash on his chest -> (add_symptoms Noah (rash fever))
+
+               Sophia is experiencing both fatigue and a recurring cough -> (add_symptoms  Sophia (cough fatigue))"
+        )
+        (messages)
+      )
+    )
+
+)
