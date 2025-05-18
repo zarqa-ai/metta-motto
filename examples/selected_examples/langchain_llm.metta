@@ -46,5 +46,5 @@
    (+ $a $b)
 )
 ;default model="gpt-4o-mini", model_provider='openai'
-;!((langhcian-llm-agent) (user "What is  2 * 3? What is 2 + 5 ") (Tools multiply add))
-!((langhcian-llm-agent "claude-3-opus-20240229" "anthropic") (user "Who is John Lennon?") (Tools multiply add))
+!((langhcian-llm-agent) (user "What is  2 * 3? What is 2 + 5 ") (Tools multiply add))
+!((langhcian-llm-agent "gpt-3.5-turbo" "openai") (user "Who is John Lennon?") (Tools multiply add))
