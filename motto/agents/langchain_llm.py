@@ -1,5 +1,5 @@
 from motto.agents.api_importer import AIImporter
-from .agent import Agent, Response, correct_the_response
+from .agent import Agent, Response, correct_the_response, DocType
 import logging
 from typing import Any, Dict
 
@@ -54,20 +54,24 @@ class LangChainLLmAgent(Agent):
         self.log = logging.getLogger(__name__ + '.' + type(self).__name__)
         self.model_to_invoke = self.model
 
-    def _collect_tools(self, functions):
+    def _collect_tools_and_structure(self, functions):
         if "langchain_core.tools" not in ai_importer.imported_modules:
             return None
         tools = []
+        output_structure = None
         for func in functions:
-            tool = ai_importer.imported_modules["langchain_core.tools"].StructuredTool.from_function(
-                name=func["name"],
-                description=func["description"],
-                args_schema=pydantic_model_from_json_schema("funcInput", func),
-                func=mock_func
-            )
+            if func['doc_type'] == DocType.Tool.value:
+                tool = ai_importer.imported_modules["langchain_core.tools"].StructuredTool.from_function(
+                    name=func["name"],
+                    description=func["description"],
+                    args_schema=pydantic_model_from_json_schema("funcInput", func),
+                    func=mock_func
+                )
+                tools.append(tool)
+            if func['doc_type'] == DocType.OutputStructure.value:
+                output_structure = {k: v for k, v in func.items() if k != 'doc_type'}
 
-            tools.append(tool)
-        return tools
+        return tools, output_structure
 
     def _get_messages(self, messages):
         if "langchain_core.messages" not in ai_importer.imported_modules:
@@ -84,9 +88,13 @@ class LangChainLLmAgent(Agent):
     def __call__(self, messages, functions=[]):
         try:
             # self.client = ai_importer.client
+            self.model_to_invoke = self.model
             if len(functions) > 0:
-                tools = self._collect_tools(functions)
-                self.model_to_invoke = self.model.bind_tools(tools)
+                tools, json_schema = self._collect_tools_and_structure(functions)
+                if len(tools) > 0:
+                    self.model_to_invoke = self.model_to_invoke.bind_tools(tools)
+                if json_schema is not None:
+                    self.model_to_invoke = self.model_to_invoke.with_structured_output(json_schema)
             langChain_messages = self._get_messages(messages)
             if self.stream:
                 response = self.model_to_invoke.stream(langChain_messages)
