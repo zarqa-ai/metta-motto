@@ -93,7 +93,7 @@ class LangChainLLmAgent(Agent):
                 tools, json_schema = self._collect_tools_and_structure(functions)
                 if len(tools) > 0:
                     self.model_to_invoke = self.model_to_invoke.bind_tools(tools)
-                if json_schema is not None:
+                elif json_schema is not None:
                     self.model_to_invoke = self.model_to_invoke.with_structured_output(json_schema)
             langChain_messages = self._get_messages(messages)
             if self.stream:
