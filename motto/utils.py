@@ -120,3 +120,36 @@ def has_argument(func, arg_name):
         return arg_name in signature.parameters
     except (TypeError, ValueError):
         return False
+
+def dict_to_tuples(some_dict: dict):
+    t = get_string(some_dict)
+    some_dict = json.loads(t.replace ('\'','"'))
+    atoms_list = []
+    for k, v in some_dict.items():
+        if isinstance(v, list):
+            for item in v:
+                atoms_list.append(E(ValueAtom(k), ValueAtom(item)))
+
+        elif isinstance(v, dict):
+            lst = dict_to_tuples(v)
+            atoms_list.extend(lst)
+        else:
+            atoms_list.append(E(ValueAtom(k), ValueAtom(v)))
+    return atoms_list
+
+def dict_to_metta_expr(some_dict: dict):
+    atoms_list = dict_to_tuples(some_dict)
+    dict_space = GroundingSpaceRef()
+    for atom in atoms_list:
+        dict_space.add_atom(atom)
+    return dict_space
+
+def remove_quotes(str_atom, replace_space=False):
+    str = get_string(str_atom)
+    if isinstance(replace_space, GroundedAtom):
+        replace_space = replace_space.get_object().content
+    if replace_space:
+        str.replace(" ", "_")
+    return S(str)
+
+
