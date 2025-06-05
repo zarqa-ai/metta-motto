@@ -132,7 +132,8 @@ def dict_to_tuples(some_dict: dict):
 
         elif isinstance(v, dict):
             lst = dict_to_tuples(v)
-            atoms_list.extend(lst)
+            for item in lst:
+                atoms_list.append(E(ValueAtom(k), ValueAtom(item)))
         else:
             atoms_list.append(E(ValueAtom(k), ValueAtom(v)))
     return atoms_list
