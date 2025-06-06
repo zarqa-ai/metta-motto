@@ -9,8 +9,6 @@
 (Fact "Arilou is an alien")
 (Fact "Tom is a helicopter")
 
-
-
 ; Statements are processed into a functional form for the sake of simplicity -
 ; no full-fledged reasoning engine is used, so the example is limited.
 
@@ -19,23 +17,20 @@
    (if (and ($what $A $C) ($C $B))
        $B (empty)))
 
-
 !(bind! &agent (metta-agent "06b_reason_with_structured_output.msa"))
 
 ; represent $fact as metta expression
 !(match &self (Fact $fact)
-    (let* ( ((quote $expr) (&agent (user $fact)))
-         (() (println! ($fact Adding: (quote $expr) )))) ; print what is added
-         (add-atom &self $expr)
+    (let* (((quote $expr) (&agent (user $fact)))
+           (() (println! ($fact Adding: (quote $expr))))) ; print what is added
+        (add-atom &self $expr)
     )
 )
 ;!(likes helicopter "Arilou")
 
-
 ;not every call returns correct result
+!(let (quote $a) (&agent (user "John is an alien")) (add-atom &self $a))
+!(unquote (&agent (user "Does John likes helicopter?")))
 
-!(let (quote $a ) ( &agent  (user "John is an alien")) (add-atom &self $a))
-!( unquote ( &agent  (user "Does John likes helicopter?")))
-
-!( unquote ( &agent  (user "Is Tom a helicopter?")))
-!( unquote ( &agent  (user "Is Sam a frog?")))
+!(unquote (&agent (user "Is Tom a helicopter?")))
+!(unquote (&agent (user "Is Sam a frog?")))
