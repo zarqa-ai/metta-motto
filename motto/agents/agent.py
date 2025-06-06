@@ -1,3 +1,5 @@
+from enum import Enum
+
 from hyperon import *
 from hyperon.exts.agents import EventAgent
 import json
@@ -5,6 +7,11 @@ import json
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class DocType(Enum):
+    OutputStructure = 'OutputStructure'
+    Tool = 'Tool'
 
 
 def to_nested_expr(xs):
@@ -37,26 +44,35 @@ def process_func_params(p):
     if hasattr(p, 'get_children'):
         key = None
         properties = {}
+        is_array = False
         for val in p.get_children():
             params = process_func_params(val)
+            if params == 'is_array':
+                is_array = True
+                continue
             if key is not None:
                 if key not in properties:
-                    properties[key] = params
+                    properties[key] = params if (not is_array) else [params]
                 else:
                     if isinstance(params, dict) and isinstance(properties[key], dict):
                         properties[key].update(params)
+                    elif is_array:
+                        properties[key].append(params)
                     else:
                         pass
             else:
-                key = params
+                if not isinstance(params, dict):
+                    key = params
+                    is_array = False
+                else:
+                    properties.update(params)
         return properties
     value = atom2msg(p)
     if ("'" == value[0]) and ("'" == value[-1]):
         return value[1:-1]
     return value
 
-
-def get_tool_def(fn, metta, prompt_space):
+def get_langchain_doc_def(fn, metta, prompt_space, doc_type):
     doc = None
     if prompt_space is not None:
         r = prompt_space.query(E(S('='), E(S('doc'), fn), V('r')))
@@ -67,27 +83,22 @@ def get_tool_def(fn, metta, prompt_space):
         # to evoid non-reduced `doc`
         doc = metta.run(f"! (match &self (= (doc {fn}) $r) $r)")
         if len(doc) == 0 or len(doc[0]) == 0:
-            raise RuntimeError(f"No {fn} function description")
+            raise RuntimeError(f"No {fn} {doc_type.value} description")
         doc = doc[0][0]
     # TODO: format is not checked
     doc = doc.get_children()
     properties = {}
-    key_for_required = 'required'
     for par in doc[1:]:
         res = process_func_params(par)
-        if isinstance(res, dict):
-            if (key_for_required in res) and key_for_required in properties:
-                properties[key_for_required] = [properties[key_for_required], res[key_for_required]]
-            else:
-                properties.update(res)
+        properties.update(res)
 
-    # FIXME: This function call format is due to ChatGPT. It seems like an excessive
-    # wrapper here and might be reduced (and extended in the gpt-agent itself).
-    result = {
-        "name": fn.get_name(),
-    }
-    result.update(properties)
-    return result
+    if doc_type == DocType.Tool:
+        properties['name'] = fn.get_name()
+        properties['doc_type'] = DocType.Tool.value
+    if doc_type == DocType.OutputStructure:
+        properties['title'] = fn.get_name()
+        properties['doc_type'] = DocType.OutputStructure.value
+    return properties
 
 
 def get_func_def(fn, metta, prompt_space):
@@ -193,7 +204,10 @@ def get_llm_args(metta: MeTTa, prompt_space: SpaceRef, *args):
                     functions += [get_func_def(fn, metta, prompt_space)
                                   for fn in ch[1:]]
                 elif name in ['Tools', 'Tool']:
-                    functions += [get_tool_def(fn, metta, prompt_space)
+                    functions += [get_langchain_doc_def(fn, metta, prompt_space, DocType.Tool)
+                                  for fn in ch[1:]]
+                elif name in ['OutputStructure']:
+                    functions += [get_langchain_doc_def(fn, metta, prompt_space, DocType.OutputStructure)
                                   for fn in ch[1:]]
                 elif name == 'Script':
                     if is_space(ch[1]):
@@ -281,7 +295,7 @@ class ToolCall:
 
 def correct_the_response(response_message):
     tool_calls = []
-    if isinstance(response_message, dict):
+    if isinstance(response_message, dict) and ('tool_calls' in response_message):
         for tool in response_message['tool_calls']:
             tool_calls.append(
                 ToolCall(tool['id'], Function(tool['function']['name'], tool['function']['arguments']), tool['type']))
